@@ -38,11 +38,13 @@
     {% if data.form_ok %}<p class="prose-fraco" style="margin-bottom:12px;">{{ data.form_ok }}</p>{% endif %}
     {% if data.form_error %}<p class="prose-fraco" style="color:#b00000; margin-bottom:12px;">{{ data.form_error }}</p>{% endif %}
     <p class="product-meta" style="margin-bottom:16px;">Available combined member progress: <strong>{{ data.shipping_eligibility.available }}</strong>. The shipping expense is deducted when its status reaches PROCESSING.</p>
-    {% if data.row.shipping_request_status in ['PROCESSING', 'SHIPPED', 'COMPLETED'] and data.row.shipping_budget_num %}
+    {% if data.row.shipping_request_status in ['PROCESSING', 'SHIPPED', 'COMPLETED'] and data.row.shipping_total_expense_num %}
     <div class="pay-box" style="padding:16px; margin-bottom:18px;">
-        <p class="field-label">Shipping cost deduction</p>
-        <p style="margin-top:7px;"><strong>−{{ data.row.shipping_budget }}</strong></p>
-        <p class="product-meta" style="margin-top:7px;">Deducted from the member's earnings and combined target progress. Automatically recorded as a Shipping expense in Finance.</p>
+        <p class="field-label">Total shipping deduction</p>
+        <p class="product-meta" style="margin-top:7px;">Shipping cost: −{{ data.row.shipping_budget or 'Rp 0' }}</p>
+        <p class="product-meta" style="margin-top:5px;">Wrapping, packing, and arrangement service: −{{ data.row.shipping_service_fee }}</p>
+        <p style="margin-top:8px;"><strong>−{{ data.row.shipping_total_expense }}</strong></p>
+        <p class="product-meta" style="margin-top:7px;">The accumulated total is deducted from the member's earnings and combined target progress, then recorded as a Shipping expense in Finance.</p>
     </div>
     {% endif %}
     {% if data.row.shipping_handler == 'OFFICER' %}
@@ -51,6 +53,14 @@
         <p style="margin-top:8px;"><strong>{{ data.row.shipping_name or data.row.full_name }}</strong> · {{ data.row.shipping_phone or data.row.phone }}</p>
         <p style="margin-top:5px;">{{ data.row.shipping_address or data.row.address }} · {{ data.row.shipping_city or data.row.city }} {{ data.row.shipping_postal_code or data.row.postal_code }}</p>
         {% if data.row.shipping_package_note %}<p class="product-meta" style="margin-top:8px;">Package note: {{ data.row.shipping_package_note }}</p>{% endif %}
+    </div>
+    <div class="pay-box" style="padding:16px; margin-bottom:18px;">
+        <p class="field-label">Dokumen pengiriman</p>
+        <p class="product-meta" style="margin:7px 0 12px;">Berisi data member sebagai pengirim, kontak dan alamat penerima, daftar barang, serta catatan paket.</p>
+        <div class="filter-row">
+            <a class="btn-line" href="/admin/orders/{{ data.row.pkey }}/shipping-document" target="_blank" rel="noopener">Pratinjau</a>
+            <a class="btn-black" href="/admin/orders/{{ data.row.pkey }}/shipping-document.pdf">Unduh PDF</a>
+        </div>
     </div>
     {% endif %}
     <form class="form-stack" method="post" id="admin-shipping-form">
@@ -68,7 +78,7 @@
                 <label class="field-label" for="shipping_request_status">Officer shipping status</label>
                 <select class="field" name="shipping_request_status" id="shipping_request_status">
                     {% for status in data.shipping_statuses %}
-                    <option value="{{ status }}"{% if data.row.shipping_request_status == status %} selected{% endif %}>{{ status }}</option>
+                    <option value="{{ status.value }}"{% if data.row.shipping_request_status == status.value %} selected{% endif %}>{{ status.label }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -86,9 +96,14 @@
                 <p class="product-meta" style="margin-top:7px;">Manage expedition options in <a class="section-link" href="/admin/settings?tab=shipping">Settings → Shipping</a>.</p>
             </div>
             <div style="margin-top:12px;">
+                <label class="field-label" for="shipping_service_fee_num">Wrapping, packing, and shipping arrangement service fee</label>
+                <input class="field" type="number" min="0" max="{{ data.shipping_eligibility.available_num }}" step="1000" name="shipping_service_fee_num" id="shipping_service_fee_num" value="{{ data.row.shipping_service_fee_num or 0 }}" data-available="{{ data.shipping_eligibility.available_num }}">
+                <p class="product-meta" style="margin-top:7px;">Custom for this order. The default from Shipping Settings is {{ data.shipping_eligibility.service_fee }}.</p>
+            </div>
+            <div style="margin-top:12px;">
                 <label class="field-label" for="shipping_budget_num">Shipping budget / expense</label>
-                <input class="field" type="number" min="0" max="{{ data.shipping_eligibility.available_num }}" name="shipping_budget_num" id="shipping_budget_num" value="{{ data.row.shipping_budget_num or 0 }}">
-                <p class="product-meta" style="margin-top:7px;">Maximum available from combined progress: {{ data.shipping_eligibility.available }}.</p>
+                <input class="field" type="number" min="0" max="{{ data.shipping_eligibility.shipping_budget_max_num }}" name="shipping_budget_num" id="shipping_budget_num" value="{{ data.row.shipping_budget_num or 0 }}">
+                <p class="product-meta" style="margin-top:7px;">Service fee plus shipping budget cannot exceed the available combined progress of {{ data.shipping_eligibility.available }}.</p>
             </div>
             <div style="margin-top:12px;"><label class="field-label" for="shipping_tracking_code">Expedition tracking code</label><input class="field" name="shipping_tracking_code" id="shipping_tracking_code" value="{{ data.row.shipping_tracking_code or '' }}"></div>
             <div style="margin-top:12px;"><label class="field-label" for="shipping_tracking_url">Tracking link</label><input class="field" type="url" name="shipping_tracking_url" id="shipping_tracking_url" value="{{ data.row.shipping_tracking_url or '' }}" placeholder="https://..."></div>
@@ -133,7 +148,7 @@
     {% endif %}
 </form>
 {% if data.can_delete %}
-<form method="post" style="margin-top: 16px;" onsubmit="return confirm('Delete this order? Referral merch profit will be adjusted.');">
+<form method="post" style="margin-top: 16px;" onsubmit="return confirm('Delete this order? Its sale, profit, and shipping expense will stop counting in admin, Finance, and the member target.');">
     <input type="hidden" name="action" value="delete">
     <input type="hidden" name="pkey" value="{{ data.row.pkey }}">
     <button class="btn-line" type="submit">Delete order</button>
@@ -148,8 +163,23 @@
     function syncShippingType() {
         officer.style.display = handler.value === "OFFICER" ? "" : "none";
     }
+    function syncExpenseLimits() {
+        var serviceFee = document.getElementById("shipping_service_fee_num");
+        var shippingBudget = document.getElementById("shipping_budget_num");
+        if (!serviceFee || !shippingBudget) return;
+        var available = parseInt(serviceFee.dataset.available || "0", 10);
+        var feeValue = Math.max(0, parseInt(serviceFee.value || "0", 10));
+        var budgetValue = Math.max(0, parseInt(shippingBudget.value || "0", 10));
+        serviceFee.max = String(Math.max(0, available - budgetValue));
+        shippingBudget.max = String(Math.max(0, available - feeValue));
+    }
     handler.addEventListener("change", syncShippingType);
+    var serviceFee = document.getElementById("shipping_service_fee_num");
+    var shippingBudget = document.getElementById("shipping_budget_num");
+    if (serviceFee) serviceFee.addEventListener("input", syncExpenseLimits);
+    if (shippingBudget) shippingBudget.addEventListener("input", syncExpenseLimits);
     syncShippingType();
+    syncExpenseLimits();
 })();
 </script>
 {% endblock %}

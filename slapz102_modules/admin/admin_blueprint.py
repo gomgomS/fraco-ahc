@@ -56,10 +56,35 @@ def orders():
     return _wrap(view_admin.html_orders)
 # end def
 
+@admin_blueprint.route("/admin/orders/print/officer", methods=["GET"])
+def officer_shipping_print():
+    return _wrap(view_admin.html_officer_shipping_print)
+# end def
+
 @admin_blueprint.route("/admin/orders/<pkey>", methods=["GET", "POST"])
 def order(pkey):
     try:
         return view_admin.html_order(pkey)
+    except Exception:
+        print(traceback.format_exc())
+        return "An error occurred", 500
+    # end try
+# end def
+
+@admin_blueprint.route("/admin/orders/<pkey>/shipping-document", methods=["GET"])
+def order_shipping_document(pkey):
+    try:
+        return view_admin.html_order_shipping_document(pkey)
+    except Exception:
+        print(traceback.format_exc())
+        return "An error occurred", 500
+    # end try
+# end def
+
+@admin_blueprint.route("/admin/orders/<pkey>/shipping-document.pdf", methods=["GET"])
+def order_shipping_document_pdf(pkey):
+    try:
+        return view_admin.pdf_order_shipping_document(pkey)
     except Exception:
         print(traceback.format_exc())
         return "An error occurred", 500

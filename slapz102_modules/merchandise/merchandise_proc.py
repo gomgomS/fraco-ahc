@@ -9,6 +9,7 @@ sys.path.append("slapz102_storage")
 from slapz102_core import database
 from slapz102_core import config
 from ahc_site.ahc_site_proc import ahc_site_proc
+from urllib.parse import urlparse
 
 class merchandise_proc:
 
@@ -405,6 +406,13 @@ class merchandise_proc:
         elif order_status == "Cancelled":
             shipping_status = "Cancelled"
         # end if
+        tracking_url = (order.get("shipping_tracking_url") or "").strip()
+        if tracking_url != "":
+            parsed_url = urlparse(tracking_url)
+            if parsed_url.scheme not in ["http", "https"] or parsed_url.netloc == "":
+                tracking_url = ""
+            # end if
+        # end if
         return {
             "transaction_code": order.get("order_id") or code,
             "date": order.get("rec_timestamp_str") or "",
@@ -412,6 +420,9 @@ class merchandise_proc:
             "order_status": order_status,
             "shipping_status": shipping_status,
             "shipping_info": order.get("shipping") or "Confirmed after order",
+            "shipping_expedition": order.get("shipping_expedition") or "",
+            "shipping_tracking_code": order.get("shipping_tracking_code") or "",
+            "shipping_tracking_url": tracking_url,
             "total": order.get("total") or "Rp 0",
             "has_preorder": order.get("has_preorder") == True,
             "preorder_eta": order.get("preorder_eta") or "",

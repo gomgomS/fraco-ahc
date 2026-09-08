@@ -28,7 +28,8 @@
                         {% if data.order.shipping_deduction_active %}
                         <div><p class="product-meta">{{ data.dash.sale }}</p><p class="dash-mono">{{ data.order.sale }}</p></div>
                         <div><p class="product-meta">{{ data.dash.bahan_baku }}</p><p class="dash-mono dash-muted">−{{ data.order.bahan_baku }}</p></div>
-                        <div><p class="product-meta">{{ data.dash.tab_shipping }}</p><p class="dash-mono dash-muted">−{{ data.order.shipping_deduction }}</p></div>
+                        <div><p class="product-meta">{{ data.dash.shipping_expense }}</p><p class="dash-mono dash-muted">−{{ data.order.shipping_delivery }}</p></div>
+                        <div><p class="product-meta">{{ data.dash.shipping_service_fee }}</p><p class="dash-mono dash-muted">−{{ data.order.shipping_service_fee_deduction }}</p></div>
                         <div><p class="product-meta">{{ data.dash.your_profit }}</p><p class="dash-profit">{{ data.order.net_profit }}</p></div>
                         {% else %}
                         <div><p class="product-meta">{{ data.dash.sale }}</p><p class="dash-mono">{{ data.order.sale }}</p></div>
@@ -125,6 +126,7 @@
                                 <p class="product-meta" style="margin-top:12px;">{{ data.dash.shipping_officer_status }}</p>
                                 <p style="margin-top:6px;"><strong>{{ data.order.shipping_status_label }}</strong>{% if data.order.shipping_expedition %} · {{ data.order.shipping_expedition }}{% endif %}</p>
                                 {% if data.order.shipping_budget_num %}<p class="product-meta" style="margin-top:8px;">{{ data.dash.shipping_expense }} {{ data.order.shipping_budget }}</p>{% endif %}
+                                {% if data.order.shipping_service_fee_num %}<p class="product-meta" style="margin-top:8px;">{{ data.dash.shipping_service_fee }}: {{ data.order.shipping_service_fee }}</p>{% endif %}
                                 {% if data.order.shipping_tracking_code %}<p class="product-meta" style="margin-top:8px;">{{ data.dash.shipping_tracking_code }} {{ data.order.shipping_tracking_code }}</p>{% endif %}
                                 {% if data.order.shipping_tracking_url %}<p style="margin-top:10px;"><a class="section-link" href="{{ data.order.shipping_tracking_url }}" target="_blank" rel="noopener">{{ data.dash.shipping_track }}</a></p>{% endif %}
                             </div>
@@ -137,6 +139,7 @@
                                 <strong>{{ data.dash.shipping_notice_title }}</strong>
                                 {{ data.dash.shipping_notice }}
                             </p>
+                            <p class="product-meta" style="margin-top:8px;">{{ data.dash.shipping_service_fee }}: <strong>{{ data.shipping_eligibility.service_fee }}</strong> {{ data.dash.shipping_per_order }}.</p>
                             {% if not data.shipping_eligibility.eligible and data.order.shipping_handler != 'OFFICER' %}
                             <p style="margin-top:8px;"><a class="section-link" href="/dashboard/proposal">{{ data.dash.shipping_contribute_first }}</a></p>
                             {% endif %}
@@ -288,10 +291,14 @@
                     </form>
                     {% endif %}
 
-                    {% if data.order.shipping_request_status in ['PROCESSING', 'SHIPPED', 'COMPLETED'] and data.order.shipping_budget_num %}
+                    {% if data.order.shipping_deduction_active %}
                     <section class="dash-order-block">
                         <h2 class="dash-order-block-title">{{ data.dash.shipping_cost_deduction }}</h2>
-                        <p class="dash-profit">−{{ data.order.shipping_budget }}</p>
+                        <dl class="dash-order-dl">
+                            <div><dt>{{ data.dash.shipping_expense }}</dt><dd>−{{ data.order.shipping_delivery }}</dd></div>
+                            <div><dt>{{ data.dash.shipping_service_fee }}</dt><dd>−{{ data.order.shipping_service_fee_deduction }}</dd></div>
+                            <div><dt><strong>{{ data.dash.shipping_total_deduction }}</strong></dt><dd><strong>−{{ data.order.shipping_deduction }}</strong></dd></div>
+                        </dl>
                         <p class="product-meta" style="margin-top:8px;">{{ data.dash.shipping_cost_deducted }}</p>
                     </section>
                     {% endif %}

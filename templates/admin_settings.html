@@ -166,7 +166,12 @@
             <input class="field" type="number" min="0" step="1000" name="shipping_minimum_progress_num" id="shipping_minimum_progress_num" value="{{ data.shipping_minimum_progress_num }}" required>
             <p class="product-meta" style="margin-top:7px;">Example: 100000 for Rp 100.000.</p>
         </div>
-        <button class="btn-black" type="submit">Save shipping requirement</button>
+        <div>
+            <label class="field-label" for="shipping_service_fee_num">Packing and shipping arrangement service fee</label>
+            <input class="field" type="number" min="0" step="1000" name="shipping_service_fee_num" id="shipping_service_fee_num" value="{{ data.shipping_service_fee_num }}" required>
+            <p class="product-meta" style="margin-top:7px;">Covers wrapping, packing, and shipping arrangement services. Default: 10000 for Rp 10.000 per officer-handled order.</p>
+        </div>
+        <button class="btn-black" type="submit">Save shipping settings</button>
     </form>
     {% endif %}
 

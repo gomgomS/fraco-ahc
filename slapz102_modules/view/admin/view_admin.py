@@ -5,9 +5,17 @@ sys.path.append("slapz102_settings")
 sys.path.append("slapz102_stdlib")
 sys.path.append("slapz102_storage")
 
-from flask import render_template, request, redirect
+from flask import render_template, request, redirect, Response
+from io import BytesIO
 import re
 from urllib.parse import quote
+from xml.sax.saxutils import escape
+from reportlab.lib import colors
+from reportlab.lib.enums import TA_CENTER
+from reportlab.lib.pagesizes import A5
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import mm
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 import sanitize
 from admin.admin_proc import admin_proc
 
@@ -237,8 +245,46 @@ def html_orders():
         # end if
         return redirect("/admin/orders")
     # end if
-    data = proc.page("orders", {"list_table": proc.table_orders()})
+    shipping_filter = (request.args.get("shipping") or "").strip().upper()
+    print_params = []
+    for key in ["status", "pay", "q"]:
+        value = (request.args.get(key) or "").strip()
+        if value != "":
+            print_params.append(key + "=" + quote(value))
+        # end if
+    # end for
+    print_href = "/admin/orders/print/officer"
+    if print_params != []:
+        print_href = print_href + "?" + "&".join(print_params)
+    # end if
+    data = proc.page("orders", {
+        "list_table": proc.table_orders(),
+        "show_officer_print": shipping_filter == "OFFICER",
+        "officer_print_href": print_href
+    })
     return render_template("admin_orders.html", data=data)
+# end def
+
+def html_officer_shipping_print():
+    gate = _gate("orders")
+    if gate != None:
+        return gate
+    # end if
+    proc = admin_proc()
+    params = sanitize.clean_html_dic(request.args.to_dict())
+    raw_order_pkeys = request.args.getlist("order")
+    order_pkeys = None
+    if raw_order_pkeys != []:
+        order_pkeys = [sanitize.clean_html(value) for value in raw_order_pkeys]
+    # end if
+    documents = proc.officer_shipping_documents(
+        (params.get("status") or "").strip(),
+        (params.get("pay") or "").strip(),
+        (params.get("q") or "").strip(),
+        order_pkeys
+    )
+    data = proc.page("orders", {"documents": documents})
+    return render_template("admin_shipping_bulk_print.html", data=data)
 # end def
 
 def html_order(pkey):
@@ -298,6 +344,14 @@ def html_order(pkey):
         })
         return redirect("/admin/orders/" + pkey)
     # end if
+    shipping_eligibility = proc.order_shipping_eligibility(rec)
+    rec["shipping_service_fee_num"] = shipping_eligibility.get("service_fee_num") or 0
+    rec["shipping_service_fee"] = shipping_eligibility.get("service_fee") or "Rp 0"
+    rec["shipping_total_expense_num"] = (
+        int(rec.get("shipping_budget_num") or 0) +
+        int(rec.get("shipping_service_fee_num") or 0)
+    )
+    rec["shipping_total_expense"] = proc.format_rp(rec.get("shipping_total_expense_num"))
     data = proc.page("orders", {
         "order_tab": order_tab,
         "row": rec,
@@ -307,12 +361,153 @@ def html_order(pkey):
         "referrer_label": proc.order_referrer_label(rec),
         "referrer": proc.find_order_referrer(rec),
         "shipping_expeditions": proc.shipping_expeditions(),
-        "shipping_statuses": proc.SHIPPING_STATUSES,
-        "shipping_eligibility": proc.order_shipping_eligibility(rec),
+        "shipping_statuses": proc.shipping_status_options(),
+        "shipping_eligibility": shipping_eligibility,
         "form_ok": (request.args.get("ok") or "").strip(),
         "form_error": (request.args.get("error") or "").strip()
     })
     return render_template("admin_order.html", data=data)
+# end def
+
+def html_order_shipping_document(pkey):
+    gate = _gate("orders")
+    if gate != None:
+        return gate
+    # end if
+    proc = admin_proc()
+    rec = proc.get_row("db_order", pkey)
+    if rec == None:
+        return "Not found", 404
+    # end if
+    data = proc.page("orders", {
+        "row": rec,
+        "document": proc.shipping_document_data(rec)
+    })
+    return render_template("admin_shipping_document.html", data=data)
+# end def
+
+def pdf_order_shipping_document(pkey):
+    gate = _gate("orders")
+    if gate != None:
+        return gate
+    # end if
+    proc = admin_proc()
+    rec = proc.get_row("db_order", pkey)
+    if rec == None:
+        return "Not found", 404
+    # end if
+    data = proc.shipping_document_data(rec)
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(
+        name="ShippingTitle",
+        parent=styles["Heading1"],
+        alignment=TA_CENTER,
+        fontSize=18,
+        leading=22,
+        spaceAfter=4
+    ))
+    styles.add(ParagraphStyle(
+        name="ShippingLabel",
+        parent=styles["Normal"],
+        fontSize=8,
+        leading=10,
+        textColor=colors.HexColor("#666666"),
+        spaceAfter=3
+    ))
+    styles.add(ParagraphStyle(
+        name="ShippingValue",
+        parent=styles["Normal"],
+        fontSize=11,
+        leading=15
+    ))
+    styles.add(ParagraphStyle(
+        name="ShippingNote",
+        parent=styles["Normal"],
+        fontSize=10,
+        leading=14
+    ))
+    def paragraph(value, style="ShippingValue"):
+        text = escape(str(value or "—")).replace("\n", "<br/>")
+        return Paragraph(text, styles[style])
+    # end def
+    recipient_location = " · ".join([
+        value for value in [data.get("recipient_city"), data.get("recipient_postal_code")] if value
+    ])
+    buffer = BytesIO()
+    pdf = SimpleDocTemplate(
+        buffer,
+        pagesize=A5,
+        rightMargin=12 * mm,
+        leftMargin=12 * mm,
+        topMargin=12 * mm,
+        bottomMargin=12 * mm,
+        title="Pengiriman " + data.get("order_id", "")
+    )
+    story = [
+        Paragraph(escape(data.get("order_id") or "—"), styles["ShippingTitle"]),
+        Spacer(1, 3 * mm)
+    ]
+    contact_table = Table([
+        [
+            [paragraph("PENGIRIM / MEMBER FRACO", "ShippingLabel"), paragraph(data.get("sender_name")), paragraph(data.get("sender_phone"))],
+            [paragraph("PENERIMA", "ShippingLabel"), paragraph(data.get("recipient_name")), paragraph(data.get("recipient_phone"))]
+        ],
+        [
+            [paragraph("ALAMAT PENERIMA", "ShippingLabel"), paragraph(data.get("recipient_address")), paragraph(recipient_location)],
+            ""
+        ]
+    ], colWidths=[62 * mm, 62 * mm])
+    contact_table.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("SPAN", (0, 1), (1, 1)),
+        ("BOX", (0, 0), (-1, -1), 1, colors.black),
+        ("INNERGRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#aaaaaa")),
+        ("LEFTPADDING", (0, 0), (-1, -1), 8),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+        ("TOPPADDING", (0, 0), (-1, -1), 8),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 8)
+    ]))
+    story.append(contact_table)
+    item_rows = [[paragraph("BARANG", "ShippingLabel"), paragraph("JUMLAH", "ShippingLabel")]]
+    for item in data.get("items") or []:
+        item_label = item.get("name") or "Merchandise"
+        if item.get("options"):
+            item_label += "\n" + item.get("options")
+        # end if
+        item_rows.append([paragraph(item_label), paragraph(item.get("qty"))])
+    # end for
+    item_table = Table(item_rows, colWidths=[106 * mm, 18 * mm])
+    item_table.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("BOX", (0, 0), (-1, -1), 1, colors.black),
+        ("INNERGRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#cccccc")),
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#eeeeee")),
+        ("LEFTPADDING", (0, 0), (-1, -1), 7),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 7),
+        ("TOPPADDING", (0, 0), (-1, -1), 7),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 7)
+    ]))
+    story.append(item_table)
+    if data.get("package_note"):
+        note_table = Table([[
+            [paragraph("CATATAN PAKET", "ShippingLabel"), paragraph(data.get("package_note"), "ShippingNote")]
+        ]], colWidths=[124 * mm])
+        note_table.setStyle(TableStyle([
+            ("BOX", (0, 0), (-1, -1), 1, colors.black),
+            ("LEFTPADDING", (0, 0), (-1, -1), 7),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 7),
+            ("TOPPADDING", (0, 0), (-1, -1), 7),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 7)
+        ]))
+        story.append(note_table)
+    # end if
+    pdf.build(story)
+    filename = re.sub(r"[^A-Za-z0-9._-]", "-", data.get("order_id") or "order")
+    return Response(
+        buffer.getvalue(),
+        mimetype="application/pdf",
+        headers={"Content-Disposition": "attachment; filename=shipping-" + filename + ".pdf"}
+    )
 # end def
 
 def _discount_is_enabled(rec):
@@ -1703,15 +1898,22 @@ def html_settings():
         action = (params.get("action") or "").strip()
         if action == "shipping_config_save":
             minimum = proc.parse_int(params.get("shipping_minimum_progress_num"))
+            service_fee = proc.parse_int(params.get("shipping_service_fee_num"))
             if minimum < 0:
                 minimum = 0
+            # end if
+            if service_fee < 0:
+                service_fee = 0
             # end if
             site = proc.site.get_site() or {}
             proc.mgdDB.db_site.update_one(
                 {"pkey": site.get("pkey")},
-                {"$set": {"shipping_minimum_progress_num": minimum}}
+                {"$set": {
+                    "shipping_minimum_progress_num": minimum,
+                    "shipping_service_fee_num": service_fee
+                }}
             )
-            return redirect("/admin/settings?tab=shipping&ok=" + quote("Shipping minimum progress saved"))
+            return redirect("/admin/settings?tab=shipping&ok=" + quote("Shipping settings saved"))
         # end if
         if action == "merchandise_category_delete":
             category_pkey = (params.get("category_pkey") or "").strip()
@@ -1822,6 +2024,10 @@ def html_settings():
     if shipping_minimum == None:
         shipping_minimum = 100000
     # end if
+    shipping_service_fee = site.get("shipping_service_fee_num")
+    if shipping_service_fee == None:
+        shipping_service_fee = 10000
+    # end if
     data = proc.page("settings", {
         "settings_tab": settings_tab,
         "form_ok": form_ok,
@@ -1829,6 +2035,7 @@ def html_settings():
         "merchandise_categories": proc.merchandise_category_rows(False),
         "shipping_expeditions": proc.shipping_expedition_rows(False),
         "shipping_minimum_progress_num": shipping_minimum,
+        "shipping_service_fee_num": shipping_service_fee,
         "receive_accounts": proc.receive_accounts(),
         "announcement": site.get("announcement") or "",
         "announcement_id": site.get("announcement_id") or "",

@@ -1,7 +1,202 @@
 {% extends 'admin_base.html' %}
 {% block title %}Orders | Admin{% endblock %}
 {% block content %}
+<style>
+@media (max-width: 899px) {
+    html, body {
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+    .admin-shell {
+        grid-template-columns: minmax(0, 1fr);
+        width: 100%;
+        min-width: 0;
+        overflow-x: hidden;
+    }
+    .admin-side {
+        box-sizing: border-box;
+        width: 100%;
+        min-width: 0;
+        padding: 16px;
+        border-right: 0;
+        border-bottom: 1px solid #ddd;
+        overflow: hidden;
+    }
+    .admin-side .logo { font-size: 24px; }
+    .admin-side > .product-meta { margin: 4px 0 10px; }
+    .admin-side .dash-nav {
+        display: flex;
+        gap: 8px;
+        margin: 0 -16px;
+        padding: 0 16px 8px;
+        overflow-x: auto;
+        scrollbar-width: thin;
+    }
+    .admin-side .dash-nav a {
+        flex: 0 0 auto;
+        width: auto;
+        padding: 9px 12px;
+        border: 1px solid #ddd;
+        white-space: nowrap;
+    }
+    .admin-side .dash-nav a.active {
+        border-color: #111;
+        background: #111;
+        color: #fff;
+    }
+    .admin-side > p:last-child {
+        display: flex;
+        gap: 16px;
+        margin: 8px 0 0 !important;
+    }
+    .admin-main {
+        box-sizing: border-box;
+        width: 100%;
+        min-width: 0;
+        padding: 22px 14px 48px;
+    }
+    .admin-orders-page {
+        width: 100%;
+        min-width: 0;
+    }
+    .admin-orders-page .section-title { font-size: 30px; }
+    .admin-orders-intro { display: none; }
+    .admin-orders-page .form-stack { max-width: none !important; }
+    .admin-orders-page .hero-actions {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        width: 100%;
+    }
+    .admin-orders-page .hero-actions .field { min-width: 0; }
+    .admin-orders-page .filter-row {
+        flex-wrap: nowrap;
+        margin: 0 -14px 14px;
+        padding: 0 14px 5px;
+        overflow-x: auto;
+        scrollbar-width: thin;
+    }
+    .admin-orders-page .filter-chip { flex: 0 0 auto; }
+    .admin-orders-page .orders-print-actions {
+        flex-wrap: wrap;
+        margin: 0 0 16px;
+        padding: 12px;
+        border: 1px solid #ddd;
+        overflow: visible;
+    }
+    .admin-orders-page .orders-print-actions .btn-black {
+        width: 100%;
+        padding: 11px 14px;
+    }
+    .admin-orders-page .admin-table-wrap {
+        overflow: visible;
+        border: 0;
+    }
+    .admin-orders-page .admin-table,
+    .admin-orders-page .admin-table tbody,
+    .admin-orders-page .admin-table tr,
+    .admin-orders-page .admin-table td {
+        display: block;
+        width: 100%;
+    }
+    .admin-orders-page .admin-table thead { display: none; }
+    .admin-orders-page .admin-table tr {
+        box-sizing: border-box;
+        margin-bottom: 14px;
+        border: 1px solid #ccc;
+        background: #fff;
+    }
+    .admin-orders-page .admin-table td {
+        box-sizing: border-box;
+        display: grid;
+        grid-template-columns: minmax(92px, 35%) minmax(0, 1fr);
+        gap: 12px;
+        align-items: center;
+        padding: 10px 12px;
+        border: 0;
+        border-bottom: 1px solid #eee;
+        overflow-wrap: anywhere;
+    }
+    .admin-orders-page .admin-table td:last-child { border-bottom: 0; }
+    .admin-orders-page .admin-table td::before {
+        content: attr(data-label);
+        color: #666;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 10px;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+    }
+    .admin-orders-page .admin-inline-form {
+        min-width: 0;
+        flex-wrap: wrap;
+    }
+    .admin-orders-page .admin-inline-form .field {
+        flex: 1 1 100px;
+        min-width: 0;
+    }
+    .admin-orders-page .admin-inline-form .btn-line {
+        padding: 8px 12px;
+    }
+    .admin-orders-page .js-officer-order-select {
+        width: 22px;
+        height: 22px;
+    }
+    .admin-orders-page .admin-pager { justify-content: center; }
+}
+</style>
+<div class="admin-orders-page">
 <h1 class="section-title" style="margin-bottom: 12px;">Orders</h1>
-<p class="product-meta" style="margin: 0 0 20px; max-width: 60ch;">Orders: manage shop checkouts — customer, referral in charge, payment, and fulfillment status. Use this after someone places a merchandise order.</p>
+<p class="product-meta admin-orders-intro" style="margin: 0 0 20px; max-width: 60ch;">Orders: manage shop checkouts — customer, referral in charge, payment, and fulfillment status. Use this after someone places a merchandise order.</p>
+{% if data.show_officer_print %}
+<div class="filter-row orders-print-actions" style="margin-bottom:20px; align-items:center;">
+    <label class="product-meta" style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+        <input id="officer-select-all" type="checkbox">
+        Pilih semua
+    </label>
+    <button class="btn-black" id="officer-print-selected" type="button" data-print-href="{{ data.officer_print_href }}" disabled>Cetak pilihan — 4 per A4</button>
+    <span class="product-meta" id="officer-selected-count">0 dipilih</span>
+</div>
+{% endif %}
 {% with table=data.list_table %}{% include 'admin_table.html' %}{% endwith %}
+{% if data.show_officer_print %}
+<script>
+(function () {
+    var selectAll = document.getElementById("officer-select-all");
+    var printButton = document.getElementById("officer-print-selected");
+    var countLabel = document.getElementById("officer-selected-count");
+    var checkboxes = Array.prototype.slice.call(document.querySelectorAll(".js-officer-order-select"));
+    if (!selectAll || !printButton || !countLabel) return;
+
+    function selected() {
+        return checkboxes.filter(function (checkbox) { return checkbox.checked; });
+    }
+
+    function syncSelection() {
+        var chosen = selected();
+        countLabel.textContent = chosen.length + " dipilih";
+        printButton.disabled = chosen.length === 0;
+        selectAll.checked = checkboxes.length > 0 && chosen.length === checkboxes.length;
+        selectAll.indeterminate = chosen.length > 0 && chosen.length < checkboxes.length;
+    }
+
+    selectAll.addEventListener("change", function () {
+        checkboxes.forEach(function (checkbox) { checkbox.checked = selectAll.checked; });
+        syncSelection();
+    });
+    checkboxes.forEach(function (checkbox) {
+        checkbox.addEventListener("change", syncSelection);
+    });
+    printButton.addEventListener("click", function () {
+        var chosen = selected();
+        if (!chosen.length) return;
+        var separator = printButton.dataset.printHref.indexOf("?") === -1 ? "?" : "&";
+        var query = chosen.map(function (checkbox) {
+            return "order=" + encodeURIComponent(checkbox.value);
+        }).join("&");
+        window.open(printButton.dataset.printHref + separator + query, "_blank", "noopener");
+    });
+    syncSelection();
+})();
+</script>
+{% endif %}
+</div>
 {% endblock %}

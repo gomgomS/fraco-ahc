@@ -1,0 +1,120 @@
+{% extends 'admin_base.html' %}
+{% block title %}Shipping {{ data.document.order_id }} | Admin{% endblock %}
+{% block content %}
+<style>
+    .shipping-preview {
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 560px;
+        border: 2px solid #111;
+        background: #fff;
+        padding: 20px;
+        overflow-wrap: anywhere;
+    }
+    .shipping-preview-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 24px;
+        padding-bottom: 18px;
+        border-bottom: 2px solid #111;
+    }
+    .shipping-preview-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin-top: 12px;
+    }
+    .shipping-preview-cell {
+        padding: 12px 0;
+        border-top: 1px solid #bbb;
+    }
+    .shipping-preview-cell:nth-child(even) {
+        padding-left: 16px;
+    }
+    .shipping-preview-wide {
+        grid-column: 1 / -1;
+        padding-left: 0 !important;
+    }
+    .shipping-preview-label {
+        margin: 0 0 8px;
+        color: #666;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 12px;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+    }
+    .shipping-preview-value { margin: 4px 0; }
+    .shipping-preview-items {
+        width: 100%;
+        margin-top: 8px;
+        border-collapse: collapse;
+    }
+    .shipping-preview-items th,
+    .shipping-preview-items td {
+        padding: 8px 0;
+        border-top: 1px solid #bbb;
+        text-align: left;
+        vertical-align: top;
+    }
+    @media (max-width: 1200px) {
+        .shipping-preview-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 700px) {
+        .shipping-preview-head { display: block; }
+    }
+    @media print {
+        .admin-side, .shipping-preview-actions { display: none !important; }
+        .admin-shell { display: block !important; background: #fff !important; }
+        .admin-main { width: 100% !important; max-width: none !important; padding: 0 !important; }
+        .shipping-preview { max-width: none; border: 0; padding: 0; }
+        .shipping-preview-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+</style>
+<div class="shipping-preview-actions filter-row" style="margin-bottom:20px;">
+    <a class="btn-line" href="/admin/orders/{{ data.row.pkey }}?tab=shipping">← Kembali</a>
+    <button class="btn-line" type="button" onclick="window.print()">Cetak</button>
+    <a class="btn-black" href="/admin/orders/{{ data.row.pkey }}/shipping-document.pdf">Unduh PDF</a>
+</div>
+<article class="shipping-preview">
+    <header class="shipping-preview-head">
+        <div>
+            <h1 class="section-title" style="margin:0;">{{ data.document.order_id }}</h1>
+        </div>
+    </header>
+    <div class="shipping-preview-grid">
+        <section class="shipping-preview-cell">
+            <p class="shipping-preview-label">Pengirim / Member FRACO</p>
+            <p class="shipping-preview-value"><strong>{{ data.document.sender_name }}</strong></p>
+            <p class="shipping-preview-value">{{ data.document.sender_phone }}</p>
+        </section>
+        <section class="shipping-preview-cell">
+            <p class="shipping-preview-label">Penerima</p>
+            <p class="shipping-preview-value"><strong>{{ data.document.recipient_name }}</strong></p>
+            <p class="shipping-preview-value">{{ data.document.recipient_phone }}</p>
+        </section>
+        <section class="shipping-preview-cell shipping-preview-wide">
+            <p class="shipping-preview-label">Alamat penerima</p>
+            <p class="shipping-preview-value"><strong>{{ data.document.recipient_address }}</strong></p>
+            <p class="shipping-preview-value">{{ data.document.recipient_city }}{% if data.document.recipient_postal_code %} · {{ data.document.recipient_postal_code }}{% endif %}</p>
+        </section>
+    </div>
+    <table class="shipping-preview-items">
+        <thead><tr><th>Barang</th><th style="width:80px;">Jumlah</th></tr></thead>
+        <tbody>
+            {% for item in data.document['items'] %}
+            <tr>
+                <td><strong>{{ item.name }}</strong>{% if item.options %}<br><span class="product-meta">{{ item.options }}</span>{% endif %}</td>
+                <td>{{ item.qty }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="2">Tidak ada barang.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% if data.document.package_note %}
+    <section style="margin-top:8px; border-top:1px solid #bbb; padding-top:12px;">
+        <p class="shipping-preview-label">Catatan paket</p>
+        <p class="shipping-preview-value">{{ data.document.package_note }}</p>
+    </section>
+    {% endif %}
+</article>
+{% endblock %}

@@ -1,0 +1,180 @@
+{% extends 'admin_base.html' %}
+{% block title %}Cetak Label Pengiriman | Admin{% endblock %}
+{% block content %}
+<style>
+    @page { size: A4 portrait; margin: 8mm; }
+    .bulk-print-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    .bulk-print-sheet {
+        box-sizing: border-box;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-rows: repeat(2, minmax(0, 1fr));
+        gap: 4mm;
+        width: 194mm;
+        height: 281mm;
+        margin-bottom: 20px;
+        background: #fff;
+        break-after: page;
+        page-break-after: always;
+    }
+    .bulk-print-sheet:last-child {
+        break-after: auto;
+        page-break-after: auto;
+    }
+    .bulk-label {
+        box-sizing: border-box;
+        min-width: 0;
+        overflow: hidden;
+        border: 1.5px solid #111;
+        padding: 6mm;
+        color: #111;
+    }
+    .bulk-label-empty {
+        border-color: transparent;
+    }
+    .bulk-label-order {
+        margin: 0 0 4mm;
+        padding-bottom: 3mm;
+        border-bottom: 1.5px solid #111;
+        font-family: "Archivo", sans-serif;
+        font-size: 17pt;
+        line-height: 1.1;
+        overflow-wrap: anywhere;
+    }
+    .bulk-label-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 3mm;
+    }
+    .bulk-label-block {
+        min-width: 0;
+        padding-bottom: 3mm;
+    }
+    .bulk-label-wide {
+        grid-column: 1 / -1;
+        border-top: 1px solid #bbb;
+        padding-top: 3mm;
+    }
+    .bulk-label-caption {
+        margin: 0 0 1.5mm;
+        color: #666;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 7pt;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+    }
+    .bulk-label-value {
+        margin: 0 0 1mm;
+        font-size: 9.5pt;
+        line-height: 1.25;
+        overflow-wrap: anywhere;
+    }
+    .bulk-label-items {
+        width: 100%;
+        margin-top: 1mm;
+        border-collapse: collapse;
+        font-size: 8.5pt;
+    }
+    .bulk-label-items th,
+    .bulk-label-items td {
+        padding: 2mm 0;
+        border-top: 1px solid #bbb;
+        text-align: left;
+        vertical-align: top;
+    }
+    .bulk-label-items th:last-child,
+    .bulk-label-items td:last-child {
+        width: 13mm;
+        text-align: right;
+    }
+    .bulk-label-option {
+        color: #666;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 7pt;
+    }
+    .bulk-label-note {
+        margin-top: 2mm;
+        padding-top: 2mm;
+        border-top: 1px solid #bbb;
+    }
+    @media screen and (max-width: 1100px) {
+        .bulk-print-sheet {
+            width: 100%;
+            height: auto;
+            grid-template-columns: 1fr;
+            grid-template-rows: none;
+        }
+        .bulk-label { min-height: 130mm; }
+        .bulk-label-empty { display: none; }
+    }
+    @media print {
+        .admin-side, .bulk-print-actions { display: none !important; }
+        .admin-shell { display: block !important; background: #fff !important; }
+        .admin-main { width: auto !important; padding: 0 !important; }
+        .bulk-print-sheet { margin: 0; }
+    }
+</style>
+<div class="bulk-print-actions">
+    <a class="btn-line" href="/admin/orders?shipping=OFFICER">← Kembali</a>
+    {% if data.documents %}
+    <button class="btn-black" type="button" onclick="window.print()">Cetak 4 label per A4</button>
+    <span class="product-meta">{{ data.documents|length }} label</span>
+    {% endif %}
+</div>
+{% if data.documents %}
+    {% for sheet in data.documents|batch(4, none) %}
+    <section class="bulk-print-sheet">
+        {% for document in sheet %}
+            {% if document %}
+            <article class="bulk-label">
+                <h2 class="bulk-label-order">{{ document.order_id }}</h2>
+                <div class="bulk-label-grid">
+                    <section class="bulk-label-block">
+                        <p class="bulk-label-caption">Pengirim / Member FRACO</p>
+                        <p class="bulk-label-value"><strong>{{ document.sender_name }}</strong></p>
+                        <p class="bulk-label-value">{{ document.sender_phone }}</p>
+                    </section>
+                    <section class="bulk-label-block">
+                        <p class="bulk-label-caption">Penerima</p>
+                        <p class="bulk-label-value"><strong>{{ document.recipient_name }}</strong></p>
+                        <p class="bulk-label-value">{{ document.recipient_phone }}</p>
+                    </section>
+                    <section class="bulk-label-block bulk-label-wide">
+                        <p class="bulk-label-caption">Alamat penerima</p>
+                        <p class="bulk-label-value"><strong>{{ document.recipient_address }}</strong></p>
+                        <p class="bulk-label-value">{{ document.recipient_city }}{% if document.recipient_postal_code %} · {{ document.recipient_postal_code }}{% endif %}</p>
+                    </section>
+                </div>
+                <table class="bulk-label-items">
+                    <thead><tr><th>Barang</th><th>Jumlah</th></tr></thead>
+                    <tbody>
+                        {% for item in document['items'] %}
+                        <tr>
+                            <td><strong>{{ item.name }}</strong>{% if item.options %}<br><span class="bulk-label-option">{{ item.options }}</span>{% endif %}</td>
+                            <td>{{ item.qty }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if document.package_note %}
+                <section class="bulk-label-note">
+                    <p class="bulk-label-caption">Catatan paket</p>
+                    <p class="bulk-label-value">{{ document.package_note }}</p>
+                </section>
+                {% endif %}
+            </article>
+            {% else %}
+            <div class="bulk-label bulk-label-empty" aria-hidden="true"></div>
+            {% endif %}
+        {% endfor %}
+    </section>
+    {% endfor %}
+{% else %}
+<p class="prose-fraco">Tidak ada pesanan dengan pengiriman oleh officer.</p>
+{% endif %}
+{% endblock %}

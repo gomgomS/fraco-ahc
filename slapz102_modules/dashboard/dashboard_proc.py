@@ -161,7 +161,7 @@ class dashboard_proc:
             "shipping_minimum_copy": "Officer shipping requires at least {minimum} before requesting it.",
             "shipping_contribute_first": "Please contribute first.",
             "shipping_notice_title": "Important:",
-            "shipping_notice": "All officer-handled shipping costs will be deducted from your earnings and combined target progress.",
+            "shipping_notice": "Shipping costs plus the wrapping, packing, and arrangement service fee will be deducted from your earnings and combined target progress.",
             "shipping_handler_label": "Who will arrange shipping?",
             "shipping_select_type": "Select shipping type",
             "shipping_by_officer": "FRACO officer handles shipping",
@@ -176,6 +176,9 @@ class dashboard_proc:
             "shipping_confirm_process": "I understand that after saving, the order enters the shipping process and this request cannot be cancelled.",
             "shipping_officer_status": "Officer shipping status",
             "shipping_expense": "Shipping expense",
+            "shipping_service_fee": "Wrapping, packing, and arrangement service",
+            "shipping_total_deduction": "Total shipping deduction",
+            "shipping_per_order": "per order",
             "shipping_cost_deduction": "Shipping cost deduction",
             "shipping_cost_deducted": "This cost has been deducted from your earnings and combined target progress.",
             "shipping_deducted_copy": "Officer shipping expense deducted from combined progress",
@@ -193,7 +196,7 @@ class dashboard_proc:
             "shipping_complete_order": "Complete order",
             "shipping_complete_confirm": "Confirm that you have received this order?",
             "shipping_completed": "Order completed.",
-            "shipping_status_requested": "Request received",
+            "shipping_status_requested": "Waiting for officer",
             "shipping_status_processing": "Being processed",
             "shipping_status_shipped": "Shipped",
             "shipping_status_completed": "Completed",
@@ -356,7 +359,7 @@ class dashboard_proc:
             "shipping_minimum_copy": "Kalau mau dibantu tim FRACO, progress gabunganmu minimal {minimum}.",
             "shipping_contribute_first": "Yuk kontribusi dulu.",
             "shipping_notice_title": "Perlu kamu tahu:",
-            "shipping_notice": "Kalau pengiriman diurus tim FRACO, seluruh ongkir akan dipotong dari penghasilan dan progress target gabunganmu.",
+            "shipping_notice": "Kalau pengiriman diurus tim FRACO, ongkir serta biaya layanan pembungkusan, packing, dan pengaturan pengiriman akan dipotong dari penghasilan dan progress target gabunganmu.",
             "shipping_handler_label": "Siapa yang akan urus pengirimannya?",
             "shipping_select_type": "Pilih cara pengiriman",
             "shipping_by_officer": "Tim FRACO yang urus pengiriman",
@@ -371,6 +374,9 @@ class dashboard_proc:
             "shipping_confirm_process": "Saya paham setelah disimpan, pesanan akan masuk proses pengiriman dan permintaan ini tidak bisa dibatalkan.",
             "shipping_officer_status": "Status pengiriman oleh tim FRACO",
             "shipping_expense": "Biaya pengiriman",
+            "shipping_service_fee": "Layanan pembungkusan, packing, dan pengaturan pengiriman",
+            "shipping_total_deduction": "Total potongan pengiriman",
+            "shipping_per_order": "per pesanan",
             "shipping_cost_deduction": "Potongan biaya pengiriman",
             "shipping_cost_deducted": "Biaya ini sudah dipotong dari penghasilan dan progress target gabunganmu.",
             "shipping_deducted_copy": "Biaya pengiriman oleh tim FRACO yang dipotong dari progress gabungan",
@@ -388,7 +394,7 @@ class dashboard_proc:
             "shipping_complete_order": "Pesanan sudah diterima",
             "shipping_complete_confirm": "Yakin pesanan ini sudah kamu terima?",
             "shipping_completed": "Pesanan berhasil diselesaikan.",
-            "shipping_status_requested": "Permintaan diterima",
+            "shipping_status_requested": "Menunggu diproses tim FRACO",
             "shipping_status_processing": "Sedang diproses",
             "shipping_status_shipped": "Sudah dikirim",
             "shipping_status_completed": "Selesai",
@@ -675,6 +681,27 @@ class dashboard_proc:
         return total
     # end def
 
+    def configured_shipping_service_fee_num(self):
+        site = self.site.get_site() or {}
+        value = site.get("shipping_service_fee_num")
+        fee = int(10000 if value == None else value)
+        return max(0, fee)
+    # end def
+
+    def order_shipping_service_fee_num(self, order):
+        if "shipping_service_fee_num" in (order or {}):
+            return max(0, int(order.get("shipping_service_fee_num") or 0))
+        # end if
+        return self.configured_shipping_service_fee_num()
+    # end def
+
+    def order_shipping_expense_num(self, order):
+        return (
+            int((order or {}).get("shipping_budget_num") or 0) +
+            self.order_shipping_service_fee_num(order)
+        )
+    # end def
+
     def shipping_expense_num(self, part, exclude_order_pkey=""):
         total = 0
         for order in self.get_referral_orders(part):
@@ -690,7 +717,7 @@ class dashboard_proc:
             if (order.get("order_status") or "") == "Cancelled":
                 continue
             # end if
-            total = total + int(order.get("shipping_budget_num") or 0)
+            total = total + self.order_shipping_expense_num(order)
         # end for
         return total
     # end def
@@ -716,6 +743,8 @@ class dashboard_proc:
             "minimum": self.format_rp(minimum),
             "available_num": available,
             "available": self.format_rp(available),
+            "service_fee_num": self.configured_shipping_service_fee_num(),
+            "service_fee": self.format_rp(self.configured_shipping_service_fee_num()),
             "eligible": available >= minimum
         }
     # end def
@@ -1231,6 +1260,11 @@ class dashboard_proc:
                 })
             # end for
             row = dict(order)
+            if order.get("shipping_handler") == "OFFICER":
+                saved_service_fee_num = self.order_shipping_service_fee_num(order)
+                row["shipping_service_fee_num"] = saved_service_fee_num
+                row["shipping_service_fee"] = self.format_rp(saved_service_fee_num)
+            # end if
             row["sale"] = self.format_rp(sale_num)
             row["sale_num"] = sale_num
             row["bahan_baku"] = self.format_rp(bahan_num)
@@ -1239,11 +1273,15 @@ class dashboard_proc:
             row["profit_num"] = profit_num
             shipping_status = (order.get("shipping_request_status") or "").strip().upper()
             shipping_deduction_num = 0
+            shipping_delivery_num = 0
+            shipping_service_fee_num = 0
             if (
                 order.get("shipping_handler") == "OFFICER" and
                 shipping_status in ["PROCESSING", "SHIPPED", "COMPLETED"]
             ):
-                shipping_deduction_num = int(order.get("shipping_budget_num") or 0)
+                shipping_delivery_num = int(order.get("shipping_budget_num") or 0)
+                shipping_service_fee_num = self.order_shipping_service_fee_num(order)
+                shipping_deduction_num = shipping_delivery_num + shipping_service_fee_num
             # end if
             net_profit_num = profit_num - shipping_deduction_num
             net_profit = self.format_rp(abs(net_profit_num))
@@ -1253,6 +1291,16 @@ class dashboard_proc:
             row["shipping_deduction_active"] = shipping_deduction_num > 0
             row["shipping_deduction_num"] = shipping_deduction_num
             row["shipping_deduction"] = self.format_rp(shipping_deduction_num)
+            row["shipping_delivery_num"] = shipping_delivery_num
+            row["shipping_delivery"] = self.format_rp(shipping_delivery_num)
+            row["shipping_service_fee_deduction_num"] = shipping_service_fee_num
+            row["shipping_service_fee_deduction"] = self.format_rp(shipping_service_fee_num)
+            if int(row.get("shipping_service_fee_num") or 0) > 0:
+                row["shipping_service_fee"] = (
+                    row.get("shipping_service_fee") or
+                    self.format_rp(row.get("shipping_service_fee_num"))
+                )
+            # end if
             row["net_profit_num"] = net_profit_num
             row["net_profit"] = net_profit
             shipping_label_key = {
@@ -1482,7 +1530,9 @@ class dashboard_proc:
                 {"pkey": pkey},
                 {"$set": {
                     "shipping_handler": "SELF",
-                    "shipping_request_status": "SELF_ARRANGED"
+                    "shipping_request_status": "SELF_ARRANGED",
+                    "shipping_service_fee": "",
+                    "shipping_service_fee_num": 0
                 }}
             )
             response["status"] = "SUCCESS"
@@ -1521,6 +1571,7 @@ class dashboard_proc:
             response["desc"] = copy.get("shipping_recipient_error")
             return response
         # end if
+        service_fee_num = self.configured_shipping_service_fee_num()
         self.mgdDB.db_order.update_one(
             {"pkey": pkey},
             {"$set": {
@@ -1532,7 +1583,9 @@ class dashboard_proc:
                 "shipping_city": shipping_city,
                 "shipping_postal_code": shipping_postal,
                 "shipping_package_note": (params.get("shipping_package_note") or "").strip(),
-                "shipping_request_status": "REQUESTED"
+                "shipping_request_status": "REQUESTED",
+                "shipping_service_fee": self.format_rp(service_fee_num),
+                "shipping_service_fee_num": service_fee_num
             }}
         )
         response["status"] = "SUCCESS"

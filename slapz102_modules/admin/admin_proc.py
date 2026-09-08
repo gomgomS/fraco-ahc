@@ -34,6 +34,13 @@ class admin_proc:
     DEFAULT_SHIPPING_EXPEDITIONS = ["JNE", "J&T Express", "SiCepat", "AnterAja", "POS Indonesia", "GoSend", "GrabExpress", "Other"]
     SHIPPING_HANDLERS = ["OFFICER", "SELF"]
     SHIPPING_STATUSES = ["NOT_REQUESTED", "REQUESTED", "PROCESSING", "SHIPPED", "COMPLETED"]
+    SHIPPING_STATUS_LABELS = {
+        "NOT_REQUESTED": "Not requested",
+        "REQUESTED": "Waiting for officer",
+        "PROCESSING": "Being processed",
+        "SHIPPED": "Shipped",
+        "COMPLETED": "Completed"
+    }
     STAFF_ROLES = [
         "OFFICER",
         "ADMIN",
@@ -973,7 +980,7 @@ class admin_proc:
         rows = []
         for rec in recs:
             pay_val = rec.get("payment_status") or ""
-            rows.append({"cells": [
+            cells = [
                 self.cell(rec.get("order_id"), "link", "/admin/orders/" + rec.get("pkey", "")),
                 self.cell(rec.get("full_name")),
                 self.cell(self.order_referrer_label(rec), wrap=True),
@@ -994,7 +1001,15 @@ class admin_proc:
                 ),
                 self.cell(rec.get("order_status"), "status"),
                 self.cell("Delete", "delete", pkey=rec.get("pkey", ""))
-            ]})
+            ]
+            if shipping == "OFFICER":
+                cells.insert(0, self.cell(
+                    "",
+                    "order_print_select",
+                    pkey=rec.get("pkey", "")
+                ))
+            # end if
+            rows.append({"cells": cells})
         # end for
         def with_q(href):
             if q == "":
@@ -1072,8 +1087,12 @@ class admin_proc:
         if q != "":
             empty_msg = "No orders found for order ID or customer name \"" + q + "\"."
         # end if
+        columns = ["Order ID", "Customer", "In charge (referral)", "Date", "Total", "Payment", "Shipping", "Status", ""]
+        if shipping == "OFFICER":
+            columns.insert(0, "Select")
+        # end if
         table = self.make_table(
-            ["Order ID", "Customer", "In charge (referral)", "Date", "Total", "Payment", "Shipping", "Status", ""],
+            columns,
             rows,
             pager,
             empty_msg
@@ -1681,10 +1700,12 @@ class admin_proc:
         for rec in self.list_rows("db_order", {
             "shipping_handler": "OFFICER",
             "shipping_request_status": {"$in": ["PROCESSING", "SHIPPED", "COMPLETED"]},
-            "shipping_budget_num": {"$gt": 0},
             "order_status": {"$ne": "Cancelled"}
         }):
-            shipping_budget_num = int(rec.get("shipping_budget_num") or 0)
+            shipping_expense_num = self.order_shipping_expense_num(rec)
+            if shipping_expense_num <= 0:
+                continue
+            # end if
             transactions.append({
                 "rec_timestamp": int(rec.get("rec_timestamp") or 0),
                 "date": self.display_date(rec),
@@ -1696,12 +1717,12 @@ class admin_proc:
                 "referral_code": rec.get("referral_code") or "—",
                 "account_pkey": rec.get("fk_receive_account") or "",
                 "account_label": rec.get("receive_account_label") or "Not assigned",
-                "amount_num": shipping_budget_num,
-                "amount": rec.get("shipping_budget") or self.format_rp(shipping_budget_num),
+                "amount_num": shipping_expense_num,
+                "amount": self.format_rp(shipping_expense_num),
                 "credit_num": 0,
                 "credit": "—",
                 "status": "PAID",
-                "origin": "Order shipping",
+                "origin": "Order shipping + packing service",
                 "pkey": "",
                 "source_table": "db_order",
                 "source_pkey": rec.get("pkey") or ""
@@ -2216,6 +2237,27 @@ class admin_proc:
         return orders
     # end def
 
+    def configured_shipping_service_fee_num(self):
+        site = self.site.get_site() or {}
+        value = site.get("shipping_service_fee_num")
+        fee = int(10000 if value == None else value)
+        return max(0, fee)
+    # end def
+
+    def order_shipping_service_fee_num(self, order):
+        if "shipping_service_fee_num" in (order or {}):
+            return max(0, int(order.get("shipping_service_fee_num") or 0))
+        # end if
+        return self.configured_shipping_service_fee_num()
+    # end def
+
+    def order_shipping_expense_num(self, order):
+        return (
+            int((order or {}).get("shipping_budget_num") or 0) +
+            self.order_shipping_service_fee_num(order)
+        )
+    # end def
+
     def member_shipping_expense_num(self, rec, exclude_order_pkey=""):
         total = 0
         for order in self.member_referral_orders(rec):
@@ -2231,7 +2273,7 @@ class admin_proc:
             if (order.get("order_status") or "") == "Cancelled":
                 continue
             # end if
-            total = total + int(order.get("shipping_budget_num") or 0)
+            total = total + self.order_shipping_expense_num(order)
         # end for
         return total
     # end def
@@ -2404,6 +2446,83 @@ class admin_proc:
         return "—"
     # end def
 
+    def shipping_document_data(self, order):
+        referrer = self.find_order_referrer(order) or {}
+        sender_name = (referrer.get("full_name") or "").strip()
+        sender_phone = (referrer.get("phone") or "").strip()
+        participant_login = self.get_participant_login(referrer) if referrer != {} else {}
+        sender_user = participant_login.get("user") or {}
+        if sender_name == "":
+            sender_name = (sender_user.get("name") or "").strip()
+        # end if
+        if sender_phone == "":
+            sender_phone = (sender_user.get("phone") or "").strip()
+        # end if
+        items = []
+        for line in order.get("items") or []:
+            item_options = []
+            if (line.get("size") or "").strip() != "":
+                item_options.append("Size: " + (line.get("size") or "").strip())
+            # end if
+            if (line.get("color") or "").strip() != "":
+                item_options.append("Color: " + (line.get("color") or "").strip())
+            # end if
+            sku = (line.get("sku") or line.get("variant_sku") or "").strip()
+            if sku != "":
+                item_options.append("SKU: " + sku)
+            # end if
+            items.append({
+                "name": line.get("name") or "Merchandise",
+                "qty": int(line.get("qty") or 1),
+                "options": " · ".join(item_options)
+            })
+        # end for
+        return {
+            "order_id": order.get("order_id") or order.get("pkey") or "",
+            "sender_name": sender_name or "—",
+            "sender_phone": sender_phone or "—",
+            "recipient_name": order.get("shipping_name") or order.get("full_name") or "—",
+            "recipient_phone": order.get("shipping_phone") or order.get("phone") or "—",
+            "recipient_address": order.get("shipping_address") or order.get("address") or "—",
+            "recipient_city": order.get("shipping_city") or order.get("city") or "",
+            "recipient_postal_code": order.get("shipping_postal_code") or order.get("postal_code") or "",
+            "package_note": order.get("shipping_package_note") or "",
+            "items": items
+        }
+    # end def
+
+    def officer_shipping_documents(self, status="", pay="", q="", order_pkeys=None):
+        clauses = [
+            {"is_deleted": False},
+            {"shipping_handler": "OFFICER"}
+        ]
+        selected_pkeys = [
+            pkey for pkey in (order_pkeys or []) if (pkey or "").strip() != ""
+        ]
+        if order_pkeys is not None:
+            clauses.append({"pkey": {"$in": selected_pkeys}})
+        # end if
+        if status in self.ORDER_STATUSES:
+            clauses.append({"order_status": status})
+        # end if
+        if pay in self.ORDER_PAY_STATUSES:
+            clauses.append({"payment_status": pay})
+        # end if
+        clean_q = (q or "").strip()
+        if clean_q != "":
+            pattern = re.escape(clean_q)
+            clauses.append({"$or": [
+                {"order_id": {"$regex": pattern, "$options": "i"}},
+                {"full_name": {"$regex": pattern, "$options": "i"}}
+            ]})
+        # end if
+        rows = list(self.mgdDB.db_order.find(
+            {"$and": clauses},
+            {"_id": 0}
+        ).sort("rec_timestamp", -1))
+        return [self.shipping_document_data(row) for row in rows]
+    # end def
+
     def table_order_items(self, rec):
         rows = []
         for index, line in enumerate(rec.get("items") or []):
@@ -2441,6 +2560,16 @@ class admin_proc:
             options.insert(0, current)
         # end if
         return options
+    # end def
+
+    def shipping_status_options(self):
+        return [
+            {
+                "value": status,
+                "label": self.SHIPPING_STATUS_LABELS.get(status, status)
+            }
+            for status in self.SHIPPING_STATUSES
+        ]
     # end def
 
     def update_order_line_status(self, pkey, index, status):
@@ -2503,6 +2632,8 @@ class admin_proc:
                 "shipping_expedition": "",
                 "shipping_budget": "",
                 "shipping_budget_num": 0,
+                "shipping_service_fee": "",
+                "shipping_service_fee_num": 0,
                 "shipping_tracking_code": "",
                 "shipping_tracking_url": ""
             })
@@ -2523,8 +2654,8 @@ class admin_proc:
                 return {"status": "FAILED", "desc": "Tracking link must be a valid http or https URL"}
             # end if
         # end if
-        if shipping_status in ["PROCESSING", "SHIPPED", "COMPLETED"] and expedition == "":
-            return {"status": "FAILED", "desc": "Select an expedition for active officer shipping"}
+        if shipping_status in ["SHIPPED", "COMPLETED"] and expedition == "":
+            return {"status": "FAILED", "desc": "Select an expedition before marking the order as shipped"}
         # end if
         referrer = self.find_order_referrer(order)
         if referrer == None:
@@ -2538,13 +2669,23 @@ class admin_proc:
                 "desc": "Officer shipping requires at least " + eligibility.get("minimum") + " combined progress"
             }
         # end if
-        if budget_num > 0:
-            if budget_num > int(eligibility.get("available_num") or 0):
-                return {
-                    "status": "FAILED",
-                    "desc": "Shipping budget exceeds available combined progress of " + eligibility.get("available")
-                }
+        service_fee_value = params.get("shipping_service_fee_num")
+        if service_fee_value != None and str(service_fee_value).strip() != "":
+            service_fee_num = self.parse_int(service_fee_value)
+            if service_fee_num < 0:
+                service_fee_num = 0
             # end if
+        else:
+            service_fee_num = self.configured_shipping_service_fee_num()
+            if order.get("shipping_handler") == "OFFICER":
+                service_fee_num = self.order_shipping_service_fee_num(order)
+            # end if
+        # end if
+        if budget_num + service_fee_num > int(eligibility.get("available_num") or 0):
+            return {
+                "status": "FAILED",
+                "desc": "Shipping and service fees exceed available combined progress of " + eligibility.get("available")
+            }
         # end if
         shipping_updates = {
             "shipping_handler": "OFFICER",
@@ -2552,6 +2693,8 @@ class admin_proc:
             "shipping_expedition": expedition,
             "shipping_budget": self.format_rp(budget_num) if budget_num > 0 else "",
             "shipping_budget_num": budget_num,
+            "shipping_service_fee": self.format_rp(service_fee_num) if service_fee_num > 0 else "",
+            "shipping_service_fee_num": service_fee_num,
             "shipping_tracking_code": (params.get("shipping_tracking_code") or "").strip(),
             "shipping_tracking_url": tracking_url
         }
@@ -2591,6 +2734,8 @@ class admin_proc:
             "shipping_expedition": "",
             "shipping_budget": "",
             "shipping_budget_num": 0,
+            "shipping_service_fee": "",
+            "shipping_service_fee_num": 0,
             "shipping_tracking_code": "",
             "shipping_tracking_url": ""
         })
@@ -2602,16 +2747,33 @@ class admin_proc:
             site = self.site.get_site() or {}
             minimum_value = site.get("shipping_minimum_progress_num")
             minimum = int(100000 if minimum_value == None else minimum_value)
+            service_fee_num = self.configured_shipping_service_fee_num()
             return {
                 "available_num": 0,
                 "available": "Rp 0",
                 "minimum_num": minimum,
                 "minimum": self.format_rp(minimum),
+                "service_fee_num": service_fee_num,
+                "service_fee": self.format_rp(service_fee_num),
+                "shipping_budget_max_num": 0,
+                "shipping_budget_max": "Rp 0",
                 "eligible": False
             }
         # end if
         from dashboard.dashboard_proc import dashboard_proc
-        return dashboard_proc().shipping_eligibility(referrer, order)
+        payload = dashboard_proc().shipping_eligibility(referrer, order)
+        service_fee_num = self.order_shipping_service_fee_num(order)
+        if order.get("shipping_handler") != "OFFICER":
+            service_fee_num = self.configured_shipping_service_fee_num()
+        # end if
+        payload["service_fee_num"] = service_fee_num
+        payload["service_fee"] = self.format_rp(service_fee_num)
+        payload["shipping_budget_max_num"] = max(
+            0,
+            int(payload.get("available_num") or 0) - service_fee_num
+        )
+        payload["shipping_budget_max"] = self.format_rp(payload.get("shipping_budget_max_num"))
+        return payload
     # end def
 
     def get_row(self, table, pkey):
@@ -2964,8 +3126,11 @@ class admin_proc:
             response["desc"] = "Order not found"
             return response
         # end if
-        self.debit_referrer_sale(order)
+        referrer = self.find_order_referrer(order)
         self.soft_delete("db_order", pkey)
+        if referrer != None and (referrer.get("pkey") or "") != "":
+            self.sync_participant_money(referrer.get("pkey"))
+        # end if
         response["status"] = "SUCCESS"
         return response
     # end def

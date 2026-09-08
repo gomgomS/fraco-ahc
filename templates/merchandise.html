@@ -130,6 +130,15 @@
                     <p class="product-meta">Shipping status</p>
                     <h3 style="font-size: 19px; margin: 5px 0;">{{ data.tracking.shipping_status }}</h3>
                     <p class="product-meta">{{ data.tracking.shipping_info }}</p>
+                    {% if data.tracking.shipping_expedition %}
+                    <p class="product-meta" style="margin-top:5px;">Expedition: <strong>{{ data.tracking.shipping_expedition }}</strong></p>
+                    {% endif %}
+                    {% if data.tracking.shipping_tracking_code %}
+                    <p class="product-meta" style="margin-top:5px;">Tracking code: <strong>{{ data.tracking.shipping_tracking_code }}</strong></p>
+                    {% endif %}
+                    {% if data.tracking.shipping_tracking_url %}
+                    <p style="margin-top:8px;"><a class="section-link" href="{{ data.tracking.shipping_tracking_url }}" target="_blank" rel="noopener">Track shipment →</a></p>
+                    {% endif %}
                 </div>
             </div>
 
