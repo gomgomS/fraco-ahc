@@ -1,0 +1,45 @@
+{% extends 'admin_base.html' %}
+{% block title %}Event | Admin{% endblock %}
+{% block content %}
+<p class="product-meta"><a class="section-link" href="/admin/events">Events</a></p>
+<h1 class="section-title" style="margin: 8px 0 24px;">{% if data.row.pkey %}Edit{% else %}Create{% endif %}</h1>
+<form class="form-stack" method="post" enctype="multipart/form-data">
+    <div><label class="field-label" for="title">Title</label><input class="field" name="title" id="title" value="{{ data.row.title or '' }}" required></div>
+    <div><label class="field-label" for="description">Description</label><textarea class="field" name="description" id="description" rows="4">{{ data.row.description or '' }}</textarea></div>
+    <div><label class="field-label" for="date">Date</label><input class="field" name="date" id="date" value="{{ data.row.date or '' }}"></div>
+    <div><label class="field-label" for="time_label">Time</label><input class="field" name="time_label" id="time_label" value="{{ data.row.time_label or '' }}"></div>
+    <div><label class="field-label" for="location">Venue / location</label><input class="field" name="location" id="location" value="{{ data.row.location or data.row.venue or '' }}"></div>
+    <div><label class="field-label" for="capacity">Capacity</label><input class="field" name="capacity" id="capacity" value="{{ data.row.capacity or '' }}"></div>
+    <div><label class="field-label" for="deadline">Registration deadline</label><input class="field" name="deadline" id="deadline" value="{{ data.row.deadline or '' }}"></div>
+    <div><label class="field-label" for="speaker">Speaker</label><input class="field" name="speaker" id="speaker" value="{{ data.row.speaker or '' }}"></div>
+    <div><label class="field-label" for="image">Image URL</label><input class="field" name="image" id="image" value="{{ data.row.image or '' }}"></div>
+    <div>
+        <label class="field-label" for="image_file">Or upload image</label>
+        <input class="field" type="file" name="image_file" id="image_file" accept=".jpg,.jpeg,.png,.webp">
+        <p class="product-meta">jpg, png, or webp. Upload replaces the URL above on save.</p>
+    </div>
+    {% if data.row.image %}
+    <div>
+        <p class="product-meta">Current image</p>
+        <img class="admin-cover-preview" src="{{ data.row.image }}" alt="{{ data.row.title or 'Event' }}">
+    </div>
+    {% endif %}
+    <div>
+        <label class="field-label" for="event_status">Event status</label>
+        <select class="field" name="event_status" id="event_status">
+            {% for item in data.event_statuses %}
+            <option value="{{ item }}"{% if data.row.event_status == item %} selected{% endif %}>{{ item }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    {% if data.can_write %}
+    <button class="btn-black" type="submit">Save</button>
+    {% endif %}
+</form>
+{% if data.row.pkey and data.can_delete %}
+<form method="post" style="margin-top: 16px;" onsubmit="return confirm('Delete this event?');">
+    <input type="hidden" name="action" value="delete">
+    <button class="btn-line" type="submit">Delete</button>
+</form>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}FRACO | Magazine{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+    <img src="/static/upload/heroes/bf043478bb473fe1017b.jpg" alt="Magazine">
+    <div class="page-hero-copy">
+        <h1>Magazine</h1>
+        <p>Possessed living culture</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="product-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+        <a class="product-card news-card" href="/contact">
+            <div class="product-media" style="aspect-ratio: 16 / 9;">
+                <img src="/static/upload/heroes/18f7a036553840432517.jpg" alt="Tips">
+            </div>
+            <p class="product-meta">Tips</p>
+            <h3 class="product-name" style="font-size: 22px;">3 tips for a first house that stays quiet</h3>
+            <p class="product-price" style="margin: 8px 0 12px;">A first house is not a trophy. It is a kit. Choose plan, light, and noise last.</p>
+            <div class="product-meta"><time>15 January 2025</time> · <span class="by">FRACO Mag</span></div>
+        </a>
+        <a class="product-card news-card" href="/contact">
+            <div class="product-media" style="aspect-ratio: 16 / 9;">
+                <img src="/static/upload/heroes/b0a20eef9117a2dde4fd.jpg" alt="Build">
+            </div>
+            <p class="product-meta">Progress</p>
+            <h3 class="product-name" style="font-size: 22px;">Inside phase 1 — how the ground is made</h3>
+            <p class="product-price" style="margin: 8px 0 12px;">Trust the process before the facade. A house is only as calm as the build behind it.</p>
+            <div class="product-meta"><time>12 January 2025</time> · <span class="by">FRACO Mag</span></div>
+        </a>
+    </div>
+</section>
+{% endblock %}

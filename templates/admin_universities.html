@@ -1,0 +1,7 @@
+{% extends 'admin_base.html' %}
+{% block title %}Universities | Admin{% endblock %}
+{% block content %}
+<h1 class="section-title" style="margin-bottom: 12px;">Universities</h1>
+<p class="product-meta" style="margin: 0 0 20px; max-width: 60ch;">Booth applications from University Fair. Open a row to add a logo and turn on “Show as participant campus” so it appears on /programs/university-fair.</p>
+{% with table=data.list_table %}{% include 'admin_table.html' %}{% endwith %}
+{% endblock %}

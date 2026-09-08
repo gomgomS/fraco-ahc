@@ -1,0 +1,26 @@
+{% extends 'admin_base.html' %}
+{% block title %}Team | Admin{% endblock %}
+{% block content %}
+<h1 class="section-title" style="margin-bottom: 12px;">Team</h1>
+<p class="product-meta" style="margin: 0 0 20px; max-width: 60ch;">Team: list people shown on About. Use this when you need to add or update a division member’s name, role, or photo.</p>
+{% with table=data.list_table %}{% include 'admin_table.html' %}{% endwith %}
+{% if data.can_write %}
+<h2 class="section-title" style="font-size: 20px; margin: 40px 0 12px;">Add member</h2>
+<form class="form-stack" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="action" value="save">
+    <div><label class="field-label" for="name">Name</label><input class="field" name="name" id="name" required></div>
+    <div><label class="field-label" for="position">Position</label><input class="field" name="position" id="position"></div>
+    <div><label class="field-label" for="division">Division</label><input class="field" name="division" id="division"></div>
+    <div><label class="field-label" for="photo">Photo URL</label><input class="field" name="photo" id="photo"></div>
+    <div>
+        <label class="field-label" for="photo_file">Or upload photo</label>
+        <input class="field" type="file" name="photo_file" id="photo_file" accept=".jpg,.jpeg,.png,.webp">
+        <p class="product-meta">jpg, png, or webp. Upload replaces the URL above on save.</p>
+    </div>
+    <div><label class="field-label" for="bio">Bio</label><textarea class="field" name="bio" id="bio" rows="3"></textarea></div>
+    <div><label class="field-label" for="social">Social</label><input class="field" name="social" id="social"></div>
+    <div><label class="field-label" for="order">Display order</label><input class="field" name="order" id="order" value="0"></div>
+    <button class="btn-black" type="submit">Save</button>
+</form>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends 'admin_base.html' %}
+{% block title %}Article | Admin{% endblock %}
+{% block content %}
+<p class="product-meta"><a class="section-link" href="/admin/content">Content</a></p>
+<h1 class="section-title" style="margin: 8px 0 24px;">{% if data.row.pkey %}Edit{% else %}Create{% endif %}</h1>
+<form class="form-stack" method="post" enctype="multipart/form-data">
+    <div><label class="field-label" for="title">Title</label><input class="field" name="title" id="title" value="{{ data.row.title or '' }}" required></div>
+    <div><label class="field-label" for="slug">Slug</label><input class="field" name="slug" id="slug" value="{{ data.row.slug or '' }}"></div>
+    <div><label class="field-label" for="date">Date</label><input class="field" type="date" name="date" id="date" value="{{ data.row.date or '' }}"></div>
+    <div>
+        <label class="field-label" for="category">Category</label>
+        <select class="field" name="category" id="category">
+            {% for item in data.categories %}
+            <option value="{{ item }}"{% if data.row.category == item %} selected{% endif %}>{{ item }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div>
+        <label class="field-label" for="fk_program_slug">Program (optional)</label>
+        <select class="field" name="fk_program_slug" id="fk_program_slug">
+            <option value="">Site-wide only</option>
+            {% for item in data.programs %}
+            <option value="{{ item.slug }}"{% if data.row.fk_program_slug == item.slug %} selected{% endif %}>{{ item.title }} ({{ item.slug }})</option>
+            {% endfor %}
+        </select>
+        <p class="product-meta">Linked updates also appear above FAQ on that program page.</p>
+    </div>
+    <div><label class="field-label" for="author">Author</label><input class="field" name="author" id="author" value="{{ data.row.author or 'FRACO' }}"></div>
+    <div><label class="field-label" for="excerpt">Excerpt</label><textarea class="field" name="excerpt" id="excerpt" rows="3">{{ data.row.excerpt or '' }}</textarea></div>
+    <div><label class="field-label" for="content">Content</label><textarea class="field" name="content" id="content" rows="8">{{ data.row.content or '' }}</textarea></div>
+    <div><label class="field-label" for="image">Cover image URL</label><input class="field" name="image" id="image" value="{{ data.row.image or '' }}"></div>
+    <div>
+        <label class="field-label" for="image_file">Or upload cover</label>
+        <input class="field" type="file" name="image_file" id="image_file" accept=".jpg,.jpeg,.png,.webp">
+        <p class="product-meta">jpg, png, or webp. Upload replaces the URL above on save.</p>
+    </div>
+    {% if data.row.image %}
+    <div>
+        <p class="product-meta">Current cover</p>
+        <img class="admin-cover-preview" src="{{ data.row.image }}" alt="{{ data.row.title or 'Article' }}">
+    </div>
+    {% endif %}
+    <div>
+        <label class="field-label" for="status">Status</label>
+        <select class="field" name="status" id="status">
+            {% for item in ['PUBLISHED', 'DRAFT'] %}
+            <option value="{{ item }}"{% if data.row.status == item %} selected{% endif %}>{{ item }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    {% if data.can_write %}
+    <button class="btn-black" type="submit">Save</button>
+    {% endif %}
+</form>
+{% if data.row.pkey and data.can_delete %}
+<form method="post" style="margin-top: 16px;" onsubmit="return confirm('Delete this article?');">
+    <input type="hidden" name="action" value="delete">
+    <button class="btn-line" type="submit">Delete</button>
+</form>
+{% endif %}
+{% endblock %}

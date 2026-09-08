@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <title>{% block title %}Admin | FRACO{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,600;0,700;0,800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='v2/perumahan.output.css') }}">
+</head>
+<body class="admin-shell">
+    <aside class="admin-side">
+        <a class="logo" href="/admin">FRACO</a>
+        <p class="product-meta">{{ data.admin_role_label }}</p>
+        <nav class="dash-nav" aria-label="Admin">
+            {% for key, href, label in data.admin_nav %}
+            <a href="{{ href }}" class="{% if data.admin_page == key %}active{% endif %}">{{ label }}</a>
+            {% endfor %}
+        </nav>
+        <p style="margin-top: 24px;">
+            <a class="section-link" href="/">View site</a><br>
+            <a class="section-link" href="/admin/logout">Log out</a>
+        </p>
+    </aside>
+    <main class="admin-main">
+        {% if data.form_error %}<p class="prose-fraco" style="color:#b00000;margin-bottom:20px;">{{ data.form_error }}</p>{% endif %}
+        {% if data.form_ok %}<p class="prose-fraco" style="margin-bottom:20px;">Saved.</p>{% endif %}
+        {% if data.admin_page and data.admin_page not in ['overview', 'login', 'users'] and not data.can_write %}
+        <p class="prose-fraco" style="margin-bottom:20px;">View only. Your role cannot change this page.</p>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

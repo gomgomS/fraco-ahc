@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="../../static/assets/images/TheEnrichLogo2.png" type="image/png">
+    <title>The Enrich City - Daftar Properti</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../../static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Additional CSS Files -->
+    <link rel="stylesheet" href="../../static/assets/css/fontawesome.css">
+    <link rel="stylesheet" href="../../static/assets/css/enrich-housing.css">
+    <link rel="stylesheet" href="../../static/assets/css/owl.css">
+    <link rel="stylesheet" href="../../static/assets/css/animate.css">
+    <link rel="stylesheet"href="https://unpkg.com/swiper@7/swiper-bundle.min.css"/>
+</head>
+
+<body>
+
+  <!-- ***** Preloader Start ***** -->
+  <div id="js-preloader" class="js-preloader">
+    <div class="preloader-inner">
+      <span class="dot"></span>
+      <div class="dots">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+  </div>
+  <!-- ***** Preloader End ***** -->
+
+  <!-- ***** Header Area Start ***** -->
+  <header class="header-area header-sticky">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <nav class="main-nav">
+                    <!-- ***** Logo Start ***** -->
+                    <a href="index.html" class="logo">
+                        <img src="../../static/assets/images/TheEnrichLogo2.png" alt="" class="logo-img">
+                    </a>
+                    <!-- ***** Logo End ***** -->
+                    <!-- ***** Menu Start ***** -->
+                    <ul class="nav" id="mainNav">
+                      <li><a href="/">Home</a></li>
+                      <li><a href="/about-us">About Us</a></li>
+                      <li>
+                        <!-- <a href="#" class="has-submenu" id="propertiParent" class="active">Properti <b class="caret"></b></a> -->
+                        <a href="/properti" class="active">Properti</a>
+                      </li>
+                      <!-- SUBMENU Akan diinject pakai JS -->
+                      <!-- <li><a href="/project-overview">Project Overview</a></li> -->
+                      <li><a href="/fasilitas">Fasilitas</a></li>
+                      <li><a href="/news">Highlight</a></li>
+                      <li><a href="/contact">Hubungi Kami</a></li>
+                    </ul>   
+                    <a class='menu-trigger'>
+                        <span>Menu</span>
+                    </a>
+                    <!-- ***** Menu End ***** -->
+                </nav>
+            </div>
+        </div>
+    </div>
+  </header>
+  <!-- ***** Header Area End ***** -->
+
+  <div class="page-heading header-text">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-12">          
+          <h3 class="fadein-heading">Daftar Properti The Enrich City</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section properties">
+    <div class="container">
+      <ul class="properties-filter">
+        <li>
+          <a class="is_active" href="#!" data-filter="*">Tampilkan Semua</a>
+        </li>
+        <li>
+          <a href="#!" data-filter=".cluster">Rumah Cluster</a>
+        </li>
+        <li>
+          <a href="#!" data-filter=".townhouse">Townhouse</a>
+        </li>
+        <li>
+          <a href="#!" data-filter=".kavling">Kavling</a>
+        </li>
+      </ul>
+      <div class="row properties-box">
+        <!-- Rumah Cluster Tipe Valencia -->
+        <div class="col-lg-4 col-md-6 align-self-center mb-30 properties-items col-md-6 cluster">
+          <div class="item">
+            <a href="property-details.html"><img src="../../static/assets/images/property-01.jpg" alt="Rumah Cluster Tipe Valencia"></a>
+            <span class="category">Rumah Cluster</span>
+            <h6>Rp 3,5 Miliar</h6>
+            <h4><a href="property-details.html">The Enrich Garden - Tipe Valencia</a></h4>
+            <ul>
+              <li>K. Tidur: <span>4</span></li>
+              <li>K. Mandi: <span>3</span></li>
+              <li>Luas Tanah: <span>180m²</span></li>
+              <li>Bangunan: <span>220m²</span></li>
+              <li>Parkir: <span>2 mobil</span></li>
+            </ul>
+            <div class="main-button">
+              <a href="property-details.html">Dapatkan Penawaran</a>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Townhouse Tipe Monaco -->
+        <div class="col-lg-4 col-md-6 align-self-center mb-30 properties-items col-md-6 townhouse">
+          <div class="item">
+            <a href="property-details.html"><img src="../../static/assets/images/property-02.jpg" alt="Townhouse Tipe Monaco"></a>
+            <span class="category">Townhouse</span>
+            <h6>Rp 5,8 Miliar</h6>
+            <h4><a href="property-details.html">The Enrich Premier - Tipe Monaco</a></h4>
+            <ul>
+              <li>K. Tidur: <span>5</span></li>
+              <li>K. Mandi: <span>4</span></li>
+              <li>Luas: <span>320m²</span></li>
+              <li>Lantai: <span>3</span></li>
+              <li>Parkir: <span>3 mobil</span></li>
+            </ul>
+            <div class="main-button">
+              <a href="property-details.html">Dapatkan Penawaran</a>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Kavling Premium -->
+        <div class="col-lg-4 col-md-6 align-self-center mb-30 properties-items col-md-6 kavling">
+          <div class="item">
+            <a href="property-details.html"><img src="../../static/assets/images/property-03.jpg" alt="Kavling Premium"></a>
+            <span class="category">Kavling</span>
+            <h6>Rp 1,2 Miliar</h6>
+            <h4><a href="property-details.html">Kavling Premium The Enrich</a></h4>
+            <ul>
+              <li>Luas Tanah: <span>300m²</span></li>
+              <li>Sertifikat: <span>SHM</span></li>
+              <li>Lokasi: <span>Zona Hijau</span></li>
+              <li>IMB: <span>Tersedia</span></li>
+            </ul>
+            <div class="main-button">
+              <a href="property-details.html">Dapatkan Penawaran</a>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Rumah Cluster Tipe Sevilla -->
+        <div class="col-lg-4 col-md-6 align-self-center mb-30 properties-items col-md-6 cluster">
+          <div class="item">
+            <a href="property-details.html"><img src="../../static/assets/images/property-04.jpg" alt="Rumah Cluster Tipe Sevilla"></a>
+            <span class="category">Rumah Cluster</span>
+            <h6>Rp 2,8 Miliar</h6>
+            <h4><a href="property-details.html">The Enrich Garden - Tipe Sevilla</a></h4>
+            <ul>
+              <li>K. Tidur: <span>3</span></li>
+              <li>K. Mandi: <span>2</span></li>
+              <li>Luas Tanah: <span>150m²</span></li>
+              <li>Bangunan: <span>180m²</span></li>
+              <li>Parkir: <span>1 mobil</span></li>
+            </ul>
+            <div class="main-button">
+              <a href="property-details.html">Dapatkan Penawaran</a>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Townhouse Tipe Santorini -->
+        <div class="col-lg-4 col-md-6 align-self-center mb-30 properties-items col-md-6 townhouse">
+          <div class="item">
+            <a href="property-details.html"><img src="../../static/assets/images/property-05.jpg" alt="Townhouse Tipe Santorini"></a>
+            <span class="category">Townhouse</span>
+            <h6>Rp 4,5 Miliar</h6>
+            <h4><a href="property-details.html">The Enrich Premier - Tipe Santorini</a></h4>
+            <ul>
+              <li>K. Tidur: <span>4</span></li>
+              <li>K. Mandi: <span>3</span></li>
+              <li>Luas: <span>280m²</span></li>
+              <li>Lantai: <span>2</span></li>
+              <li>Parkir: <span>2 mobil</span></li>
+            </ul>
+            <div class="main-button">
+              <a href="property-details.html">Dapatkan Penawaran</a>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Kavling Eksekutif -->
+        <div class="col-lg-4 col-md-6 align-self-center mb-30 properties-items col-md-6 kavling">
+          <div class="item">
+            <a href="property-details.html"><img src="../../static/assets/images/property-06.jpg" alt="Kavling Eksekutif"></a>
+            <span class="category">Kavling</span>
+            <h6>Rp 1,8 Miliar</h6>
+            <h4><a href="property-details.html">Kavling Eksekutif The Enrich</a></h4>
+            <ul>
+              <li>Luas Tanah: <span>400m²</span></li>
+              <li>Sertifikat: <span>SHM</span></li>
+              <li>Lokasi: <span>Zona Premium</span></li>
+              <li>IMB: <span>Tersedia</span></li>
+            </ul>
+            <div class="main-button">
+              <a href="property-details.html">Dapatkan Penawaran</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-lg-12">
+          <ul class="pagination">
+            <!-- <li><a href="#">1</a></li>
+            <li><a class="is_active" href="#">2</a></li>
+            <li><a href="#">3</a></li>
+            <li><a href="#">>></a></li> -->
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer-pro">
+    <div class="container">
+      <div class="row">
+        <!-- Logo Section -->
+        <div class="col-lg-5 col-md-6 mb-4">
+          <div class="footer-logo-section">
+            <img src="../../static/assets/images/Design Icon-Logo Footer.webp" alt="The Enrich City Logo" class="footer-logo-img" width="200" height="60" loading="lazy">
+            <div class="footer-brand-info">
+              <!-- <h5 class="footer-brand-title">THE ENRICH CITY</h5> -->
+              <span class="footer-brand-comspanany" style="text-align: justify; display: block;">The Enrich City - Hunian modern berkonsep hijau di Kabupaten Mimika.
+                The Enrich City hadir sebagai simbol kenyamanan & Kualitas hidup
+                terbaik di Timur Indonesia.</span>
+              <!-- <p class="footer-brand-company">PT.PUINDO</p> -->
+            </div>
+          </div>
+        </div>
+        
+        <!-- Description Section -->
+        <div class="col-lg-3 col-md-6 mb-4">
+          <div class="footer-description">
+            <p class="footer-desc-text">
+              <!-- Dikembangkan di jantung Kota Mimika, The Enrich City adalah
+              kawasan hunian baru yang mengusung konsep hijau dan modern.
+              Dirancang untuk menghadirkan kenyamanan, ketenangan, serta
+              kualitas hidup yang lebih baik bagi keluarga masa kini.
+              The Enrich City menjadi simbol hunian masa depan di Timur
+              Indonesia. Dream City of The East. -->
+            </p>
+          </div>
+        </div>
+        
+        <!-- Contact Section -->
+        <div class="col-lg-4 col-md-12 mb-4">
+          <div class="footer-contact">
+            <h6 class="footer-contact-title">Hubungi Kami</h6>
+            <div class="footer-contact-item">
+              <img src="../../static/assets/images/Design Icon-08.webp" alt="Instagram" class="footer-contact-icon">
+              <span class="footer-contact-text">theenrichcity</span>
+            </div>
+            <div class="footer-contact-item">
+              <img src="../../static/assets/images/Design Icon-09.webp" alt="WhatsApp" class="footer-contact-icon">
+              <span class="footer-contact-text">0811 411 951</span>
+            </div>
+            <div class="footer-contact-item">
+              <img src="../../static/assets/images/Design Icon-10.webp" alt="Location" class="footer-contact-icon">
+              <span class="footer-contact-text">Jalan Cendrawasih, Kelurahan Timika Indah, Kecamatan Mimika Baru, Kabupaten Mimika, Papua Tengah, 99910</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Copyright Section -->
+      <div class="row">
+        <div class="col-12">
+          <div class="footer-copyright">
+            <p class="mb-0">Hak Cipta © 2025 <strong>The Enrich City</strong>. Semua hak dilindungi.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="../../static/vendor/jquery/jquery.min.js"></script>
+  <script src="../../static/vendor/bootstrap/js/bootstrap.min.js"></script>
+  <script src="../../static/assets/js/isotope.min.js"></script>
+  <script src="../../static/assets/js/owl-carousel.js"></script>
+  <script src="../../static/assets/js/counter.js"></script>
+  <script src="../../static/assets/js/custom.js"></script>
+
+
+  <!-- Mobile Menu JavaScript -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Mobile Menu Toggle
+      const menuTrigger = document.querySelector('.menu-trigger');
+      const nav = document.querySelector('.main-nav .nav');
+      const body = document.body;
+      
+      if (menuTrigger && nav) {
+        menuTrigger.addEventListener('click', function() {
+          menuTrigger.classList.toggle('active');
+          nav.classList.toggle('active');
+          body.style.overflow = nav.classList.contains('active') ? 'hidden' : '';
+        });
+        
+        // Close menu when clicking on menu items
+        const menuItems = nav.querySelectorAll('a');
+        menuItems.forEach(item => {
+          item.addEventListener('click', function() {
+            menuTrigger.classList.remove('active');
+            nav.classList.remove('active');
+            body.style.overflow = '';
+          });
+        });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', function(e) {
+          if (!menuTrigger.contains(e.target) && !nav.contains(e.target)) {
+            menuTrigger.classList.remove('active');
+            nav.classList.remove('active');
+            body.style.overflow = '';
+          }
+        });
+      }
+    });
+  </script>
+
+</body>
+</html>

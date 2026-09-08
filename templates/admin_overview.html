@@ -1,0 +1,60 @@
+{% extends 'admin_base.html' %}
+{% block title %}Admin dashboard | FRACO{% endblock %}
+{% block content %}
+<h1 class="section-title" style="margin-bottom: 12px;">Dashboard</h1>
+<p class="product-meta" style="margin: 0 0 20px; max-width: 64ch;">Overview: numbers and charts for the whole operation. Use this for a quick status check — not for editing a single record.</p>
+<div class="dash-stats">
+    <article class="dash-stat"><p class="product-meta">Participants</p><h3>{{ data.total_participants }}</h3></article>
+    <article class="dash-stat"><p class="product-meta">Total raised</p><h3>{{ data.total_revenue }}</h3></article>
+    <article class="dash-stat"><p class="product-meta">Merch profit (paid orders)</p><h3>{{ data.merch_sold }}</h3></article>
+    <article class="dash-stat"><p class="product-meta">Proposal received</p><h3>{{ data.proposal_total }}</h3></article>
+    <article class="dash-stat"><p class="product-meta">Contribution (members)</p><h3>{{ data.contribution_total }}</h3></article>
+    <article class="dash-stat"><p class="product-meta">Pledges · Follow up</p><h3>{{ data.pledges_follow_up }}</h3></article>
+    <article class="dash-stat"><p class="product-meta">Pledges · Received</p><h3>{{ data.pledges_received }}</h3></article>
+    <article class="dash-stat"><p class="product-meta">Pending payments</p><h3>{{ data.pending_payments }}</h3></article>
+    <article class="dash-stat"><p class="product-meta">Merchandise orders</p><h3>{{ data.merchandise_orders }}</h3></article>
+    <article class="dash-stat"><p class="product-meta">Sponsors</p><h3>{{ data.sponsors }}</h3></article>
+    <article class="dash-stat"><p class="product-meta">Vendors</p><h3>{{ data.vendors }}</h3></article>
+    <article class="dash-stat"><p class="product-meta">University partners</p><h3>{{ data.universities }}</h3></article>
+    <article class="dash-stat"><p class="product-meta">Upcoming events</p><h3>{{ data.upcoming_events }}</h3></article>
+</div>
+<p class="product-meta" style="margin-top: 16px;">Total raised = paid merchandise + Support Us <strong>Proposal</strong> (RECEIVED, not self) + <strong>Contribution</strong> (RECEIVED member self-give). Live from orders and pledges — not cached guesses.</p>
+<div class="admin-charts">
+    <section>
+        <h2 class="section-title" style="font-size: 20px; margin: 32px 0 12px;">Registrations</h2>
+        {% for row in data.chart_regs %}
+        <p class="product-meta">{{ row.label }} · {{ row.count }}</p>
+        <div class="pay-bar"><span style="width: {{ row.pct }}%;"></span></div>
+        {% else %}
+        <p class="prose-fraco">No registrations yet.</p>
+        {% endfor %}
+    </section>
+    <section>
+        <h2 class="section-title" style="font-size: 20px; margin: 32px 0 12px;">Support Us pledges</h2>
+        {% for row in data.chart_pledges %}
+        <p class="product-meta">{{ row.label }} · {{ row.count }}</p>
+        <div class="pay-bar"><span style="width: {{ row.pct }}%;"></span></div>
+        {% else %}
+        <p class="prose-fraco">No pledges yet.</p>
+        {% endfor %}
+    </section>
+    <section>
+        <h2 class="section-title" style="font-size: 20px; margin: 32px 0 12px;">Payment collection</h2>
+        {% for row in data.chart_payments %}
+        <p class="product-meta">{{ row.label }} · {{ row.count }}</p>
+        <div class="pay-bar"><span style="width: {{ row.pct }}%;"></span></div>
+        {% else %}
+        <p class="prose-fraco">No payment rows yet.</p>
+        {% endfor %}
+    </section>
+    <section>
+        <h2 class="section-title" style="font-size: 20px; margin: 32px 0 12px;">Order status</h2>
+        {% for row in data.chart_orders %}
+        <p class="product-meta">{{ row.label }} · {{ row.count }}</p>
+        <div class="pay-bar"><span style="width: {{ row.pct }}%;"></span></div>
+        {% else %}
+        <p class="prose-fraco">No orders yet.</p>
+        {% endfor %}
+    </section>
+</div>
+{% endblock %}

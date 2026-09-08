@@ -1,0 +1,564 @@
+{% extends 'admin_base.html' %}
+{% block title %}Program | Admin{% endblock %}
+{% block content %}
+<p class="product-meta"><a class="section-link" href="/admin/programs">Programs</a></p>
+<h1 class="section-title" style="margin: 8px 0 24px;">{% if data.row.pkey %}Edit{% else %}Create{% endif %} program</h1>
+
+{% if data.form_error %}
+<p class="prose-fraco" style="color: #b00000; margin-bottom: 24px;">{{ data.form_error }}</p>
+{% endif %}
+
+{% if data.row.pkey %}
+<div class="filter-row" style="margin-bottom: 28px;">
+    <a class="filter-chip{% if data.program_tab == 'details' %} active{% endif %}" href="/admin/programs/{{ data.row.pkey }}?tab=details">Details</a>
+    <a class="filter-chip{% if data.program_tab == 'schedule' %} active{% endif %}" href="/admin/programs/{{ data.row.pkey }}?tab=schedule">Schedule</a>
+    <a class="filter-chip{% if data.program_tab == 'updates' %} active{% endif %}" href="/admin/programs/{{ data.row.pkey }}?tab=updates">Updates</a>
+    <a class="filter-chip{% if data.program_tab == 'faq' %} active{% endif %}" href="/admin/programs/{{ data.row.pkey }}?tab=faq">FAQ</a>
+</div>
+{% endif %}
+
+{% if data.program_tab == 'details' or not data.row.pkey %}
+<form class="form-stack" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="action" value="save">
+    <input type="hidden" name="tab" value="details">
+
+    <section class="admin-block">
+        <h2 class="section-title" style="font-size: 20px; margin-bottom: 12px;">Main</h2>
+        <div><label class="field-label" for="title">Title</label><input class="field" name="title" id="title" value="{{ data.row.title or '' }}" required></div>
+        <div><label class="field-label" for="slug">Slug</label><input class="field" name="slug" id="slug" value="{{ data.row.slug or '' }}"></div>
+        <div><label class="field-label" for="description">Short description</label><textarea class="field" name="description" id="description" rows="3">{{ data.row.description or '' }}</textarea></div>
+        <div><label class="field-label" for="about">About</label><textarea class="field" name="about" id="about" rows="5">{{ data.row.about or '' }}</textarea></div>
+        <div><label class="field-label" for="image">Cover image URL</label><input class="field" name="image" id="image" value="{{ data.row.image or '' }}"></div>
+        <div>
+            <label class="field-label" for="image_file">Or upload cover</label>
+            <input class="field" type="file" name="image_file" id="image_file" accept=".jpg,.jpeg,.png,.webp">
+            <p class="product-meta">jpg, png, or webp. Upload replaces the URL above on save.</p>
+        </div>
+        {% if data.row.image %}
+        <div>
+            <p class="product-meta">Current cover</p>
+            <img class="admin-cover-preview" src="{{ data.row.image }}" alt="Cover">
+        </div>
+        {% endif %}
+        <div><label class="field-label" for="cta_label">CTA label</label><input class="field" name="cta_label" id="cta_label" value="{{ data.row.cta_label or '' }}"></div>
+        <div><label class="field-label" for="cta_href">CTA / registration link</label><input class="field" name="cta_href" id="cta_href" value="{{ data.row.cta_href or '' }}"></div>
+        <div><label class="field-label" for="topics">Topics (comma-separated)</label><input class="field" name="topics" id="topics" value="{% if data.row.topics is string %}{{ data.row.topics }}{% elif data.row.topics %}{{ data.row.topics|join(', ') }}{% endif %}"></div>
+        <div><label class="field-label" for="industries">Industries (comma-separated)</label><input class="field" name="industries" id="industries" value="{% if data.row.industries is string %}{{ data.row.industries }}{% elif data.row.industries %}{{ data.row.industries|join(', ') }}{% endif %}"></div>
+        <div><label class="field-label" for="order">Order</label><input class="field" name="order" id="order" value="{{ data.row.order or 0 }}"></div>
+        <div>
+            <label class="field-label" for="status">Status</label>
+            <select class="field" name="status" id="status">
+                {% for item in ['PUBLISHED', 'DRAFT'] %}
+                <option value="{{ item }}"{% if data.row.status == item %} selected{% endif %}>{{ item }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </section>
+
+    <section class="admin-block" style="margin-top: 28px;">
+        <h2 class="section-title" style="font-size: 20px; margin-bottom: 12px;">Venue</h2>
+        <div>
+            <label class="field-label" for="venue_mode">Mode</label>
+            <select class="field" name="venue_mode" id="venue_mode">
+                {% for item in data.venue_modes %}
+                <option value="{{ item }}"{% if (data.row.venue_mode or 'OFFLINE') == item %} selected{% endif %}>{{ item }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div><label class="field-label" for="venue">Venue label / address</label><input class="field" name="venue" id="venue" value="{{ data.row.venue or '' }}" placeholder="Hall name, city, or Online"></div>
+        <div><label class="field-label" for="venue_url">Online link (Zoom / Meet / stream)</label><input class="field" name="venue_url" id="venue_url" value="{{ data.row.venue_url or '' }}" placeholder="https://…"></div>
+        <p class="product-meta">OFFLINE uses the address. ONLINE uses the link. HYBRID shows both.</p>
+    </section>
+
+    {% if data.can_write %}
+    <button class="btn-black" type="submit" style="margin-top: 24px;">Save program</button>
+    {% endif %}
+</form>
+
+{% if data.row.pkey and data.can_delete %}
+<form method="post" style="margin-top: 16px;" onsubmit="return confirm('Delete this program?');">
+    <input type="hidden" name="action" value="delete">
+    <button class="btn-line" type="submit">Delete program</button>
+</form>
+{% endif %}
+
+{% if not data.row.pkey %}
+<section class="admin-block" style="margin-top: 28px;">
+    <p class="prose-fraco">Save the program once, then you can manage schedule, updates, and FAQ in their tabs.</p>
+</section>
+{% endif %}
+{% endif %}
+
+{% if data.row.pkey and data.program_tab == 'schedule' %}
+<section class="admin-block">
+    <h2 class="section-title" style="font-size: 20px; margin-bottom: 12px;">Schedule</h2>
+    <p class="prose-fraco" style="margin-bottom: 12px;">Add, edit, or delete here — no need to save the program first. Open a row to edit.</p>
+    {% for item in data.schedule %}
+    <details class="admin-fold">
+        <summary class="admin-fold-sum">
+            <span>{{ item.time_label or '—' }} · {{ item.title }}</span>
+            <span class="product-meta">order {{ item.order or 0 }}</span>
+        </summary>
+        {% if data.can_write %}
+        <form class="form-stack" method="post" action="/admin/programs/{{ data.row.pkey }}/schedule" style="margin-top: 12px;">
+            <input type="hidden" name="action" value="edit">
+            <input type="hidden" name="item_pkey" value="{{ item.pkey }}">
+            <div class="admin-row">
+                <div><label class="field-label">Time</label><input class="field" name="time_label" value="{{ item.time_label or '' }}"></div>
+                <div><label class="field-label">Title</label><input class="field" name="title" value="{{ item.title or '' }}" required></div>
+                <div><label class="field-label">Order</label><input class="field" name="order" value="{{ item.order or 0 }}"></div>
+            </div>
+            <div class="admin-fold-actions">
+                <button class="btn-black" type="submit">Save</button>
+            </div>
+        </form>
+        <form method="post" action="/admin/programs/{{ data.row.pkey }}/schedule" onsubmit="return confirm('Delete this schedule item?');">
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="item_pkey" value="{{ item.pkey }}">
+            <button class="btn-line" type="submit">Delete</button>
+        </form>
+        {% endif %}
+    </details>
+    {% else %}
+    <p class="product-meta">No schedule items yet.</p>
+    {% endfor %}
+    {% if data.can_write %}
+    <form class="form-stack" method="post" action="/admin/programs/{{ data.row.pkey }}/schedule" style="margin-top: 16px;">
+        <input type="hidden" name="action" value="add">
+        <p class="product-meta">New schedule item</p>
+        <div class="admin-row">
+            <div><label class="field-label" for="sch_time">Time</label><input class="field" name="time_label" id="sch_time" placeholder="09:00"></div>
+            <div><label class="field-label" for="sch_title">Title</label><input class="field" name="title" id="sch_title" required placeholder="Session title"></div>
+            <div><label class="field-label" for="sch_order">Order</label><input class="field" name="order" id="sch_order" value="0"></div>
+        </div>
+        <button class="btn-black" type="submit">Add schedule item</button>
+    </form>
+    {% endif %}
+</section>
+{% endif %}
+
+{% if data.row.pkey and data.program_tab == 'updates' %}
+<section class="admin-block">
+    <h2 class="section-title" style="font-size: 20px; margin-bottom: 12px;">Updates</h2>
+    <p class="prose-fraco" style="margin-bottom: 12px;">Saved updates stay closed. Open one to edit or delete. They also appear on /updates by category.</p>
+    {% for item in data.updates %}
+    <details class="admin-fold">
+        <summary class="admin-fold-sum">
+            <span>{{ item.title }}</span>
+            <span class="product-meta">{{ item.category or '—' }} · {{ item.date or '—' }} · {{ item.status or '—' }}</span>
+        </summary>
+        {% if data.can_write %}
+        <form class="form-stack" method="post" enctype="multipart/form-data" action="/admin/programs/{{ data.row.pkey }}/updates" style="margin-top: 12px;">
+            <input type="hidden" name="action" value="edit">
+            <input type="hidden" name="item_pkey" value="{{ item.pkey }}">
+            <div><label class="field-label">Title</label><input class="field" name="title" value="{{ item.title or '' }}" required></div>
+            <div><label class="field-label">Slug</label><input class="field" name="slug" value="{{ item.slug or '' }}"></div>
+            <div><label class="field-label">Date</label><input class="field" type="date" name="date" value="{{ item.date or '' }}"></div>
+            <div>
+                <label class="field-label">Category</label>
+                <select class="field" name="category" required>
+                    {% for cat in data.update_categories %}
+                    <option value="{{ cat }}"{% if item.category == cat %} selected{% endif %}>{{ cat }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div><label class="field-label">Author</label><input class="field" name="author" value="{{ item.author or 'FRACO' }}"></div>
+            <div>
+                <label class="field-label">Status</label>
+                <select class="field" name="status">
+                    {% for st in ['PUBLISHED', 'DRAFT'] %}
+                    <option value="{{ st }}"{% if item.status == st %} selected{% endif %}>{{ st }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div><label class="field-label">Excerpt</label><textarea class="field" name="excerpt" rows="2">{{ item.excerpt or '' }}</textarea></div>
+            <div>
+                <label class="field-label">Content</label>
+                <textarea class="field js-rich-text-source" name="content" rows="10">{{ item.content or '' }}</textarea>
+                <p class="product-meta">Format it like a blog post with headings, links, lists, and images.</p>
+            </div>
+            <div><label class="field-label">Image URL</label><input class="field" name="image" value="{{ item.image or '' }}"></div>
+            <div>
+                <label class="field-label">Or upload cover image</label>
+                <input class="field" type="file" name="image_file" accept=".jpg,.jpeg,.png,.webp">
+                <p class="product-meta">jpg, png, or webp. Upload replaces the URL above.</p>
+            </div>
+            {% if item.image %}
+            <div>
+                <p class="product-meta">Current cover</p>
+                <img class="admin-cover-preview" src="{{ item.image }}" alt="{{ item.title }}">
+            </div>
+            {% endif %}
+            <div class="admin-fold-actions">
+                <button class="btn-black" type="submit">Save</button>
+            </div>
+        </form>
+        <form method="post" action="/admin/programs/{{ data.row.pkey }}/updates" onsubmit="return confirm('Delete this update?');">
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="item_pkey" value="{{ item.pkey }}">
+            <button class="btn-line" type="submit">Delete</button>
+        </form>
+        {% endif %}
+    </details>
+    {% else %}
+    <p class="product-meta">No updates for this program yet.</p>
+    {% endfor %}
+    {% if data.can_write %}
+    <div id="upd-forms">
+        <form class="form-stack admin-upd-form" method="post" enctype="multipart/form-data" action="/admin/programs/{{ data.row.pkey }}/updates" style="margin-top: 16px;">
+            <input type="hidden" name="action" value="add">
+            <p class="product-meta">New update</p>
+            <div><label class="field-label">Title</label><input class="field" name="title" required></div>
+            <div><label class="field-label">Slug</label><input class="field" name="slug" placeholder="auto from title"></div>
+            <div><label class="field-label">Date</label><input class="field" type="date" name="date"></div>
+            <div>
+                <label class="field-label">Category</label>
+                <select class="field" name="category" required>
+                    {% for cat in data.update_categories %}
+                    <option value="{{ cat }}">{{ cat }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div><label class="field-label">Author</label><input class="field" name="author" value="FRACO"></div>
+            <div>
+                <label class="field-label">Status</label>
+                <select class="field" name="status">
+                    <option value="PUBLISHED">PUBLISHED</option>
+                    <option value="DRAFT" selected>DRAFT</option>
+                </select>
+            </div>
+            <div><label class="field-label">Excerpt</label><textarea class="field" name="excerpt" rows="2"></textarea></div>
+            <div>
+                <label class="field-label">Content</label>
+                <textarea class="field js-rich-text-source" name="content" rows="10"></textarea>
+                <p class="product-meta">Format it like a blog post with headings, links, lists, and images.</p>
+            </div>
+            <div><label class="field-label">Image URL</label><input class="field" name="image"></div>
+            <div>
+                <label class="field-label">Or upload cover image</label>
+                <input class="field" type="file" name="image_file" accept=".jpg,.jpeg,.png,.webp">
+                <p class="product-meta">jpg, png, or webp. Upload replaces the URL above.</p>
+            </div>
+            <button class="btn-black" type="submit">Add update</button>
+        </form>
+    </div>
+    <p style="margin-top: 12px;">
+        <button class="btn-line" type="button" id="upd-add-another">Add another update form</button>
+    </p>
+    {% endif %}
+</section>
+{% endif %}
+
+{% if data.row.pkey and data.program_tab == 'faq' %}
+<section class="admin-block">
+    <h2 class="section-title" style="font-size: 20px; margin-bottom: 12px;">FAQ</h2>
+    <p class="prose-fraco" style="margin-bottom: 12px;">Add, edit, or delete here — no need to save the program first. Open a row to edit.</p>
+    {% for item in data.faqs %}
+    <details class="admin-fold">
+        <summary class="admin-fold-sum">
+            <span>{{ item.question }}</span>
+            <span class="product-meta">order {{ item.order or 0 }}</span>
+        </summary>
+        {% if data.can_write %}
+        <form class="form-stack" method="post" action="/admin/programs/{{ data.row.pkey }}/faq" style="margin-top: 12px;">
+            <input type="hidden" name="action" value="edit">
+            <input type="hidden" name="item_pkey" value="{{ item.pkey }}">
+            <div><label class="field-label">Question</label><input class="field" name="question" value="{{ item.question or '' }}" required></div>
+            <div><label class="field-label">Answer</label><textarea class="field" name="answer" rows="3">{{ item.answer or '' }}</textarea></div>
+            <div><label class="field-label">Order</label><input class="field" name="order" value="{{ item.order or 0 }}"></div>
+            <div class="admin-fold-actions">
+                <button class="btn-black" type="submit">Save</button>
+            </div>
+        </form>
+        <form method="post" action="/admin/programs/{{ data.row.pkey }}/faq" onsubmit="return confirm('Delete this FAQ?');">
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="item_pkey" value="{{ item.pkey }}">
+            <button class="btn-line" type="submit">Delete</button>
+        </form>
+        {% endif %}
+    </details>
+    {% else %}
+    <p class="product-meta">No FAQ items yet.</p>
+    {% endfor %}
+    {% if data.can_write %}
+    <form class="form-stack" method="post" action="/admin/programs/{{ data.row.pkey }}/faq" style="margin-top: 16px;">
+        <input type="hidden" name="action" value="add">
+        <p class="product-meta">New FAQ</p>
+        <div><label class="field-label" for="faq_q">Question</label><input class="field" name="question" id="faq_q" required></div>
+        <div><label class="field-label" for="faq_a">Answer</label><textarea class="field" name="answer" id="faq_a" rows="3"></textarea></div>
+        <div><label class="field-label" for="faq_order">Order</label><input class="field" name="order" id="faq_order" value="0"></div>
+        <button class="btn-black" type="submit">Add FAQ</button>
+    </form>
+    {% endif %}
+</section>
+{% endif %}
+
+{% if data.row.pkey and data.can_write and data.program_tab == 'updates' %}
+<script>
+(function () {
+  function toolbarButton(label, command, value) {
+    var button = document.createElement("button");
+    button.type = "button";
+    button.className = "rich-editor-button";
+    button.textContent = label;
+    button.setAttribute("aria-label", label);
+    button.addEventListener("mousedown", function (event) {
+      event.preventDefault();
+    });
+    button.addEventListener("click", function () {
+      if (command) {
+        document.execCommand(command, false, value || null);
+      }
+    });
+    return button;
+  }
+
+  function escapeEditorText(value) {
+    var node = document.createElement("div");
+    node.textContent = value || "";
+    return node.innerHTML;
+  }
+
+  function formatInlineMarkdown(value) {
+    var text = escapeEditorText(value);
+    text = text.replace(/\[([^\]]+)\]\(((?:https?:\/\/|mailto:|tel:|\/)[^)]+)\)/g, '<a href="$2">$1</a>');
+    text = text.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    text = text.replace(/__([^_]+)__/g, "<strong>$1</strong>");
+    text = text.replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>");
+    text = text.replace(/(^|[^_])_([^_\n]+)_/g, "$1<em>$2</em>");
+    return text;
+  }
+
+  function plainTextToBlogHtml(value) {
+    var lines = (value || "").replace(/\r/g, "").split("\n");
+    var output = [];
+    var listType = "";
+    var firstContentIndex = lines.findIndex(function (line) {
+      return line.trim() !== "";
+    });
+
+    function closeList() {
+      if (listType) output.push("</" + listType + ">");
+      listType = "";
+    }
+
+    lines.forEach(function (line, index) {
+      var clean = line.trim();
+      var match;
+      if (!clean) {
+        closeList();
+        return;
+      }
+      match = clean.match(/^#\s+(.+)$/);
+      if (match) {
+        closeList();
+        output.push("<h1>" + formatInlineMarkdown(match[1]) + "</h1>");
+        return;
+      }
+      match = clean.match(/^##\s+(.+)$/);
+      if (match) {
+        closeList();
+        output.push("<h2>" + formatInlineMarkdown(match[1]) + "</h2>");
+        return;
+      }
+      match = clean.match(/^#{3,6}\s+(.+)$/);
+      if (match) {
+        closeList();
+        output.push("<h3>" + formatInlineMarkdown(match[1]) + "</h3>");
+        return;
+      }
+      var beforeBlank = index === 0 || lines[index - 1].trim() === "";
+      var afterBlank = index === lines.length - 1 || lines[index + 1].trim() === "";
+      var looksLikeHeading = beforeBlank && afterBlank && clean.length <= 120 &&
+        !/[.!?]$/.test(clean) && !/^([-*•●▪◦]\s|>\s|\d+[.)]\s)/.test(clean);
+      if (looksLikeHeading) {
+        closeList();
+        var headingTag = index === firstContentIndex ? "h1" : "h2";
+        output.push("<" + headingTag + ">" + formatInlineMarkdown(clean) + "</" + headingTag + ">");
+        return;
+      }
+      match = clean.match(/^[-*•●▪◦]\s+(.+)$/);
+      if (match) {
+        if (listType !== "ul") {
+          closeList();
+          listType = "ul";
+          output.push("<ul>");
+        }
+        output.push("<li>" + formatInlineMarkdown(match[1]) + "</li>");
+        return;
+      }
+      match = clean.match(/^\d+[.)]\s+(.+)$/);
+      if (match) {
+        if (listType !== "ol") {
+          closeList();
+          listType = "ol";
+          output.push("<ol>");
+        }
+        output.push("<li>" + formatInlineMarkdown(match[1]) + "</li>");
+        return;
+      }
+      match = clean.match(/^>\s*(.+)$/);
+      if (match) {
+        closeList();
+        output.push("<blockquote>" + formatInlineMarkdown(match[1]) + "</blockquote>");
+        return;
+      }
+      closeList();
+      output.push("<p>" + formatInlineMarkdown(clean) + "</p>");
+    });
+    closeList();
+    return output.join("") || "<p><br></p>";
+  }
+
+  function initRichEditor(source) {
+    if (!source || source.dataset.richReady === "1") return;
+    source.dataset.richReady = "1";
+
+    var shell = document.createElement("div");
+    shell.className = "rich-editor-shell";
+    var toolbar = document.createElement("div");
+    toolbar.className = "rich-editor-toolbar";
+    toolbar.setAttribute("role", "toolbar");
+
+    toolbar.appendChild(toolbarButton("Paragraph", "formatBlock", "p"));
+    toolbar.appendChild(toolbarButton("Heading", "formatBlock", "h2"));
+    var sizeSelect = document.createElement("select");
+    sizeSelect.className = "rich-editor-size";
+    sizeSelect.setAttribute("aria-label", "Text size");
+    [
+      ["", "Text size"],
+      ["small", "Small"],
+      ["normal", "Normal"],
+      ["large", "Large"],
+      ["xlarge", "Extra large"]
+    ].forEach(function (optionData) {
+      var option = document.createElement("option");
+      option.value = optionData[0];
+      option.textContent = optionData[1];
+      sizeSelect.appendChild(option);
+    });
+    toolbar.appendChild(sizeSelect);
+    toolbar.appendChild(toolbarButton("Bold", "bold"));
+    toolbar.appendChild(toolbarButton("Italic", "italic"));
+    toolbar.appendChild(toolbarButton("Bullets", "insertUnorderedList"));
+    toolbar.appendChild(toolbarButton("Numbers", "insertOrderedList"));
+    toolbar.appendChild(toolbarButton("Quote", "formatBlock", "blockquote"));
+
+    var linkButton = toolbarButton("Link", "");
+    linkButton.addEventListener("click", function () {
+      var url = window.prompt("Link URL (https://...)");
+      if (url) document.execCommand("createLink", false, url);
+    });
+    toolbar.appendChild(linkButton);
+
+    var imageButton = toolbarButton("Image URL", "");
+    imageButton.addEventListener("click", function () {
+      var url = window.prompt("Image URL (https://... or /static/...)");
+      if (url) document.execCommand("insertImage", false, url);
+    });
+    toolbar.appendChild(imageButton);
+
+    var editor = document.createElement("div");
+    editor.className = "rich-editor-content";
+    editor.contentEditable = "true";
+    editor.setAttribute("role", "textbox");
+    editor.setAttribute("aria-multiline", "true");
+    var savedRange = null;
+    function rememberSelection() {
+      var selection = window.getSelection();
+      if (!selection || selection.rangeCount === 0) return;
+      var range = selection.getRangeAt(0);
+      if (editor.contains(range.commonAncestorContainer)) {
+        savedRange = range.cloneRange();
+      }
+    }
+    editor.addEventListener("mouseup", rememberSelection);
+    editor.addEventListener("keyup", rememberSelection);
+    sizeSelect.addEventListener("mousedown", rememberSelection);
+    sizeSelect.addEventListener("change", function () {
+      var size = sizeSelect.value;
+      if (!size || !savedRange || savedRange.collapsed) {
+        sizeSelect.value = "";
+        return;
+      }
+      var selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(savedRange);
+      var fragment = savedRange.extractContents();
+      fragment.querySelectorAll("span[data-text-size]").forEach(function (node) {
+        node.removeAttribute("data-text-size");
+      });
+      var span = document.createElement("span");
+      span.setAttribute("data-text-size", size);
+      span.appendChild(fragment);
+      savedRange.insertNode(span);
+      selection.removeAllRanges();
+      var appliedRange = document.createRange();
+      appliedRange.selectNodeContents(span);
+      selection.addRange(appliedRange);
+      savedRange = appliedRange.cloneRange();
+      sizeSelect.value = "";
+      editor.focus();
+    });
+    var initialValue = source.value || "";
+    editor.innerHTML = /<[a-z][\s\S]*>/i.test(initialValue)
+      ? initialValue
+      : plainTextToBlogHtml(initialValue);
+    editor.addEventListener("paste", function (event) {
+      var clipboard = event.clipboardData;
+      if (!clipboard) return;
+      var plain = clipboard.getData("text/plain") || "";
+      var rich = clipboard.getData("text/html") || "";
+      var hasMarkdown = /(^|\n)\s*(#{1,6}\s|[-*•●▪◦]\s|>\s|\d+[.)]\s)|\*\*[^*]+\*\*|__[^_]+__/m.test(plain);
+      if (rich && !hasMarkdown) return;
+      event.preventDefault();
+      document.execCommand("insertHTML", false, plainTextToBlogHtml(plain));
+    });
+
+    shell.appendChild(toolbar);
+    shell.appendChild(editor);
+    source.parentNode.insertBefore(shell, source);
+    source.hidden = true;
+
+    source.form.addEventListener("submit", function () {
+      source.value = editor.innerHTML;
+    });
+  }
+
+  function initRichEditors(scope) {
+    scope.querySelectorAll(".js-rich-text-source").forEach(initRichEditor);
+  }
+
+  initRichEditors(document);
+
+  var btn = document.getElementById("upd-add-another");
+  var wrap = document.getElementById("upd-forms");
+  if (!btn || !wrap) return;
+  btn.addEventListener("click", function () {
+    var first = wrap.querySelector(".admin-upd-form");
+    if (!first) return;
+    var clone = first.cloneNode(true);
+    clone.querySelectorAll(".rich-editor-shell").forEach(function (el) {
+      el.remove();
+    });
+    clone.querySelectorAll("input, textarea, select").forEach(function (el) {
+      if (el.name === "action") return;
+      if (el.name === "author") { el.value = "FRACO"; return; }
+      if (el.name === "status") { el.value = "DRAFT"; return; }
+      if (el.tagName === "SELECT" && el.name === "category") {
+        el.selectedIndex = 0;
+        return;
+      }
+      el.value = "";
+      if (el.classList.contains("js-rich-text-source")) {
+        el.hidden = false;
+        delete el.dataset.richReady;
+      }
+    });
+    wrap.appendChild(clone);
+    initRichEditors(clone);
+  });
+})();
+</script>
+{% endif %}
+{% endblock %}

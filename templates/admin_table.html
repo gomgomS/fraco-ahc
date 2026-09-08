@@ -1,0 +1,212 @@
+{% if table %}
+{% if table.search_q is defined %}
+<form class="form-stack" method="get" action="/admin/orders" style="margin-bottom: 16px; max-width: 560px;">
+    {% if table.search_status %}<input type="hidden" name="status" value="{{ table.search_status }}">{% endif %}
+    {% if table.search_pay %}<input type="hidden" name="pay" value="{{ table.search_pay }}">{% endif %}
+    {% if table.search_shipping %}<input type="hidden" name="shipping" value="{{ table.search_shipping }}">{% endif %}
+    <label class="field-label" for="orders_q">{{ table.search_label or 'Search' }}</label>
+    <div class="hero-actions" style="justify-content: flex-start; gap: 10px; align-items: stretch; margin-top: 8px;">
+        <input class="field" type="search" name="q" id="orders_q" value="{{ table.search_q or '' }}" placeholder="{{ table.search_placeholder or 'Search' }}" style="flex: 1;">
+        <button class="btn-line" type="submit">Search</button>
+        {% if table.search_q %}
+        <a class="btn-line" href="/admin/orders{% if table.search_status or table.search_pay or table.search_shipping %}?{% endif %}{% if table.search_status %}status={{ table.search_status|urlencode }}{% endif %}{% if table.search_status and (table.search_pay or table.search_shipping) %}&{% endif %}{% if table.search_pay %}pay={{ table.search_pay|urlencode }}{% endif %}{% if table.search_pay and table.search_shipping %}&{% endif %}{% if table.search_shipping %}shipping={{ table.search_shipping|urlencode }}{% endif %}">Clear</a>
+        {% endif %}
+    </div>
+    {% if table.search_hint %}<p class="product-meta" style="margin-top: 8px;">{{ table.search_hint }}</p>{% endif %}
+</form>
+{% endif %}
+{% if table.filters %}
+<div class="filter-row">
+    {% for item in table.filters %}
+    <a class="filter-chip{% if item.active %} active{% endif %}" href="{{ item.href }}">{{ item.label }}</a>
+    {% endfor %}
+</div>
+{% endif %}
+{% if table.pay_filters %}
+<div class="filter-row">
+    {% for item in table.pay_filters %}
+    <a class="filter-chip{% if item.active %} active{% endif %}" href="{{ item.href }}">{{ item.label }}</a>
+    {% endfor %}
+</div>
+{% endif %}
+{% if table.shipping_filters %}
+<div class="filter-row">
+    {% for item in table.shipping_filters %}
+    <a class="filter-chip{% if item.active %} active{% endif %}" href="{{ item.href }}">{{ item.label }}</a>
+    {% endfor %}
+</div>
+{% endif %}
+<div class="admin-table-wrap">
+    <table class="admin-table">
+        <thead>
+            <tr>
+                {% for col in table.columns %}
+                <th>{{ col }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in table.rows %}
+            <tr>
+                {% for cell in row.cells %}
+                <td{% if cell.wrap %} class="admin-cell-wrap"{% endif %}>
+                    {% if cell.kind == 'link' %}
+                    <a class="section-link" href="{{ cell.href }}">{{ cell.text }}</a>
+                    {% elif cell.kind == 'status' %}
+                    <span class="admin-status" data-status="{{ cell.status }}">{{ cell.text }}</span>
+                    {% elif cell.kind == 'image' %}
+                    {% if cell.src %}
+                    <img class="admin-thumb" src="{{ cell.src }}" alt="{{ cell.alt }}">
+                    {% else %}
+                    {{ cell.text }}
+                    {% endif %}
+                    {% elif cell.kind == 'modal' %}
+                    {% if cell.html %}
+                    <button
+                        class="btn-line js-vendor-desc-open"
+                        type="button"
+                        data-vendor-name="{{ cell.text }}"
+                        data-vendor-description="{{ cell.html }}"
+                    >View</button>
+                    {% else %}
+                    —
+                    {% endif %}
+                    {% elif cell.kind == 'delete' %}
+                    {% if data.can_delete %}
+                    <form method="post" action="{{ request.path }}" onsubmit="return confirm('Delete this row?');">
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="pkey" value="{{ cell.pkey }}">
+                        <button class="btn-line" type="submit">Delete</button>
+                    </form>
+                    {% else %}
+                    —
+                    {% endif %}
+                    {% elif cell.kind == 'pay_status' %}
+                    {% if data.can_write %}
+                    <form class="admin-inline-form" method="post">
+                        <input type="hidden" name="action" value="status">
+                        <input type="hidden" name="pkey" value="{{ cell.pkey }}">
+                        <select class="field" name="status">
+                            {% for st in cell.options %}
+                            <option value="{{ st }}"{% if cell.status == st %} selected{% endif %}>{{ st }}</option>
+                            {% endfor %}
+                        </select>
+                        <button class="btn-line" type="submit">Update</button>
+                    </form>
+                    {% else %}
+                    <span class="admin-status" data-status="{{ cell.status }}">{{ cell.text }}</span>
+                    {% endif %}
+                    {% elif cell.kind == 'receive_account' %}
+                    {% if data.can_write and (cell.options or cell.status) %}
+                    <form class="admin-inline-form" method="post">
+                        <input type="hidden" name="action" value="transaction_account">
+                        <input type="hidden" name="source_table" value="{{ cell.source_table }}">
+                        <input type="hidden" name="source_pkey" value="{{ cell.pkey }}">
+                        <select class="field" name="fk_receive_account">
+                            <option value="">Not assigned</option>
+                            {% if cell.status %}
+                            <option value="{{ cell.status }}" selected>{{ cell.text }}</option>
+                            {% endif %}
+                            {% for account in cell.options %}
+                            {% if account.value != cell.status %}
+                            <option value="{{ account.value }}">{{ account.label }}</option>
+                            {% endif %}
+                            {% endfor %}
+                        </select>
+                        <button class="btn-line" type="submit">Set</button>
+                    </form>
+                    {% else %}
+                    {{ cell.text }}
+                    {% endif %}
+                    {% elif cell.kind == 'order_pay' %}
+                    {% if data.can_write %}
+                    <form class="admin-inline-form" method="post">
+                        <input type="hidden" name="action" value="order_pay">
+                        <input type="hidden" name="pkey" value="{{ cell.pkey }}">
+                        <select class="field" name="payment_status">
+                            {% for st in cell.options %}
+                            <option value="{{ st }}"{% if cell.status == st %} selected{% endif %}>{{ st }}</option>
+                            {% endfor %}
+                        </select>
+                        <button class="btn-line" type="submit">Update</button>
+                    </form>
+                    {% else %}
+                    <span class="admin-status" data-status="{{ cell.status }}">{{ cell.text }}</span>
+                    {% endif %}
+                    {% elif cell.kind == 'order_line_status' %}
+                    {% if data.can_write %}
+                    <form class="admin-inline-form" method="post">
+                        <input type="hidden" name="action" value="order_line_status">
+                        <input type="hidden" name="item_index" value="{{ cell.index }}">
+                        <select class="field" name="line_status">
+                            {% for status in cell.options %}
+                            <option value="{{ status }}"{% if cell.status == status %} selected{% endif %}>{{ status }}</option>
+                            {% endfor %}
+                        </select>
+                        <button class="btn-line" type="submit">Update</button>
+                    </form>
+                    {% else %}
+                    <span class="admin-status" data-status="{{ cell.status }}">{{ cell.text }}</span>
+                    {% endif %}
+                    {% elif cell.kind == 'order_shipping' %}
+                    {% if data.can_write %}
+                    <form class="admin-inline-form" method="post">
+                        <input type="hidden" name="action" value="order_shipping_handler">
+                        <input type="hidden" name="pkey" value="{{ cell.pkey }}">
+                        <select class="field" name="shipping_handler">
+                            {% for option in cell.options %}
+                            <option value="{{ option.value }}"{% if cell.status == option.value %} selected{% endif %}>{{ option.label }}</option>
+                            {% endfor %}
+                        </select>
+                        <button class="btn-line" type="submit">Update</button>
+                    </form>
+                    {% else %}
+                    <span class="admin-status" data-status="{{ cell.status }}">{{ cell.text }}</span>
+                    {% endif %}
+                    {% elif cell.kind == 'donor_follow' %}
+                    {% if data.can_write %}
+                    <form class="admin-inline-form" method="post">
+                        <input type="hidden" name="action" value="donor_follow">
+                        <input type="hidden" name="pkey" value="{{ cell.pkey }}">
+                        <input type="hidden" name="follow_filter" value="{{ table.follow_filter or '' }}">
+                        <select class="field" name="follow_status">
+                            {% for st in cell.options %}
+                            <option value="{{ st.value }}"{% if cell.status == st.value %} selected{% endif %}>{{ st.label }}</option>
+                            {% endfor %}
+                        </select>
+                        <button class="btn-line" type="submit">Update</button>
+                    </form>
+                    {% else %}
+                    <span class="admin-status" data-status="{{ cell.status }}">{{ cell.text }}</span>
+                    {% endif %}
+                    {% elif cell.kind == 'donor_anonymous' %}
+                    {% if data.can_write %}
+                    <form class="admin-inline-form" method="post">
+                        <input type="hidden" name="action" value="donor_anonymous">
+                        <input type="hidden" name="pkey" value="{{ cell.pkey }}">
+                        <input type="hidden" name="follow_filter" value="{{ table.follow_filter or '' }}">
+                        <select class="field" name="is_anonymous">
+                            <option value="NO"{% if cell.status == 'NO' %} selected{% endif %}>Full name</option>
+                            <option value="YES"{% if cell.status == 'YES' %} selected{% endif %}>Anonymous</option>
+                        </select>
+                        <button class="btn-line" type="submit">Update</button>
+                    </form>
+                    {% else %}
+                    {{ cell.text }}
+                    {% endif %}
+                    {% else %}
+                    {{ cell.text }}
+                    {% endif %}
+                </td>
+                {% endfor %}
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="{{ table.colspan }}">{{ table.empty }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% include 'admin_pager.html' %}
+{% endif %}

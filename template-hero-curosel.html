@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Luxury Property Slider (Fixed)</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0b0b0b;
+            font-family: Arial, sans-serif;
+        }
+
+        .slider {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* SLIDES */
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            transition: opacity 1.2s ease;
+        }
+
+        .slide.active {
+            opacity: 1;
+            z-index: 2;
+        }
+
+        /* IMAGE (NO GAP FIX) */
+        .slide img {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scale(1.05);
+            transition: transform 8s ease;
+        }
+
+        /* ZOOM */
+        .slide.active img {
+            transform: scale(1.12);
+        }
+
+        /* OVERLAY */
+        .overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to right,
+                    rgba(0, 0, 0, 0.75),
+                    rgba(0, 0, 0, 0.2));
+            z-index: 2;
+        }
+
+        /* CONTENT */
+        .content {
+            position: absolute;
+            left: 8%;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #fff;
+            z-index: 3;
+            max-width: 500px;
+        }
+
+        .subtitle {
+            letter-spacing: 4px;
+            font-size: 12px;
+            color: #c8a96a;
+            margin-bottom: 15px;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .title {
+            font-size: 48px;
+            font-weight: 300;
+            margin-bottom: 20px;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .desc {
+            font-size: 15px;
+            color: #ccc;
+            margin-bottom: 30px;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: 1px solid #c8a96a;
+            color: #c8a96a;
+            background: transparent;
+            cursor: pointer;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        /* TEXT ANIMATION */
+        .slide.active .subtitle {
+            opacity: 1;
+            transform: translateY(0);
+            transition: 0.8s ease 0.3s;
+        }
+
+        .slide.active .title {
+            opacity: 1;
+            transform: translateY(0);
+            transition: 1s ease 0.6s;
+        }
+
+        .slide.active .desc {
+            opacity: 1;
+            transform: translateY(0);
+            transition: 1s ease 0.9s;
+        }
+
+        .slide.active .btn {
+            opacity: 1;
+            transform: translateY(0);
+            transition: 1s ease 1.2s;
+        }
+
+        /* NAV */
+        .nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #fff;
+            font-size: 28px;
+            cursor: pointer;
+            z-index: 10;
+            padding: 10px;
+        }
+
+        .prev {
+            left: 20px;
+        }
+
+        .next {
+            right: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="slider">
+
+        <!-- SLIDE 1 -->
+        <div class="slide active">
+            <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c">
+            <div class="overlay"></div>
+            <div class="content">
+                <div class="subtitle">EXCLUSIVE LIVING</div>
+                <div class="title">Modern Luxury Villa</div>
+                <div class="desc">Elegant architecture with timeless design.</div>
+                <div class="btn">VIEW PROPERTY</div>
+            </div>
+        </div>
+
+        <!-- SLIDE 2 -->
+        <div class="slide">
+            <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6">
+            <div class="overlay"></div>
+            <div class="content">
+                <div class="subtitle">PREMIUM COLLECTION</div>
+                <div class="title">City Skyline Residence</div>
+                <div class="desc">Luxury living in the heart of the city.</div>
+                <div class="btn">EXPLORE NOW</div>
+            </div>
+        </div>
+
+        <!-- SLIDE 3 -->
+        <div class="slide">
+            <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c">
+            <div class="overlay"></div>
+            <div class="content">
+                <div class="subtitle">PRIVATE ESTATE</div>
+                <div class="title">Timeless Architecture</div>
+                <div class="desc">Designed for prestige and privacy.</div>
+                <div class="btn">SEE DETAILS</div>
+            </div>
+        </div>
+
+        <div class="nav prev">&#10094;</div>
+        <div class="nav next">&#10095;</div>
+
+    </div>
+
+    <script>
+        const slides = document.querySelectorAll('.slide');
+        let current = 0;
+        let isAnimating = false;
+
+        function goToSlide(index) {
+            if (isAnimating || index === current) return;
+            isAnimating = true;
+
+            slides[index].style.zIndex = 3;
+            slides[current].style.zIndex = 2;
+
+            slides[index].classList.add('active');
+
+            setTimeout(() => {
+                slides[current].classList.remove('active');
+                slides[current].style.zIndex = 1;
+                slides[index].style.zIndex = 2;
+
+                current = index;
+                isAnimating = false;
+            }, 1200);
+        }
+
+        /* NAV */
+        document.querySelector('.next').onclick = () => {
+            goToSlide((current + 1) % slides.length);
+        };
+
+        document.querySelector('.prev').onclick = () => {
+            goToSlide((current - 1 + slides.length) % slides.length);
+        };
+
+        /* AUTO with 4s delay BEFORE change */
+        function autoSlide() {
+            setTimeout(() => {
+                goToSlide((current + 1) % slides.length);
+                autoSlide(); // loop
+            }, 4000); // ⬅️ WAIT 4 SECONDS
+        }
+
+        autoSlide();
+
+    </script>
+
+</body>
+
+</html>

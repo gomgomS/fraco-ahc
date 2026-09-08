@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="{{ data.lang or 'en' }}">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FRACO | Class of 2017 | Alumni Home Coming 2027{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,600;0,700;0,800;1,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='v2/perumahan.output.css') }}">
+</head>
+
+<body class="{% block body_class %}page-shell{% endblock %}">
+
+    <div class="announcement">
+        {{ data.announcement }}
+    </div>
+
+    <header class="site-header">
+        <div class="header-left">
+            <a href="/" class="logo">{{ data.name }}</a>
+            <nav class="desktop-nav" aria-label="Primary">
+                <a class="nav-link" href="/">Home</a>
+                <a class="nav-link" href="/about">About</a>
+                <a class="nav-link" href="/programs">Programs</a>
+                <a class="nav-link" href="/merchandise">Merchandise</a>
+                <a class="nav-link" href="/partners">Partners</a>
+                <a class="nav-link" href="/participate">Participate</a>
+                <a class="nav-link" href="/support">Support Us</a>
+                <a class="nav-link" href="/updates">Updates</a>
+            </nav>
+        </div>
+        <div class="header-right">
+            <div class="lang-switch" aria-label="Language">
+                <a class="lang-link{% if data.lang != 'id' %} is-active{% endif %}" href="/lang/en?next={{ request.path|urlencode }}">EN</a>
+                <span class="lang-sep" aria-hidden="true">/</span>
+                <a class="lang-link{% if data.lang == 'id' %} is-active{% endif %}" href="/lang/id?next={{ request.path|urlencode }}">ID</a>
+            </div>
+            {% if data.auth_user %}
+            <a class="nav-link" href="/dashboard">Account</a>
+            {% else %}
+            <a class="nav-link" href="/login">Login</a>
+            {% endif %}
+            <button class="icon-btn js-search-open" type="button" aria-label="Search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <circle cx="11" cy="11" r="7"></circle>
+                    <path d="M20 20L16.5 16.5"></path>
+                </svg>
+            </button>
+            <a class="icon-btn" href="/cart" aria-label="Cart">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M6 7h12v13H6z"></path>
+                    <path d="M9 7V5a3 3 0 0 1 6 0v2"></path>
+                </svg>
+                <span class="bag-count">{{ data.cart_count or 0 }}</span>
+            </a>
+            <button class="icon-btn js-menu-open" type="button" aria-label="Menu">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M4 7h16M4 12h16M4 17h16"></path>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <div class="search-panel" id="searchPanel">
+        <form action="/merchandise" method="get">
+            <input type="search" name="q" placeholder="Search FRACO programs, merch, updates..." aria-label="Search">
+            <button class="nav-link" type="submit">Search</button>
+            <button class="nav-link js-search-close" type="button">Close</button>
+        </form>
+    </div>
+
+    <div class="overlay-panel" id="menuOverlay"></div>
+    <aside class="drawer" id="menuDrawer" aria-hidden="true">
+        <div class="drawer-head">
+            <span class="logo">{{ data.name }}</span>
+            <button class="icon-btn js-menu-close" type="button" aria-label="Close menu">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M6 6l12 12M18 6L6 18"></path>
+                </svg>
+            </button>
+        </div>
+        <nav>
+            <a href="/">Home</a>
+            <a href="/about">About</a>
+            <a href="/programs">Programs</a>
+            <a href="/merchandise">Merchandise</a>
+            <a href="/partners">Partners</a>
+            <a href="/participate">Participate</a>
+            <a href="/support">Support Us</a>
+            <a href="/updates">Updates</a>
+            <a href="/cart">Cart</a>
+            <div class="sub">Programs</div>
+            <a href="/programs/university-fair">University Fair</a>
+            <a href="/programs/career-workshop">Career Workshop</a>
+            <a href="/programs/spiritual-affairs">Spiritual Affairs</a>
+            <a href="/programs/events">Events</a>
+            <div class="sub">Help</div>
+            <a href="/participate">Register</a>
+            <a href="/login">Login</a>
+            {% if data.auth_user %}<a href="/dashboard">Account</a>{% endif %}
+            <a href="{{ data.whatsapp_url }}" target="_blank" rel="noopener">WhatsApp</a>
+        </nav>
+    </aside>
+
+    {% block content %}{% endblock %}
+
+    <footer class="site-footer">
+        <div class="footer-top">
+            <div class="footer-brand">
+                <a href="/" class="logo">{{ data.name }}</a>
+                <p>{{ data.presented_by }}. {{ data.event_full_name }}.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Navigate</h4>
+                <a href="/about">About</a>
+                <a href="/programs">Programs</a>
+                <a href="/merchandise">Merchandise</a>
+                <a href="/updates">Updates</a>
+            </div>
+            <div class="footer-col">
+                <h4>Participate</h4>
+                <a href="/partners">Partners</a>
+                <a href="/support">Support Us</a>
+                <a href="/participate">Register</a>
+                <a href="/login">Login</a>
+                <a href="/cart">Cart</a>
+                <a href="{{ data.whatsapp_url }}" target="_blank" rel="noopener">Contact</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="footer-social">
+                <a href="{{ data.whatsapp_url }}" target="_blank" rel="noopener">WhatsApp</a>
+                <a href="/updates">Updates</a>
+                <a href="/gallery">Gallery</a>
+            </div>
+            <div>&copy;2026 {{ data.name }} · {{ data.class_label }} · {{ data.event_full_name }}</div>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='v2/slider.js') }}"></script>
+</body>
+
+</html>

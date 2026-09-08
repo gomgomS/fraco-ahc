@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% block title %}{{ data.donation.title or 'Support Us' }} | FRACO{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+    <img src="/static/upload/heroes/4ea8df72cb3d78e5fb8b.jpg" alt="Support FRACO">
+    <div class="page-hero-copy">
+        <p>{{ data.name }}</p>
+        <h1>{{ data.donation.title or 'Support Us' }}</h1>
+        <p>{{ data.class_label }}</p>
+    </div>
+</section>
+
+<section class="merch-proof">
+    <div class="merch-proof-summary{% if not data.social_proof.show_total %} is-single{% endif %}">
+        <div>
+            <p class="product-meta">Already supporting FRACO</p>
+            <p class="merch-proof-number">{{ data.social_proof.supporter_count }}</p>
+            <p>supporters have contributed</p>
+        </div>
+        {% if data.social_proof.show_total %}
+        <div>
+            <p class="product-meta">Total support received</p>
+            <p class="merch-proof-number">{{ data.social_proof.total }}</p>
+            <p>Thank you for keeping {{ data.event_full_name or 'AHC 2027' }} moving forward</p>
+        </div>
+        {% endif %}
+    </div>
+    {% if data.social_proof.ticker %}
+    <div class="merch-proof-marquee" aria-label="Recent support received">
+        <div class="merch-proof-track">
+            {% for repeat in range(2) %}
+                {% for supporter in data.social_proof.ticker %}
+                <span class="merch-proof-item" {% if repeat == 1 %}aria-hidden="true"{% endif %}>
+                    <strong>{{ supporter.name }}</strong><span>Support</span><span>{{ supporter.amount }}</span>
+                </span>
+                {% endfor %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</section>
+
+<section class="section support-donors-section">
+    <div style="text-align: center; margin-bottom: 28px;">
+        <h2 class="section-title">Top supporters</h2>
+        <p class="product-meta">Thank you — friends, family, and Class of {{ data.graduation_year or '2017' }} classmates who keep {{ data.event_full_name or 'AHC 2027' }} moving forward.</p>
+    </div>
+    {% if data.donors %}
+    <ol class="support-donor-list{% if data.donors_show_all %} is-scroll{% endif %}">
+        {% for item in data.donors %}
+        <li class="support-donor-row">
+            <span class="support-donor-rank">{{ item.rank }}</span>
+            <span class="support-donor-name">
+                {{ item.name }}
+                {% if item.is_member and item.member_badge %}
+                <span class="support-donor-badge">{{ item.member_badge }}</span>
+                {% endif %}
+            </span>
+            {% if item.amount_label %}
+            <span class="support-donor-amount">{{ item.amount_label }}</span>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ol>
+    {% else %}
+    <p class="prose-fraco" style="text-align: center;">Supporters will appear here soon.</p>
+    {% endif %}
+</section>
+
+<section class="section">
+    <div class="support-contact">
+        {% if data.donation.email %}
+        <div class="support-contact-item">
+            <p class="product-meta">Email</p>
+            <a href="mailto:{{ data.donation.email }}">{{ data.donation.email }}</a>
+        </div>
+        {% endif %}
+        {% if data.donation.whatsapp or data.donation.whatsapp_url %}
+        <div class="support-contact-item">
+            <p class="product-meta">WhatsApp</p>
+            {% if data.donation.whatsapp_url %}
+            <a href="{{ data.donation.whatsapp_url }}" target="_blank" rel="noopener">{{ data.donation.whatsapp or 'Chat on WhatsApp' }}</a>
+            {% else %}
+            <span>{{ data.donation.whatsapp }}</span>
+            {% endif %}
+        </div>
+        {% endif %}
+        {% if data.donation.phone %}
+        <div class="support-contact-item">
+            <p class="product-meta">Phone</p>
+            <a href="tel:{{ data.donation.phone }}">{{ data.donation.phone }}</a>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if data.donation.whatsapp_url or data.donation.email %}
+    <p class="hero-actions" style="justify-content: center; margin-top: 32px;">
+        {% if data.donation.whatsapp_url %}
+        <a class="btn-black" href="{{ data.donation.whatsapp_url }}" target="_blank" rel="noopener">WhatsApp us</a>
+        {% endif %}
+        {% if data.donation.email %}
+        <a class="btn-line" href="mailto:{{ data.donation.email }}">Email us</a>
+        {% endif %}
+    </p>
+    {% endif %}
+</section>
+
+<section class="section" id="pledge">
+    <div style="max-width: 560px; margin: 0 auto;">
+        <h2 class="section-title" style="text-align: center; margin-bottom: 12px;">Share your support</h2>
+        <p class="product-meta" style="text-align: center; margin-bottom: 28px;">No online payment — leave your details and we will contact you soon.</p>
+        {% if data.form_ok %}
+        <p class="prose-fraco support-thanks">Thank you. We received your commitment and will contact you soon.</p>
+        {% else %}
+        {% if data.form_error %}
+        <p class="prose-fraco" style="color: #b00000; margin-bottom: 20px;">{{ data.form_error }}</p>
+        {% endif %}
+        <form class="form-stack" method="post" action="/support#pledge" id="support-pledge-form">
+            <div>
+                <label class="field-label" for="name">Name</label>
+                <input class="field" type="text" name="name" id="name" value="{{ data.form_values.name or '' }}" required{% if data.form_field == 'name' %} style="border-color:#b00000"{% endif %}>
+            </div>
+            <div>
+                <label class="field-label" for="phone">Phone number</label>
+                <input class="field" type="tel" name="phone" id="phone" value="{{ data.form_values.phone or '' }}" required{% if data.form_field == 'phone' %} style="border-color:#b00000"{% endif %}>
+            </div>
+            <div>
+                <label class="field-label" for="commitment">Total commitment</label>
+                <input class="field" type="text" name="commitment" id="commitment" value="{{ data.form_values.commitment or '' }}" placeholder="e.g. 1000000 or Rp 1.000.000" required{% if data.form_field == 'commitment' %} style="border-color:#b00000"{% endif %}>
+            </div>
+            <div>
+                <label class="field-label" for="referral_code">Referred by <span class="product-meta">(optional)</span></label>
+                <input class="field" type="text" name="referral_code" id="referral_code" value="{{ data.form_values.referral_code or '' }}" placeholder="AHC member referral code" autocomplete="off"{% if data.form_field == 'referral_code' %} style="border-color:#b00000"{% endif %}>
+                <p class="product-meta" id="referral_hint"{% if data.form_field == 'referral_code' %} style="color:#b00000"{% endif %}>{% if data.form_field == 'referral_code' and data.form_error %}{{ data.form_error }}{% else %}If a classmate invited you, enter their code (e.g. name2017). We check that the code exists.{% endif %}</p>
+            </div>
+            <button class="btn-black" type="submit" id="support-submit-btn">Submit</button>
+        </form>
+        <script>
+        (function () {
+            var input = document.getElementById("referral_code");
+            var hint = document.getElementById("referral_hint");
+            var form = document.getElementById("support-pledge-form");
+            var btn = document.getElementById("support-submit-btn");
+            if (!input || !hint || !form) return;
+            var timer = null;
+            var lastOk = {% if data.form_field == 'referral_code' %}false{% else %}true{% endif %};
+            var submitting = false;
+            function setHint(text, ok) {
+                hint.textContent = text;
+                hint.style.color = ok === false ? "#b00000" : "";
+                input.style.borderColor = ok === false ? "#b00000" : "";
+            }
+            function checkCode() {
+                var code = (input.value || "").trim();
+                if (code === "") {
+                    lastOk = true;
+                    setHint("If a classmate invited you, enter their code (e.g. name2017). We check that the code exists.", true);
+                    return;
+                }
+                fetch("/support/check-referral?referral_code=" + encodeURIComponent(code), {
+                    headers: { "Accept": "application/json" }
+                }).then(function (res) { return res.json(); }).then(function (data) {
+                    var payload = data.message_data || {};
+                    var ok = payload.valid === true;
+                    lastOk = ok;
+                    setHint(data.message_desc || (ok ? "Valid referral code." : "Referral code not found."), ok);
+                }).catch(function () {
+                    lastOk = true;
+                });
+            }
+            input.addEventListener("blur", checkCode);
+            input.addEventListener("input", function () {
+                if (timer) clearTimeout(timer);
+                timer = setTimeout(checkCode, 450);
+            });
+            form.addEventListener("submit", function (ev) {
+                var code = (input.value || "").trim();
+                if (code !== "" && lastOk === false) {
+                    ev.preventDefault();
+                    setHint("Referral code not found. Check the code or leave it blank.", false);
+                    input.focus();
+                    return;
+                }
+                if (submitting) {
+                    ev.preventDefault();
+                    return;
+                }
+                submitting = true;
+                if (btn) {
+                    btn.disabled = true;
+                    btn.textContent = "Submitting...";
+                }
+            });
+        })();
+        </script>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

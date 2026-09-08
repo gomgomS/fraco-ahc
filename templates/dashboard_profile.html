@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Profile | FRACO{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="dash-layout">
+        {% include 'dashboard_nav.html' %}
+        <div>
+            <h1 class="section-title" style="margin-bottom: 24px;">{{ data.dash.profile_title }}</h1>
+            {% if data.form_ok %}
+            <p class="prose-fraco" style="margin-bottom: 24px;">{{ data.dash.profile_saved }}</p>
+            {% endif %}
+            {% if data.form_error %}
+            <p class="prose-fraco" style="color: #b00000; margin-bottom: 24px;">{{ data.form_error }}</p>
+            {% endif %}
+            <form class="form-stack" method="post">
+                <div>
+                    <label class="field-label" for="full_name">{{ data.dash.full_name }}</label>
+                    <input class="field" type="text" name="full_name" id="full_name" value="{{ data.participant.full_name if data.participant else data.user.name }}" required>
+                </div>
+                <div>
+                    <label class="field-label" for="email">{{ data.dash.username_email }}</label>
+                    <input class="field" type="text" id="email" value="{{ data.user.email }}" disabled>
+                </div>
+                <div>
+                    <label class="field-label" for="phone">{{ data.dash.phone }} <span class="product-meta">({{ data.dash.optional }})</span></label>
+                    <input class="field" type="text" name="phone" id="phone" value="{{ data.participant.phone if data.participant else data.user.phone }}">
+                </div>
+                <div>
+                    <label class="field-label" for="city">{{ data.dash.city }}</label>
+                    <input class="field" type="text" name="city" id="city" value="{{ data.participant.city if data.participant else '' }}">
+                </div>
+                {% if data.is_ahc_member %}
+                <div>
+                    <label class="field-label" for="referral_code">{{ data.dash.referral_code }}</label>
+                    <input class="field" type="text" name="referral_code" id="referral_code" value="{{ data.participant.referral_code or '' }}">
+                    <p class="product-meta">{{ data.dash.profile_share_hint }}</p>
+                </div>
+                {% endif %}
+                <button class="btn-black" type="submit">{{ data.dash.save_profile }}</button>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

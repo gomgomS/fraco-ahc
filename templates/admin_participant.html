@@ -1,0 +1,162 @@
+{% extends 'admin_base.html' %}
+{% block title %}{{ data.row.reg_id }} | Admin{% endblock %}
+{% block content %}
+<p class="product-meta"><a class="section-link" href="/admin/participants?section=ahc&ahc_tab=list">Participants</a></p>
+<h1 class="section-title" style="margin: 8px 0 12px;">{{ data.row.full_name or data.row.reg_id }}</h1>
+<p class="product-meta" style="margin-bottom: 24px;">{{ data.row.reg_id or '' }}{% if data.row.referral_code %} · referral {{ data.row.referral_code }}{% endif %}{% if data.is_alumni %} · Alumni{% else %} · AHC member{% endif %}</p>
+
+{% if data.form_error %}
+<p class="prose-fraco" style="color: #b00000; margin-bottom: 24px;">{{ data.form_error }}</p>
+{% endif %}
+
+<div class="filter-row" style="margin-bottom: 28px;">
+    <a class="filter-chip{% if data.part_tab == 'details' %} active{% endif %}" href="/admin/participants/{{ data.row.pkey }}?tab=details">Details</a>
+    {% if not data.is_alumni %}
+    <a class="filter-chip{% if data.part_tab == 'summary' %} active{% endif %}" href="/admin/participants/{{ data.row.pkey }}?tab=summary">Summary</a>
+    <a class="filter-chip{% if data.part_tab == 'merch' %} active{% endif %}" href="/admin/participants/{{ data.row.pkey }}?tab=merch">Merch sales</a>
+    <a class="filter-chip{% if data.part_tab == 'proposal' %} active{% endif %}" href="/admin/participants/{{ data.row.pkey }}?tab=proposal">Proposal</a>
+    <a class="filter-chip{% if data.part_tab == 'contribution' %} active{% endif %}" href="/admin/participants/{{ data.row.pkey }}?tab=contribution">Own contribution</a>
+    {% endif %}
+</div>
+
+{% if data.part_tab == 'details' %}
+<form class="form-stack" method="post">
+    <input type="hidden" name="action" value="save">
+    <div><label class="field-label" for="full_name">Full name</label><input class="field" name="full_name" id="full_name" value="{{ data.row.full_name }}"></div>
+    <p class="product-meta">Username {{ data.login.username or data.row.email or '—' }}</p>
+    <div class="admin-block" style="margin: 8px 0 16px;">
+        <p class="product-meta">Password</p>
+        <p style="font-family: var(--font-mono); margin: 4px 0 12px;">{{ data.login.password_hint or data.row.password_hint or '—' }}</p>
+        {% if not data.login.password_hint and not data.row.password_hint %}
+        <p class="product-meta">No saved password for older accounts. Set a new one below.</p>
+        {% endif %}
+        {% if data.can_write %}
+        <div>
+            <label class="field-label" for="new_password">Set / reset password</label>
+            <input class="field" type="text" name="new_password" id="new_password" autocomplete="off" placeholder="Leave blank to keep current">
+            <p class="product-meta">Min 6 characters. Saved password is shown here for staff follow-up.</p>
+        </div>
+        {% endif %}
+    </div>
+    <div><label class="field-label" for="phone">Phone</label><input class="field" name="phone" id="phone" value="{{ data.row.phone }}"></div>
+    <div><label class="field-label" for="address">Address</label><input class="field" name="address" id="address" value="{{ data.row.address }}"></div>
+    <div><label class="field-label" for="city">City</label><input class="field" name="city" id="city" value="{{ data.row.city }}"></div>
+    <div>
+        <label class="field-label" for="member_type">Type</label>
+        <select class="field" name="member_type" id="member_type">
+            <option value="AHC_MEMBER" {% if (data.row.member_type or 'AHC_MEMBER') == 'AHC_MEMBER' %}selected{% endif %}>AHC Member</option>
+            <option value="ALUMNI" {% if data.row.member_type == 'ALUMNI' %}selected{% endif %}>Alumni</option>
+        </select>
+    </div>
+    <div><label class="field-label" for="referral_code">Referral code</label><input class="field" name="referral_code" id="referral_code" value="{{ data.row.referral_code or '' }}"></div>
+    {% if not data.is_alumni %}
+    <div><label class="field-label" for="contribution_num">Class target (number)</label><input class="field" name="contribution_num" id="contribution_num" value="{{ data.row.contribution_num or 0 }}"{% if not data.can_write %} disabled{% endif %}></div>
+    <p class="product-meta">Open Summary for live merch / proposal / own contribution totals.</p>
+    {% endif %}
+    <div><label class="field-label" for="notes">Notes</label><textarea class="field" name="notes" id="notes" rows="3">{{ data.row.notes }}</textarea></div>
+    {% if data.can_write %}
+    <button class="btn-black" type="submit">Save</button>
+    {% endif %}
+</form>
+{% if data.can_delete %}
+<form method="post" style="margin-top: 16px;" onsubmit="return confirm('Delete this member? Their login will also be disabled.');">
+    <input type="hidden" name="action" value="delete">
+    <button class="btn-line" type="submit">Delete member</button>
+</form>
+{% endif %}
+{% endif %}
+
+{% if data.part_tab == 'summary' and not data.is_alumni %}
+<section class="admin-block">
+    <h2 class="section-title" style="font-size: 20px; margin: 0 0 8px;">Fundraising summary</h2>
+    <p class="product-meta" style="margin-bottom: 20px;">Live totals from paid merch referrals and Support Us pledges marked Received.</p>
+    <div class="dash-stats">
+        <article class="dash-stat"><p class="product-meta">Class target</p><h3>{{ data.summary.target }}</h3></article>
+        <article class="dash-stat"><p class="product-meta">Raised total</p><h3>{{ data.summary.combined }}</h3></article>
+        <article class="dash-stat"><p class="product-meta">Progress</p><h3>{{ data.summary.pct }}%</h3></article>
+        <article class="dash-stat"><p class="product-meta">Left to target</p><h3>{% if data.summary.achieved %}Achieved{% else %}{{ data.summary.left }}{% endif %}</h3></article>
+    </div>
+    <div class="dash-stats">
+        <article class="dash-stat"><p class="product-meta">Merch profit</p><h3>{{ data.summary.merch }}</h3></article>
+        <article class="dash-stat"><p class="product-meta">Proposal received</p><h3>{{ data.summary.proposal }}</h3></article>
+        <article class="dash-stat"><p class="product-meta">Own contribution</p><h3>{{ data.summary.own }}</h3></article>
+        {% if data.summary.shipping_expense_num %}<article class="dash-stat"><p class="product-meta">Shipping expense</p><h3>−{{ data.summary.shipping_expense }}</h3></article>{% endif %}
+        <article class="dash-stat"><p class="product-meta">Pending follow-up</p><h3>{{ data.summary.proposal_pending }} / {{ data.summary.own_pending }}</h3></article>
+    </div>
+    <div class="dash-stats">
+        <article class="dash-stat"><p class="product-meta">Referral orders</p><h3>{{ data.summary.order_count }} <span class="product-meta">({{ data.summary.paid_order_count }} paid)</span></h3></article>
+        <article class="dash-stat"><p class="product-meta">Proposal pledges</p><h3>{{ data.summary.proposal_count }}</h3></article>
+        <article class="dash-stat"><p class="product-meta">Own pledges</p><h3>{{ data.summary.own_count }}</h3></article>
+    </div>
+
+    <div class="part-card-tracks" style="margin-top: 28px; max-width: 720px;">
+        <div>
+            <div class="part-track-label"><span>Merchandise</span><span>{{ data.summary.merch_pct }}%</span></div>
+            <div class="proposal-track part-track-sm">
+                <div class="proposal-track-fill" style="width: {{ data.summary.merch_marker }}%;"></div>
+                <div class="proposal-track-marker" style="left: {{ data.summary.merch_marker }}%;">
+                    <span class="proposal-track-dot"></span>
+                </div>
+            </div>
+        </div>
+        <div>
+            <div class="part-track-label"><span>Proposal (referrals)</span><span>{{ data.summary.proposal_pct }}%</span></div>
+            <div class="proposal-track part-track-sm">
+                <div class="proposal-track-fill" style="width: {{ data.summary.proposal_marker }}%;"></div>
+                <div class="proposal-track-marker" style="left: {{ data.summary.proposal_marker }}%;">
+                    <span class="proposal-track-dot"></span>
+                </div>
+            </div>
+        </div>
+        <div>
+            <div class="part-track-label"><span>Own contribution</span><span>{{ data.summary.own_pct }}%</span></div>
+            <div class="proposal-track part-track-sm">
+                <div class="proposal-track-fill" style="width: {{ data.summary.own_marker }}%;"></div>
+                <div class="proposal-track-marker" style="left: {{ data.summary.own_marker }}%;">
+                    <span class="proposal-track-dot"></span>
+                </div>
+            </div>
+        </div>
+        <div>
+            <div class="part-track-label"><span>Combined vs target {{ data.summary.target }}</span><span>{{ data.summary.combined }}</span></div>
+            <div class="proposal-track">
+                <div class="proposal-track-fill" style="width: {{ data.summary.combined_marker }}%;"></div>
+                <div class="proposal-track-marker" style="left: {{ data.summary.combined_marker }}%;">
+                    <span class="proposal-track-dot"></span>
+                    <span class="proposal-track-bubble">{{ data.summary.combined }}</span>
+                </div>
+            </div>
+            <div class="proposal-track-ends">
+                <span>Rp 0</span>
+                <span>{{ data.summary.target }}</span>
+            </div>
+        </div>
+    </div>
+    <p class="product-meta" style="margin-top: 16px;">Pending shows Follow up amounts (proposal / own). Only Received counts toward raised.</p>
+</section>
+{% endif %}
+
+{% if data.part_tab == 'merch' and not data.is_alumni %}
+<section class="admin-block">
+    <h2 class="section-title" style="font-size: 20px; margin: 0 0 8px;">Merch sales</h2>
+    <p class="product-meta" style="margin-bottom: 16px;">Orders that used this member’s referral. Credited merch sold: <strong>{{ data.summary.merch }}</strong> across {{ data.summary.order_count }} order(s).</p>
+    {% with table=data.referral_table %}{% include 'admin_table.html' %}{% endwith %}
+</section>
+{% endif %}
+
+{% if data.part_tab == 'proposal' and not data.is_alumni %}
+<section class="admin-block">
+    <h2 class="section-title" style="font-size: 20px; margin: 0 0 8px;">Proposal</h2>
+    <p class="product-meta" style="margin-bottom: 16px;">Support Us pledges from others using referral <strong>{{ data.row.referral_code or '—' }}</strong>. Received: <strong>{{ data.summary.proposal }}</strong>. Still Follow up: <strong>{{ data.summary.proposal_pending }}</strong>.</p>
+    {% with table=data.proposal_table %}{% include 'admin_table.html' %}{% endwith %}
+</section>
+{% endif %}
+
+{% if data.part_tab == 'contribution' and not data.is_alumni %}
+<section class="admin-block">
+    <h2 class="section-title" style="font-size: 20px; margin: 0 0 8px;">Own contribution</h2>
+    <p class="product-meta" style="margin-bottom: 16px;">Pledges this member added from My Proposal. Received: <strong>{{ data.summary.own }}</strong>. Still Follow up: <strong>{{ data.summary.own_pending }}</strong>.</p>
+    {% with table=data.contribution_table %}{% include 'admin_table.html' %}{% endwith %}
+</section>
+{% endif %}
+{% endblock %}

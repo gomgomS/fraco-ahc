@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}{{ data.registration.reg_id }} | FRACO{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="prose-fraco" style="max-width: 720px; margin: 0 auto 40px;">
+        <p class="product-meta">Registration</p>
+        <h1 class="section-title" style="margin: 8px 0 16px;">{{ data.registration.reg_id }}</h1>
+        <p>Thank you, {{ data.registration.full_name }}. Your account for {{ data.event_full_name }} is ready.</p>
+        <p>Type: {% if (data.registration.member_type or 'AHC_MEMBER') == 'AHC_MEMBER' %}Graduate 2017{% else %}Alumni / other{% endif %}</p>
+        <p class="product-meta" style="margin-top: 24px;">Login · {{ data.registration.email }}</p>
+        {% if (data.registration.member_type or 'AHC_MEMBER') == 'AHC_MEMBER' and data.registration.referral_code %}
+        <p class="product-meta">Referral code {{ data.registration.referral_code }}</p>
+        {% endif %}
+        <p style="margin-top: 28px;">
+            <a class="btn-black" href="/dashboard">Open dashboard</a>
+            <a class="btn-line" href="{{ data.whatsapp_url }}" target="_blank" rel="noopener">WhatsApp</a>
+        </p>
+    </div>
+</section>
+{% endblock %}

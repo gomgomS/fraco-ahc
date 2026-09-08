@@ -1,0 +1,12 @@
+{% extends 'admin_base.html' %}
+{% block title %}Users | Admin{% endblock %}
+{% block content %}
+<div class="section-head" style="padding: 0; max-width: none;">
+    <h1 class="section-title">Users</h1>
+    <a class="section-link" href="/admin/users/new">Add user</a>
+</div>
+<p class="prose-fraco" style="margin: 8px 0 24px;">Users: create staff accounts and roles. Only super admin can add or change staff; other roles stay limited to their own work.</p>
+{% with table=data.list_table %}{% include 'admin_table.html' %}{% endwith %}
+<h2 class="section-title" style="font-size: 20px; margin: 40px 0 12px;">Role limits</h2>
+{% with table=data.help_table %}{% include 'admin_table.html' %}{% endwith %}
+{% endblock %}

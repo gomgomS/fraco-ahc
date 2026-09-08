@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Contact | FRACO{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+    <img src="/static/upload/heroes/3f2a13b1e8aff1b8f642.jpg" alt="Contact FRACO">
+    <div class="page-hero-copy">
+        <p>{{ data.name }}</p>
+        <h1>Contact</h1>
+        <p>{{ data.class_label }}</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="prose-fraco" style="text-align: center;">
+        <p class="product-meta">Phone</p>
+        <p>{{ data.phone }}</p>
+        <p style="margin-top: 28px;">
+            <a class="btn-black" href="{{ data.whatsapp_url }}" target="_blank" rel="noopener">WhatsApp</a>
+            <a class="btn-line" href="/partners">Partners</a>
+        </p>
+    </div>
+</section>
+{% endblock %}

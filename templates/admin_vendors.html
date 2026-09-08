@@ -1,0 +1,93 @@
+{% extends 'admin_base.html' %}
+{% block title %}Vendors | Admin{% endblock %}
+{% block content %}
+<h1 class="section-title" style="margin-bottom: 12px;">Vendors</h1>
+<p class="prose-fraco" style="margin-bottom: 28px;">Vendors: manage supplier applications and staff-added vendors (and which division needs them). Use this when a business wants to provide services to the event.</p>
+
+{% if data.form_error %}
+<p class="prose-fraco" style="color: #b00000; margin-bottom: 24px;">{{ data.form_error }}</p>
+{% endif %}
+
+<div class="filter-row" style="margin-bottom: 28px;">
+    <a class="filter-chip{% if data.vendors_tab != 'add' %} active{% endif %}" href="/admin/vendors?tab=list">Vendors</a>
+    {% if data.can_write %}
+    <a class="filter-chip{% if data.vendors_tab == 'add' %} active{% endif %}" href="/admin/vendors?tab=add">Add manually</a>
+    {% endif %}
+</div>
+
+{% if data.vendors_tab == 'add' and data.can_write %}
+<section class="admin-block">
+    <h2 class="section-title" style="font-size: 20px; margin-bottom: 12px;">Add manually</h2>
+    <form class="form-stack" method="post">
+        <div><label class="field-label" for="business_name">Business name</label><input class="field" name="business_name" id="business_name" value="{{ data.form.business_name or '' }}" required></div>
+        <div><label class="field-label" for="contact_person">Contact person</label><input class="field" name="contact_person" id="contact_person" value="{{ data.form.contact_person or '' }}"></div>
+        <div><label class="field-label" for="email">Email</label><input class="field" type="email" name="email" id="email" value="{{ data.form.email or '' }}"></div>
+        <div><label class="field-label" for="phone">Phone</label><input class="field" name="phone" id="phone" value="{{ data.form.phone or '' }}"></div>
+        <div>
+            <label class="field-label" for="description">Description</label>
+            <textarea class="field js-rich-text-source" name="description" id="description" rows="10">{{ data.form.description or '' }}</textarea>
+            <p class="product-meta">Format the vendor description with headings, links, lists, and images.</p>
+        </div>
+        <div>
+            <label class="field-label" for="division">Division that needs this vendor</label>
+            <select class="field" name="division" id="division">
+                <option value="">—</option>
+                {% for item in data.divisions %}
+                <option value="{{ item }}"{% if data.form.division == item %} selected{% endif %}>{{ item }}</option>
+                {% endfor %}
+            </select>
+            <p class="product-meta" style="margin-top: 8px;">Which FRACO division requested or will use this vendor.</p>
+        </div>
+        <div><label class="field-label" for="services">Services</label><textarea class="field" name="services" id="services" rows="2">{{ data.form.services or '' }}</textarea></div>
+        <div><label class="field-label" for="profile">Profile</label><textarea class="field" name="profile" id="profile" rows="2">{{ data.form.profile or '' }}</textarea></div>
+        <div><label class="field-label" for="portfolio">Portfolio</label><textarea class="field" name="portfolio" id="portfolio" rows="2">{{ data.form.portfolio or '' }}</textarea></div>
+        <div><label class="field-label" for="pricing">Pricing</label><input class="field" name="pricing" id="pricing" value="{{ data.form.pricing or '' }}"></div>
+        <div>
+            <label class="field-label" for="status">Status</label>
+            <select class="field" name="status" id="status">
+                {% for item in data.statuses %}
+                <option value="{{ item }}"{% if (data.form.status or 'Approved') == item %} selected{% endif %}>{{ item }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div><label class="field-label" for="assigned_pic">Assigned PIC</label><input class="field" name="assigned_pic" id="assigned_pic" value="{{ data.form.assigned_pic or '' }}"></div>
+        <div><label class="field-label" for="notes">Notes</label><textarea class="field" name="notes" id="notes" rows="2">{{ data.form.notes or '' }}</textarea></div>
+        <button class="btn-black" type="submit">Add vendor</button>
+    </form>
+</section>
+{% else %}
+{% with table=data.list_table %}{% include 'admin_table.html' %}{% endwith %}
+<dialog class="admin-desc-modal" id="vendor-desc-modal" aria-labelledby="vendor-desc-title">
+    <div class="admin-desc-modal-head">
+        <h2 class="section-title" id="vendor-desc-title" style="font-size: 22px;">Vendor description</h2>
+        <button class="btn-line" type="button" data-vendor-desc-close>Close</button>
+    </div>
+    <div class="article-rich-content admin-desc-modal-body" id="vendor-desc-body"></div>
+</dialog>
+<script>
+(function () {
+  var modal = document.getElementById("vendor-desc-modal");
+  var title = document.getElementById("vendor-desc-title");
+  var body = document.getElementById("vendor-desc-body");
+  if (!modal || !title || !body) return;
+
+  document.querySelectorAll(".js-vendor-desc-open").forEach(function (button) {
+    button.addEventListener("click", function () {
+      title.textContent = button.dataset.vendorName || "Vendor description";
+      body.innerHTML = button.dataset.vendorDescription || "";
+      modal.showModal();
+    });
+  });
+  modal.querySelector("[data-vendor-desc-close]").addEventListener("click", function () {
+    modal.close();
+  });
+  modal.addEventListener("click", function (event) {
+    if (event.target === modal) modal.close();
+  });
+})();
+</script>
+{% endif %}
+{% if data.vendors_tab == 'add' and data.can_write %}
+{% include 'admin_rich_editor.html' %}
+{% endif %}
+{% endblock %}

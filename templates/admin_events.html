@@ -1,0 +1,10 @@
+{% extends 'admin_base.html' %}
+{% block title %}Events | Admin{% endblock %}
+{% block content %}
+<div class="section-head" style="padding: 0; max-width: none;">
+    <h1 class="section-title">Events</h1>
+    {% if data.can_write %}<a class="section-link" href="/admin/events/new">Create event</a>{% endif %}
+</div>
+<p class="product-meta" style="margin: 0 0 20px; max-width: 60ch;">Events: create a dated activity (title, date, place, status). Use this when you need a specific day people can follow or register for — not a whole program track.</p>
+{% with table=data.list_table %}{% include 'admin_table.html' %}{% endwith %}
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Login | FRACO{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+    <img src="/static/upload/heroes/03d4044065f01129e515.jpg" alt="Login to FRACO">
+    <div class="page-hero-copy">
+        <p>{{ data.name }}</p>
+        <h1>Login</h1>
+        <p>{{ data.class_label }}</p>
+    </div>
+</section>
+
+<section class="section">
+    <div style="max-width: 520px; margin: 0 auto;">
+        {% if data.form_error %}
+        <p class="prose-fraco" style="color: #b00000; margin-bottom: 28px;">{{ data.form_error }}</p>
+        {% endif %}
+        <form class="form-stack" method="post">
+            <input type="hidden" name="next" value="{{ data.next_path }}">
+            <div>
+                <label class="field-label" for="email">Username / email</label>
+                <input class="field" type="text" name="email" id="email" required>
+                <p class="product-meta">AHC members use their username (e.g. name2017). Alumni use email.</p>
+            </div>
+            <div>
+                <label class="field-label" for="password">Password</label>
+                <input class="field" type="password" name="password" id="password" required>
+            </div>
+            <div>
+                <label class="field-label" for="phone">Phone (only if you registered without a password)</label>
+                <input class="field" type="text" name="phone" id="phone">
+            </div>
+            <button class="btn-black" type="submit">Login</button>
+        </form>
+        <p style="margin-top: 28px;"><a class="section-link" href="/register">Register as a participant</a></p>
+    </div>
+</section>
+{% endblock %}

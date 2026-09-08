@@ -1,0 +1,179 @@
+<script>
+(function () {
+  function toolbarButton(label, command, value) {
+    var button = document.createElement("button");
+    button.type = "button";
+    button.className = "rich-editor-button";
+    button.textContent = label;
+    button.setAttribute("aria-label", label);
+    button.addEventListener("mousedown", function (event) {
+      event.preventDefault();
+    });
+    button.addEventListener("click", function () {
+      if (command) document.execCommand(command, false, value || null);
+    });
+    return button;
+  }
+
+  function escapeEditorText(value) {
+    var node = document.createElement("div");
+    node.textContent = value || "";
+    return node.innerHTML;
+  }
+
+  function formatInlineMarkdown(value) {
+    var text = escapeEditorText(value);
+    text = text.replace(/\[([^\]]+)\]\(((?:https?:\/\/|mailto:|tel:|\/)[^)]+)\)/g, '<a href="$2">$1</a>');
+    text = text.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    text = text.replace(/__([^_]+)__/g, "<strong>$1</strong>");
+    text = text.replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>");
+    text = text.replace(/(^|[^_])_([^_\n]+)_/g, "$1<em>$2</em>");
+    return text;
+  }
+
+  function plainTextToBlogHtml(value) {
+    var lines = (value || "").replace(/\r/g, "").split("\n");
+    var output = [];
+    var listType = "";
+    var firstContentIndex = lines.findIndex(function (line) {
+      return line.trim() !== "";
+    });
+
+    function closeList() {
+      if (listType) output.push("</" + listType + ">");
+      listType = "";
+    }
+
+    lines.forEach(function (line, index) {
+      var clean = line.trim();
+      var match;
+      if (!clean) {
+        closeList();
+        return;
+      }
+      match = clean.match(/^#\s+(.+)$/);
+      if (match) {
+        closeList();
+        output.push("<h1>" + formatInlineMarkdown(match[1]) + "</h1>");
+        return;
+      }
+      match = clean.match(/^##\s+(.+)$/);
+      if (match) {
+        closeList();
+        output.push("<h2>" + formatInlineMarkdown(match[1]) + "</h2>");
+        return;
+      }
+      match = clean.match(/^#{3,6}\s+(.+)$/);
+      if (match) {
+        closeList();
+        output.push("<h3>" + formatInlineMarkdown(match[1]) + "</h3>");
+        return;
+      }
+      var beforeBlank = index === 0 || lines[index - 1].trim() === "";
+      var afterBlank = index === lines.length - 1 || lines[index + 1].trim() === "";
+      var looksLikeHeading = beforeBlank && afterBlank && clean.length <= 120 &&
+        !/[.!?]$/.test(clean) && !/^([-*•●▪◦]\s|>\s|\d+[.)]\s)/.test(clean);
+      if (looksLikeHeading) {
+        closeList();
+        var headingTag = index === firstContentIndex ? "h1" : "h2";
+        output.push("<" + headingTag + ">" + formatInlineMarkdown(clean) + "</" + headingTag + ">");
+        return;
+      }
+      match = clean.match(/^[-*•●▪◦]\s+(.+)$/);
+      if (match) {
+        if (listType !== "ul") {
+          closeList();
+          listType = "ul";
+          output.push("<ul>");
+        }
+        output.push("<li>" + formatInlineMarkdown(match[1]) + "</li>");
+        return;
+      }
+      match = clean.match(/^\d+[.)]\s+(.+)$/);
+      if (match) {
+        if (listType !== "ol") {
+          closeList();
+          listType = "ol";
+          output.push("<ol>");
+        }
+        output.push("<li>" + formatInlineMarkdown(match[1]) + "</li>");
+        return;
+      }
+      match = clean.match(/^>\s*(.+)$/);
+      if (match) {
+        closeList();
+        output.push("<blockquote>" + formatInlineMarkdown(match[1]) + "</blockquote>");
+        return;
+      }
+      closeList();
+      output.push("<p>" + formatInlineMarkdown(clean) + "</p>");
+    });
+    closeList();
+    return output.join("") || "<p><br></p>";
+  }
+
+  function initRichEditor(source) {
+    if (!source || source.dataset.richReady === "1") return;
+    source.dataset.richReady = "1";
+
+    var shell = document.createElement("div");
+    shell.className = "rich-editor-shell";
+    var toolbar = document.createElement("div");
+    toolbar.className = "rich-editor-toolbar";
+    toolbar.setAttribute("role", "toolbar");
+
+    toolbar.appendChild(toolbarButton("Paragraph", "formatBlock", "p"));
+    toolbar.appendChild(toolbarButton("Heading", "formatBlock", "h2"));
+    toolbar.appendChild(toolbarButton("Bold", "bold"));
+    toolbar.appendChild(toolbarButton("Italic", "italic"));
+    toolbar.appendChild(toolbarButton("Bullets", "insertUnorderedList"));
+    toolbar.appendChild(toolbarButton("Numbers", "insertOrderedList"));
+    toolbar.appendChild(toolbarButton("Quote", "formatBlock", "blockquote"));
+
+    var linkButton = toolbarButton("Link", "");
+    linkButton.addEventListener("click", function () {
+      var url = window.prompt("Link URL (https://...)");
+      if (url) document.execCommand("createLink", false, url);
+    });
+    toolbar.appendChild(linkButton);
+
+    var imageButton = toolbarButton("Image URL", "");
+    imageButton.addEventListener("click", function () {
+      var url = window.prompt("Image URL (https://... or /static/...)");
+      if (url) document.execCommand("insertImage", false, url);
+    });
+    toolbar.appendChild(imageButton);
+
+    var editor = document.createElement("div");
+    editor.className = "rich-editor-content";
+    editor.contentEditable = "true";
+    editor.setAttribute("role", "textbox");
+    editor.setAttribute("aria-multiline", "true");
+    var initialValue = source.value || "";
+    editor.innerHTML = /<[a-z][\s\S]*>/i.test(initialValue)
+      ? initialValue
+      : plainTextToBlogHtml(initialValue);
+    editor.addEventListener("paste", function (event) {
+      var clipboard = event.clipboardData;
+      if (!clipboard) return;
+      var plain = clipboard.getData("text/plain") || "";
+      var rich = clipboard.getData("text/html") || "";
+      var hasMarkdown = /(^|\n)\s*(#{1,6}\s|[-*•●▪◦]\s|>\s|\d+[.)]\s)|\*\*[^*]+\*\*|__[^_]+__/m.test(plain);
+      if (rich && !hasMarkdown) return;
+      event.preventDefault();
+      document.execCommand("insertHTML", false, plainTextToBlogHtml(plain));
+    });
+
+    shell.appendChild(toolbar);
+    shell.appendChild(editor);
+    source.parentNode.insertBefore(shell, source);
+    source.hidden = true;
+
+    source.form.addEventListener("submit", function () {
+      source.value = editor.innerHTML;
+    });
+  }
+
+  document.querySelectorAll(".js-rich-text-source").forEach(initRichEditor);
+})();
+</script>

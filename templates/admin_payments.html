@@ -1,0 +1,238 @@
+{% extends 'admin_base.html' %}
+{% block title %}Finance | Admin{% endblock %}
+{% block content %}
+<h1 class="section-title" style="margin-bottom: 12px;">Finance</h1>
+<p class="product-meta" style="margin: 0 0 20px; max-width: 68ch;">Overview and detailed money-in records from contributions, proposals, merchandise, and other sources.</p>
+
+<div class="filter-row" style="margin-bottom: 28px;">
+    <a class="filter-chip{% if data.finance_tab == 'summary' %} active{% endif %}" href="/admin/payments?tab=summary">Summary</a>
+    <a class="filter-chip{% if data.finance_tab == 'transactions' %} active{% endif %}" href="/admin/payments?tab=transactions">Transaction details</a>
+    {% if data.can_write %}
+    <a class="filter-chip{% if data.finance_tab == 'add' %} active{% endif %}" href="/admin/payments?tab=add">Add transaction</a>
+    {% endif %}
+</div>
+
+{% if data.finance_tab == 'summary' %}
+<div class="dash-stats" style="margin-bottom: 24px;">
+    <article class="dash-stat">
+        <p class="product-meta">Income</p>
+        <h3>{{ data.transaction_summary.income_total }}</h3>
+        <p class="product-meta">{{ data.transaction_summary.income_count }} received transactions</p>
+    </article>
+    <article class="dash-stat">
+        <p class="product-meta">Expenses</p>
+        <h3>{{ data.transaction_summary.expense_total }}</h3>
+        <p class="product-meta">{{ data.transaction_summary.expense_count }} paid expenses</p>
+    </article>
+    <article class="dash-stat">
+        <p class="product-meta">Net cash</p>
+        <h3>{{ data.transaction_summary.net_total }}</h3>
+        <p class="product-meta">Income minus expenses</p>
+    </article>
+    <article class="dash-stat">
+        <p class="product-meta">Fundraising credit</p>
+        <h3>{{ data.transaction_summary.fundraising_total }}</h3>
+        <p class="product-meta">Merch profit + received proposal/contribution</p>
+    </article>
+    {% for item in data.transaction_summary.source_totals %}
+    <article class="dash-stat">
+        <p class="product-meta">{{ item.label }}</p>
+        <h3>{{ item.amount }}</h3>
+    </article>
+    {% endfor %}
+</div>
+<p class="product-meta" style="margin: -12px 0 24px; max-width: 72ch;">Income uses the customer’s full merchandise payment. Fundraising credit uses merchandise profit. Manual rows may duplicate an automatic source if entered twice.</p>
+
+<div class="admin-charts">
+    <section class="admin-block">
+        <h2 class="section-title" style="font-size: 20px; margin: 0 0 16px;">Income by source</h2>
+        {% for row in data.transaction_summary.source_totals %}
+        <div style="margin-bottom: 14px;">
+            <p class="product-meta" style="display: flex; justify-content: space-between; gap: 12px;">
+                <span>{{ row.label }}</span>
+                <strong>{{ row.amount }}</strong>
+            </p>
+            <div class="pay-bar" aria-label="{{ row.label }} {{ row.amount }}"><span style="width: {{ row.pct }}%;"></span></div>
+        </div>
+        {% endfor %}
+    </section>
+    <section class="admin-block">
+        <h2 class="section-title" style="font-size: 20px; margin: 0 0 16px;">Monthly income</h2>
+        {% for row in data.transaction_summary.income_by_month %}
+        <div style="margin-bottom: 14px;">
+            <p class="product-meta" style="display: flex; justify-content: space-between; gap: 12px;">
+                <span>{{ row.label }}</span>
+                <strong>{{ row.amount }}</strong>
+            </p>
+            <div class="pay-bar" aria-label="{{ row.label }} {{ row.amount }}"><span style="width: {{ row.pct }}%;"></span></div>
+        </div>
+        {% else %}
+        <p class="product-meta">No dated received transactions yet.</p>
+        {% endfor %}
+    </section>
+</div>
+
+<p><a class="btn-line" href="/admin/payments?tab=transactions">View transaction details</a></p>
+
+{% elif data.finance_tab == 'transactions' %}
+<div class="admin-block" style="margin-bottom: 24px;">
+    <p class="field-label" style="margin-bottom: 8px;">Type</p>
+    <div class="filter-row" style="margin-bottom: 16px;">
+        <a class="filter-chip{% if not data.transaction_kind_filter %} active{% endif %}" href="/admin/payments?tab=transactions{% if data.transaction_type_filter %}&type={{ data.transaction_type_filter|urlencode }}{% endif %}{% if data.transaction_account_filter %}&account={{ data.transaction_account_filter|urlencode }}{% endif %}">All</a>
+        {% for item in data.kinds %}
+        <a class="filter-chip{% if data.transaction_kind_filter == item %} active{% endif %}" href="/admin/payments?tab=transactions&kind={{ item|urlencode }}{% if data.transaction_type_filter %}&type={{ data.transaction_type_filter|urlencode }}{% endif %}{% if data.transaction_account_filter %}&account={{ data.transaction_account_filter|urlencode }}{% endif %}">{{ item|title }}</a>
+        {% endfor %}
+    </div>
+    <p class="field-label" style="margin-bottom: 8px;">Source</p>
+    <div class="filter-row">
+        <a class="filter-chip{% if not data.transaction_type_filter %} active{% endif %}" href="/admin/payments?tab=transactions{% if data.transaction_kind_filter %}&kind={{ data.transaction_kind_filter|urlencode }}{% endif %}{% if data.transaction_account_filter %}&account={{ data.transaction_account_filter|urlencode }}{% endif %}">All</a>
+        {% for item in data.types %}
+        <a class="filter-chip{% if data.transaction_type_filter == item %} active{% endif %}" href="/admin/payments?tab=transactions&type={{ item|urlencode }}{% if data.transaction_kind_filter %}&kind={{ data.transaction_kind_filter|urlencode }}{% endif %}{% if data.transaction_account_filter %}&account={{ data.transaction_account_filter|urlencode }}{% endif %}">{{ item }}</a>
+        {% endfor %}
+    </div>
+    <form method="get" action="/admin/payments" style="margin-top: 16px; max-width: 420px;">
+        <input type="hidden" name="tab" value="transactions">
+        {% if data.transaction_type_filter %}
+        <input type="hidden" name="type" value="{{ data.transaction_type_filter }}">
+        {% endif %}
+        {% if data.transaction_kind_filter %}
+        <input type="hidden" name="kind" value="{{ data.transaction_kind_filter }}">
+        {% endif %}
+        <label class="field-label" for="account_filter">Account</label>
+        <div class="hero-actions" style="justify-content: flex-start; gap: 8px; align-items: end;">
+            <select class="field" name="account" id="account_filter">
+                <option value="">All accounts</option>
+                {% for account in data.receive_accounts %}
+                <option value="{{ account.pkey }}"{% if data.transaction_account_filter == account.pkey %} selected{% endif %}>{{ account.display_label }}</option>
+                {% endfor %}
+            </select>
+            <button class="btn-line" type="submit">Filter</button>
+        </div>
+    </form>
+</div>
+
+{% with table=data.list_table %}{% include 'admin_table.html' %}{% endwith %}
+{% else %}
+{% if data.can_write %}
+<h2 class="section-title" style="font-size: 20px; margin: 0 0 12px;">Add transaction</h2>
+<p class="prose-fraco" style="margin-bottom: 16px;">Merch orders and received Support Us records appear automatically. Use this form for a transfer that is not already recorded in those features.</p>
+<form class="form-stack" method="post">
+    <input type="hidden" name="action" value="add">
+    <div>
+        <label class="field-label" for="member_search">Member (optional)</label>
+        <input class="field" type="search" id="member_search" placeholder="Type member name or referral code" autocomplete="off" aria-autocomplete="list" aria-controls="member_suggestions">
+        <input type="hidden" name="member_pkey" id="member_pkey" value="">
+        <div id="member_suggestions" role="listbox" style="display:none; max-height:240px; overflow-y:auto; border:1px solid #ddd; border-top:0; background:#fff;">
+            {% for member in data.finance_members %}
+            <button type="button" class="js-member-suggestion" role="option"
+                data-member-pkey="{{ member.pkey }}"
+                data-member-name="{{ member.name }}"
+                data-referral-code="{{ member.referral_code }}"
+                data-member-search="{{ member.name }} {{ member.referral_code }}"
+                style="display:none; width:100%; padding:11px 14px; border-bottom:1px solid #eee; text-align:left;">
+                <strong>{{ member.name }}</strong>{% if member.referral_code %} <span class="product-meta">· {{ member.referral_code }}</span>{% endif %}
+            </button>
+            {% endfor %}
+        </div>
+        <p class="product-meta" style="margin-top:8px;">Type “g” to see matching names, then click one. Leave empty for a normal manual transaction.</p>
+    </div>
+    <div><label class="field-label" for="name">Name</label><input class="field" name="name" id="name"></div>
+    <div>
+        <label class="field-label" for="transaction_kind">Transaction type</label>
+        <select class="field" name="transaction_kind" id="transaction_kind">
+            <option value="INCOME">Income</option>
+            <option value="EXPENSE">Expense</option>
+        </select>
+    </div>
+    <div>
+        <label class="field-label" for="source_type">Source</label>
+        <select class="field" name="source_type" id="source_type">
+            {% for item in data.types %}
+            <option value="{{ item }}"{% if item == 'Other' %} selected{% endif %}>{{ item }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div><label class="field-label" for="source_ref">Transaction code</label><input class="field" name="source_ref" id="source_ref" placeholder="Receipt, transfer, or internal transaction code"></div>
+    <div><label class="field-label" for="referral_code">Referral code (optional)</label><input class="field" name="referral_code" id="referral_code"></div>
+    <div><label class="field-label" for="transaction_date">Transaction date</label><input class="field" type="date" name="transaction_date" id="transaction_date"></div>
+    <div><label class="field-label" for="amount">Amount</label><input class="field" name="amount" id="amount" required></div>
+    <div>
+        <label class="field-label" for="fk_receive_account">Account</label>
+        {% if data.receive_accounts %}
+        <select class="field" name="fk_receive_account" id="fk_receive_account" required>
+            <option value="">Select account</option>
+            {% for account in data.receive_accounts %}
+            <option value="{{ account.pkey }}">{{ account.display_label }}</option>
+            {% endfor %}
+        </select>
+        {% else %}
+        <p class="prose-fraco">No account yet. <a class="section-link" href="/admin/settings">Add one in Settings</a>.</p>
+        {% endif %}
+    </div>
+    <div><label class="field-label" for="note">Note</label><textarea class="field" name="note" id="note" rows="2"></textarea></div>
+    <div>
+        <label class="field-label" for="new_status">Status</label>
+        <select class="field" name="status" id="new_status">
+            {% for item in data.statuses %}
+            <option value="{{ item }}"{% if item == 'PAID' %} selected{% endif %}>{{ item }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button class="btn-black" type="submit"{% if not data.receive_accounts %} disabled{% endif %}>Save transaction</button>
+</form>
+<script>
+(function () {
+    var member = document.getElementById("member_pkey");
+    var search = document.getElementById("member_search");
+    var suggestions = document.getElementById("member_suggestions");
+    var name = document.getElementById("name");
+    var referral = document.getElementById("referral_code");
+    if (!member || !search || !suggestions || !name || !referral) return;
+    var manualName = name.value || "";
+    var manualReferral = referral.value || "";
+    function clearSelectedMember() {
+        if (member.value) {
+            member.value = "";
+            name.readOnly = false;
+            referral.readOnly = false;
+            name.value = manualName;
+            referral.value = manualReferral;
+        }
+    }
+    search.addEventListener("input", function () {
+        clearSelectedMember();
+        var query = (search.value || "").trim().toLowerCase();
+        var matches = 0;
+        suggestions.querySelectorAll(".js-member-suggestion").forEach(function (option) {
+            var haystack = (option.getAttribute("data-member-search") || "").toLowerCase();
+            var show = query !== "" && haystack.indexOf(query) >= 0;
+            option.style.display = show ? "block" : "none";
+            if (show) matches += 1;
+        });
+        suggestions.style.display = matches > 0 ? "block" : "none";
+    });
+    suggestions.querySelectorAll(".js-member-suggestion").forEach(function (option) {
+        option.addEventListener("click", function () {
+            if (!name.readOnly) {
+                manualName = name.value || "";
+                manualReferral = referral.value || "";
+            }
+            member.value = option.getAttribute("data-member-pkey") || "";
+            search.value = option.getAttribute("data-member-name") || "";
+            name.value = option.getAttribute("data-member-name") || "";
+            referral.value = option.getAttribute("data-referral-code") || "";
+            name.readOnly = true;
+            referral.readOnly = true;
+            suggestions.style.display = "none";
+        });
+    });
+    document.addEventListener("click", function (event) {
+        if (!suggestions.contains(event.target) && event.target !== search) {
+            suggestions.style.display = "none";
+        }
+    });
+})();
+</script>
+{% endif %}
+{% endif %}
+{% endblock %}

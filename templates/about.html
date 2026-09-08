@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block title %}About FRACO | {{ data.class_label }}{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+    <img src="/static/upload/heroes/03d4044065f01129e515.jpg" alt="About FRACO">
+    <div class="page-hero-copy">
+        <p>{{ data.name }}</p>
+        <h1>About</h1>
+        <p>{{ data.event_full_name }} · {{ data.class_label }}</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="about-split">
+        <article class="prose-fraco">
+            <p class="product-meta">The community</p>
+            <h2 class="section-title" style="margin-bottom: 24px;">About FRACO</h2>
+            <p>{{ data.about_fraco }}</p>
+            <p>{{ data.description }}</p>
+        </article>
+        <article class="prose-fraco">
+            <p class="product-meta">{{ data.event_name }}</p>
+            <h2 class="section-title" style="margin-bottom: 24px;">About Alumni Home Coming</h2>
+            <p>{{ data.about_purpose }}</p>
+            <p>{{ data.about_audience }}</p>
+            <p>{{ data.about_activities }}</p>
+            <p>{{ data.about_impact }}</p>
+        </article>
+    </div>
+</section>
+
+{% if data.programs %}
+<section class="section" style="padding-top: 0;">
+    <div class="section-head">
+        <h2 class="section-title">Main activities</h2>
+        <a class="section-link" href="/programs">View Programs</a>
+    </div>
+    <div class="product-grid">
+        {% for item in data.programs %}
+        <a class="product-card" href="/programs/{{ item.slug }}">
+            <div class="product-media">
+                <img src="{{ item.image }}" alt="{{ item.title }}">
+            </div>
+            <h3 class="product-name">{{ item.title }}</h3>
+            <p class="product-meta">{{ item.description }}</p>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<section class="section" style="padding-top: 0;">
+    <div class="section-head">
+        <h2 class="section-title">Timeline</h2>
+        <span class="section-link">August 2026 — April 2027</span>
+    </div>
+    {% if data.timeline %}
+    <ol class="timeline">
+        {% for item in data.timeline %}
+        <li class="timeline-item">
+            <p class="timeline-month">{{ item.month }}</p>
+            <ul>
+                {% for line in item['items'] %}
+                <li>{{ line }}</li>
+                {% endfor %}
+            </ul>
+        </li>
+        {% endfor %}
+    </ol>
+    {% else %}
+    <p class="prose-fraco">Timeline will appear here as preparation dates are confirmed.</p>
+    {% endif %}
+</section>
+
+<section class="section" style="padding-top: 0;">
+    <div class="section-head">
+        <h2 class="section-title">Our Team</h2>
+        <span class="section-link">FRACO divisions</span>
+    </div>
+    {% if data.divisions %}
+    <div class="team-grid">
+        {% for item in data.divisions %}
+        <article class="team-card">
+            <p class="product-meta">Division</p>
+            <h3>{{ item.name }}</h3>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="prose-fraco">Division listings will appear here.</p>
+    {% endif %}
+    <p class="hero-actions" style="justify-content: flex-start; margin-top: 40px;">
+        <a class="btn-black" href="/participate">Register</a>
+        <a class="btn-line" href="/programs">Explore Programs</a>
+    </p>
+</section>
+{% endblock %}

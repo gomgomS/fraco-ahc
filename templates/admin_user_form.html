@@ -1,0 +1,37 @@
+{% extends 'admin_base.html' %}
+{% block title %}{% if data.row.pkey %}Edit{% else %}New{% endif %} user | Admin{% endblock %}
+{% block content %}
+<p class="product-meta"><a class="section-link" href="/admin/users">Users</a></p>
+<h1 class="section-title" style="margin: 8px 0 24px;">{% if data.row.pkey %}Edit user{% else %}Add user{% endif %}</h1>
+<form class="form-stack" method="post">
+    <div><label class="field-label" for="name">Name</label><input class="field" name="name" id="name" value="{{ data.row.name or '' }}" required></div>
+    <div><label class="field-label" for="email">Email</label><input class="field" type="email" name="email" id="email" value="{{ data.row.email or '' }}" required></div>
+    <div><label class="field-label" for="phone">Phone</label><input class="field" name="phone" id="phone" value="{{ data.row.phone or '' }}"></div>
+    <div>
+        <label class="field-label" for="role">Role</label>
+        <select class="field" name="role" id="role">
+            {% for item in data.roles %}
+            <option value="{{ item }}"{% if (data.row.role or data.row.role_kind) == item %} selected{% endif %}>{{ data.role_labels[item] }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div>
+        <label class="field-label" for="status">Status</label>
+        <select class="field" name="status" id="status">
+            <option value="ENABLE"{% if (data.row.status or 'ENABLE') == 'ENABLE' %} selected{% endif %}>ENABLE</option>
+            <option value="DISABLE"{% if data.row.status == 'DISABLE' %} selected{% endif %}>DISABLE</option>
+        </select>
+    </div>
+    <div>
+        <label class="field-label" for="password">Password{% if data.row.pkey %} (leave blank to keep){% endif %}</label>
+        <input class="field" type="password" name="password" id="password"{% if not data.row.pkey %} required{% endif %}>
+    </div>
+    <button class="btn-black" type="submit">Save</button>
+</form>
+{% if data.row.pkey %}
+<form method="post" style="margin-top: 16px;" onsubmit="return confirm('Disable this staff account?');">
+    <input type="hidden" name="action" value="deactivate">
+    <button class="btn-line" type="submit">Disable user</button>
+</form>
+{% endif %}
+{% endblock %}

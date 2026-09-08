@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Order {{ data.order.order_id }} | FRACO{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="prose-fraco" style="max-width: 720px; margin: 0 auto 40px;">
+        <p class="product-meta">Order</p>
+        <h1 class="section-title" style="margin: 8px 0 16px;">{{ data.order.order_id }}</h1>
+        <p>Payment status: {{ data.order.payment_status }}</p>
+        <p>Order status: {{ data.order.order_status }}</p>
+        {% if data.order.has_preorder %}
+        <p class="prose-fraco" style="margin-top: 16px;">This order includes <strong>preorder</strong> items{% if data.order.preorder_eta %} (expected {{ data.order.preorder_eta }}){% endif %}. Payment reserves your order; shipping follows production.</p>
+        {% else %}
+        <p class="prose-fraco" style="margin-top: 16px;">FRACO has the order. Payment stays pending until the merchandise division confirms and sends transfer details to {{ data.order.email }}.</p>
+        {% endif %}
+    </div>
+    <div class="checkout-grid">
+        <div>
+            <h2 class="section-title" style="font-size: 22px; margin-bottom: 16px;">Items</h2>
+            {% for item in data.order['items'] %}
+            <p>{{ item.name }} · {{ item.qty }} · {{ item.size }} {{ item.color }} · {{ item.line_price }}{% if item.is_preorder %} · Preorder{% endif %}</p>
+            {% endfor %}
+            <p class="product-meta" style="margin-top: 20px;">Subtotal {{ data.order.subtotal }}</p>
+            {% if data.order.discount_total_num and data.order.discount_total_num > 0 %}
+            <p class="product-meta">Discount {{ data.order.discount_total }}{% if data.order.referral_code %} · referral {{ data.order.referral_code }}{% endif %}</p>
+            {% endif %}
+            <p class="product-meta">Shipping {{ data.order.shipping }}</p>
+            <p class="section-title" style="font-size: 22px; margin-top: 8px;">{{ data.order.total }}</p>
+        </div>
+        <div>
+            <h2 class="section-title" style="font-size: 22px; margin-bottom: 16px;">Ship to</h2>
+            <p>{{ data.order.full_name }}</p>
+            <p>{{ data.order.phone }}</p>
+            <p>{{ data.order.email }}</p>
+            <p>{{ data.order.address }}</p>
+            <p>{{ data.order.city }} {{ data.order.postal_code }}</p>
+            {% if data.order.notes %}<p class="product-meta" style="margin-top: 12px;">Notes: {{ data.order.notes }}</p>{% endif %}
+        </div>
+    </div>
+    <p style="text-align: center; margin-top: 40px;">
+        <a class="btn-line" href="/merchandise">Back to shop</a>
+    </p>
+</section>
+{% endblock %}

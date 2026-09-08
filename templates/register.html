@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block title %}Register | FRACO{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+    <img src="/static/upload/heroes/03d4044065f01129e515.jpg" alt="Register for AHC 2027">
+    <div class="page-hero-copy">
+        <p>{{ data.name }}</p>
+        <h1>Register</h1>
+        <p>{{ data.class_label }} · {{ data.event_full_name }}</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="register-wrap">
+        {% if data.phase == 'choose' %}
+        <div class="register-head">
+            <h2 class="section-title">Register as</h2>
+        </div>
+        <div class="register-choice">
+            <article class="participate-card">
+                <div>
+                    <h3>AHC Member</h3>
+                    <p>Graduated in 2017</p>
+                    <p class="product-meta">For classmates running Alumni Home Coming 2027.</p>
+                </div>
+                <p><a class="btn-black" href="/register?as=AHC_MEMBER">Continue</a></p>
+            </article>
+            <article class="participate-card">
+                <div>
+                    <h3>Alumni</h3>
+                    <p>Other</p>
+                    <p class="product-meta">For alumni who are not class of 2017.</p>
+                </div>
+                <p><a class="btn-black" href="/register?as=ALUMNI">Continue</a></p>
+            </article>
+        </div>
+        <p class="register-foot product-meta">Already registered? <a class="section-link" href="/login">Login</a></p>
+        {% else %}
+        <div class="register-head">
+            <p class="product-meta"><a class="section-link" href="/register">Back</a></p>
+            <h2 class="section-title">{% if data.is_ahc_member %}AHC Member{% else %}Alumni{% endif %}</h2>
+            {% if data.is_ahc_member %}
+            <p class="product-meta">Graduated in 2017</p>
+            {% else %}
+            <p class="product-meta">Other alumni</p>
+            {% endif %}
+        </div>
+        {% if data.form_error %}
+        <p class="register-error">{{ data.form_error }}</p>
+        {% endif %}
+        <form class="form-stack" method="post">
+            <input type="hidden" name="member_type" value="{{ data.member_type }}">
+            <div>
+                <label class="field-label" for="full_name">Full name</label>
+                <input class="field" type="text" name="full_name" id="full_name" value="{{ data.form.full_name or '' }}" required>
+            </div>
+            {% if not data.is_ahc_member %}
+            <div>
+                <label class="field-label" for="email">Email</label>
+                <input class="field" type="email" name="email" id="email" value="{{ data.form.email or '' }}" required>
+            </div>
+            <div>
+                <label class="field-label" for="phone">Phone</label>
+                <input class="field" type="text" name="phone" id="phone" value="{{ data.form.phone or '' }}" required>
+            </div>
+            {% endif %}
+            <div>
+                <label class="field-label" for="city">City <span class="product-meta">(optional)</span></label>
+                <input class="field" type="text" name="city" id="city" value="{{ data.form.city or '' }}">
+            </div>
+            <div>
+                <label class="field-label" for="password">Password</label>
+                <input class="field" type="password" name="password" id="password" required>
+            </div>
+            <div>
+                <label class="field-label" for="password_confirm">Confirm password</label>
+                <input class="field" type="password" name="password_confirm" id="password_confirm" required>
+            </div>
+            <button class="btn-black" type="submit">Register</button>
+        </form>
+        <p class="register-foot product-meta">Already registered? <a class="section-link" href="/login">Login</a></p>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

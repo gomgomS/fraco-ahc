@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+{% block title %}{{ data.product.name }} | FRACO{% endblock %}
+
+{% block content %}
+<section class="section pdp">
+    <div class="pdp-grid">
+        <div>
+            <div class="product-media pdp-hero">
+                <img src="{{ data.gallery[0] if data.gallery else data.product.image }}" alt="{{ data.product.name }}">
+            </div>
+            {% if data.gallery|length > 1 %}
+            <div class="pdp-thumbs">
+                {% for shot in data.gallery %}
+                <img src="{{ shot }}" alt="{{ data.product.name }}">
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        <div>
+            <p class="product-meta">{{ data.product.category }}{% if data.is_preorder %} · Preorder{% elif data.is_in_stock %} · In stock{% else %} · Out of stock{% endif %}</p>
+            <h1 class="section-title" style="margin: 8px 0 12px;">{{ data.product.name }}</h1>
+            <p class="product-price" style="font-size: 16px;">{{ data.product.price }}</p>
+            <p class="prose-fraco" style="margin: 20px 0;">{{ data.product.description }}</p>
+            {% if data.is_preorder %}
+            <div class="dash-note" style="margin-bottom: 20px;">
+                <p class="product-meta">Preorder open</p>
+                <p class="prose-fraco" style="margin-top: 6px;">
+                    {% if data.product.preorder_note %}{{ data.product.preorder_note }}{% else %}Currently out of stock, but you can still place a pre-order. Payment reserves your order; shipping follows production.{% endif %}
+                </p>
+                {% if data.product.preorder_eta %}
+                <p class="product-meta" style="margin-top: 8px;">Expected ready · {{ data.product.preorder_eta }}</p>
+                {% endif %}
+            </div>
+            {% elif data.is_in_stock %}
+            <p class="product-meta">{{ data.product.stock_label }} · {{ data.product.stock }} available</p>
+            {% else %}
+            <p class="product-meta">{{ data.product.stock_label }}</p>
+            {% endif %}
+            <p class="product-meta">Reviews soon</p>
+            {% if data.can_buy %}
+            <form class="form-stack" method="post" action="/cart/add" style="margin-top: 28px;" id="pdp-buy-form">
+                <input type="hidden" name="slug" value="{{ data.product.slug }}">
+                {% if data.product.sizes %}
+                <div>
+                    <p class="field-label">Size <span class="product-meta" id="size-hint">— tap to choose</span></p>
+                    <input type="hidden" name="size" id="size" value="">
+                    <div class="size-chip-row" role="listbox" aria-label="Choose size">
+                        {% for row in data.product.size_stock_rows %}
+                        <button
+                            type="button"
+                            class="size-chip{% if not row.available %} is-disabled{% endif %}"
+                            role="option"
+                            data-size="{{ row.size }}"
+                            data-available="{{ 1 if row.available else 0 }}"
+                            data-preorder="{{ 1 if row.is_preorder else 0 }}"
+                            data-limit="{{ row.buy_limit }}"
+                            data-stock="{{ row.stock }}"
+                            {% if not row.available %}aria-disabled="true" disabled{% endif %}
+                        >
+                            <span class="size-chip-label">{{ row.size }}</span>
+                            <span class="size-chip-meta">
+                                {% if row.stock > 0 %}{{ row.stock }} left
+                                {% elif row.is_preorder %}Preorder
+                                {% else %}Out{% endif %}
+                            </span>
+                        </button>
+                        {% else %}
+                        {% for sz in data.product.sizes %}
+                        <button type="button" class="size-chip" role="option" data-size="{{ sz }}" data-available="1" data-preorder="0" data-limit="{{ data.buy_limit }}" data-stock="0">
+                            <span class="size-chip-label">{{ sz }}</span>
+                        </button>
+                        {% endfor %}
+                        {% endfor %}
+                    </div>
+                    <p class="product-meta" id="size-status" style="margin-top: 10px;"></p>
+                </div>
+                {% endif %}
+                {% if data.product.colors %}
+                <div>
+                    <p class="field-label">Color <span class="product-meta">— tap to choose</span></p>
+                    <input type="hidden" name="color" id="color" value="{{ data.product.colors[0] }}">
+                    <div class="size-chip-row" role="listbox" aria-label="Choose color">
+                        {% for c in data.product.colors %}
+                        <button type="button" class="size-chip color-chip{% if loop.first %} is-active{% endif %}" role="option" data-color="{{ c }}">
+                            <span class="size-chip-label">{{ c }}</span>
+                        </button>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                <div>
+                    <label class="field-label" for="qty">Quantity</label>
+                    <input class="field" type="number" name="qty" id="qty" min="1" max="{{ data.buy_limit }}" value="1">
+                </div>
+                <div class="hero-actions" style="justify-content: flex-start; margin-top: 8px;">
+                    <button class="btn-black" type="submit" id="btn-add">{% if data.is_preorder %}Preorder{% else %}Add to Cart{% endif %}</button>
+                    <button class="btn-line" type="submit" name="next" value="checkout" id="btn-buy">{% if data.is_preorder %}Preorder now{% else %}Buy Now{% endif %}</button>
+                </div>
+            </form>
+            <script>
+            (function () {
+                var form = document.getElementById("pdp-buy-form");
+                if (!form) return;
+                var sizeInput = document.getElementById("size");
+                var colorInput = document.getElementById("color");
+                var qty = document.getElementById("qty");
+                var status = document.getElementById("size-status");
+                var btnAdd = document.getElementById("btn-add");
+                var btnBuy = document.getElementById("btn-buy");
+                var sizeChips = form.querySelectorAll(".size-chip[data-size]");
+                var colorChips = form.querySelectorAll(".color-chip[data-color]");
+
+                function selectSize(btn) {
+                    if (!btn || btn.disabled) return;
+                    sizeChips.forEach(function (c) { c.classList.remove("is-active"); });
+                    btn.classList.add("is-active");
+                    if (sizeInput) sizeInput.value = btn.getAttribute("data-size") || "";
+                    var limit = parseInt(btn.getAttribute("data-limit") || "1", 10);
+                    var preorder = btn.getAttribute("data-preorder") === "1";
+                    var stock = parseInt(btn.getAttribute("data-stock") || "0", 10);
+                    if (isNaN(limit) || limit < 1) limit = 1;
+                    if (qty) {
+                        qty.max = String(limit);
+                        if (parseInt(qty.value || "1", 10) > limit) qty.value = String(limit);
+                    }
+                    if (btnAdd) btnAdd.textContent = preorder ? "Preorder" : "Add to Cart";
+                    if (btnBuy) btnBuy.textContent = preorder ? "Preorder now" : "Buy Now";
+                    if (status) {
+                        if (preorder) status.textContent = "Selected · Preorder (no stock yet)";
+                        else if (stock > 0) status.textContent = "Selected · " + stock + " available";
+                        else status.textContent = "Selected · " + (sizeInput ? sizeInput.value : "");
+                    }
+                }
+
+                sizeChips.forEach(function (btn) {
+                    btn.addEventListener("click", function () { selectSize(btn); });
+                });
+                colorChips.forEach(function (btn) {
+                    btn.addEventListener("click", function () {
+                        colorChips.forEach(function (c) { c.classList.remove("is-active"); });
+                        btn.classList.add("is-active");
+                        if (colorInput) colorInput.value = btn.getAttribute("data-color") || "";
+                    });
+                });
+
+                form.addEventListener("submit", function (ev) {
+                    if (sizeChips.length && sizeInput && !sizeInput.value) {
+                        ev.preventDefault();
+                        if (status) status.textContent = "Please choose a size first.";
+                        return false;
+                    }
+                });
+
+                var first = null;
+                sizeChips.forEach(function (btn) {
+                    if (!first && !btn.disabled) first = btn;
+                });
+                if (first) selectSize(first);
+            })();
+            </script>
+            {% elif data.product.category == 'Member Kit' %}
+            <p class="prose-fraco" style="margin-top: 28px;">This kit is for confirmed participants, not the shop.</p>
+            <a class="btn-line" href="/participate">Participate</a>
+            {% else %}
+            <p class="prose-fraco" style="margin-top: 28px;">Out of stock. Preorder is not available for this item right now.</p>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% if data.related %}
+<section class="section" style="padding-top: 0;">
+    <div class="section-head">
+        <h2 class="section-title">Also in {{ data.product.category }}</h2>
+        <a class="section-link" href="/merchandise">Shop all</a>
+    </div>
+    <div class="product-grid">
+        {% for item in data.related %}
+        <a class="product-card" href="/merchandise/{{ item.slug }}">
+            <div class="product-media">
+                <img src="{{ item.image }}" alt="{{ item.name }}">
+            </div>
+            <h3 class="product-name">{{ item.name }}</h3>
+            <p class="product-price">{{ item.price }}</p>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,332 @@
+{% extends 'admin_base.html' %}
+{% block title %}{% if data.row.pkey %}Edit{% else %}New{% endif %} product | Admin{% endblock %}
+{% block content %}
+<p class="product-meta"><a class="section-link" href="/admin/products">Products</a></p>
+<h1 class="section-title" style="margin: 8px 0 24px;">{% if data.row.pkey %}Edit{% else %}Create{% endif %} product</h1>
+
+{% if data.form_error %}
+<p class="prose-fraco" style="color: #b00000; margin-bottom: 16px;">{{ data.form_error }}</p>
+{% endif %}
+{% if data.form_ok %}
+<p class="prose-fraco" style="margin-bottom: 16px;">{{ data.form_ok }}</p>
+{% endif %}
+
+    <div class="pay-box" style="padding: 16px; margin-bottom: 24px;">
+    <p class="field-label" style="margin: 0;">How stock &amp; preorder work</p>
+    <p class="prose-fraco" style="margin-top: 8px;">
+        Set stock <strong>per size</strong> when sizes exist (total is the sum). No sizes → one total stock field.
+        Optionally allow <strong>preorder when out of stock</strong>. In stock → normal order. Out of stock + allow preorder → Preorder.
+        When goods arrive, raise stock and use <strong>Stock arrived</strong> so waiting preorders move to Ready.
+    </p>
+</div>
+
+<form class="form-stack" method="post" enctype="multipart/form-data" id="product-form">
+    <div><label class="field-label" for="name">Name</label><input class="field" name="name" id="name" value="{{ data.row.name or '' }}" required></div>
+    <div><label class="field-label" for="slug">Slug</label><input class="field" name="slug" id="slug" value="{{ data.row.slug or '' }}"></div>
+    <div><label class="field-label" for="sku">SKU</label><input class="field" name="sku" id="sku" value="{{ data.row.sku or '' }}" placeholder="e.g. FRACO-TEE-B1">
+        <p class="product-meta" style="margin-top: 8px;">Optional internal stock code. Customers see the product name; leave blank if you do not track batches.</p>
+    </div>
+    <div>
+        <label class="field-label" for="category">Category</label>
+        <select class="field" name="category" id="category" required>
+            <option value="">Select category</option>
+            {% for category in data.categories %}
+            <option value="{{ category }}"{% if data.row.category == category %} selected{% endif %}>{{ category }}</option>
+            {% endfor %}
+        </select>
+        <p class="product-meta" style="margin-top: 8px;">Manage category options in <a class="section-link" href="/admin/settings#merchandise-categories">Admin Settings</a>.</p>
+    </div>
+    <div><label class="field-label" for="description">Description</label><textarea class="field" name="description" id="description" rows="4">{{ data.row.description or '' }}</textarea></div>
+    <div><label class="field-label" for="price_num">Price / jual (number)</label><input class="field" name="price_num" id="price_num" type="number" min="0" value="{{ data.row.price_num or 0 }}"></div>
+    <div><label class="field-label" for="bahan_baku_num">Bahan baku / cost (number)</label><input class="field" name="bahan_baku_num" id="bahan_baku_num" type="number" min="0" value="{{ data.row.bahan_baku_num or 0 }}">
+        <p class="product-meta">Cost of goods — never reduced by referral discount. Member merch credit uses profit only.</p>
+    </div>
+    <div class="pay-box" style="padding: 16px;" id="profit-box">
+        <p class="field-label" style="margin: 0;">Profit per unit</p>
+        <p class="prose-fraco" style="margin-top: 8px;">
+            Base: <strong id="profit-base-label">{{ data.row.profit or 'Rp 0' }}</strong>
+            <span class="product-meta">(price − bahan baku)</span>
+        </p>
+        <p class="prose-fraco" style="margin-top: 8px;{% if not data.row.has_referral_discount %} display: none;{% endif %}" id="profit-disc-row">
+            Referral discount: − <span id="profit-disc-label">{{ data.row.discount_unit or 'Rp 0' }}</span>
+            <span class="product-meta">(cuts profit only, not bahan baku)</span>
+        </p>
+        <p class="prose-fraco" style="margin-top: 12px;">
+            Profit final: <strong id="profit-after-label">{% if data.row.has_referral_discount %}{{ data.row.profit_with_discount or 'Rp 0' }}{% else %}{{ data.row.profit or 'Rp 0' }}{% endif %}</strong>
+            <span class="product-meta" id="profit-final-note">{% if data.row.has_referral_discount %}(base − referral discount){% else %}(same as base — no referral discount){% endif %}</span>
+        </p>
+        <p class="prose-fraco" id="profit-disc-warn" style="margin-top: 10px; color: #b00000;{% if not data.row.discount_hits_bahan %} display: none;{% endif %}">
+            Warning: referral discount is higher than profit. Profit final becomes Rp 0 and the extra amount eats into bahan baku (cost). Lower the discount or raise the price / lower bahan.
+        </p>
+    </div>
+    <div class="pay-box" style="padding: 16px;">
+        <p class="field-label" style="margin: 0;">Referral discount (optional)</p>
+        <p class="product-meta" style="margin-top: 8px;">Referral code can credit a member even without a discount. Turn this on only if you want buyers to get money off when they use a valid code.</p>
+        <label class="field-label" style="display: flex; align-items: center; gap: 10px; margin-top: 14px;">
+            <input type="checkbox" name="discount_enabled" value="1" id="discount_enabled"{% if data.row.discount_enabled %} checked{% endif %}>
+            Offer referral discount on this product
+        </label>
+        <div id="discount-fields" style="margin-top: 14px;{% if not data.row.discount_enabled %} display: none;{% endif %}">
+            <div>
+                <label class="field-label" for="discount_type">Discount type</label>
+                <select class="field" name="discount_type" id="discount_type">
+                    <option value="PCT"{% if (data.row.discount_type or 'PCT') == 'PCT' %} selected{% endif %}>Percent (%)</option>
+                    <option value="FIXED"{% if data.row.discount_type == 'FIXED' %} selected{% endif %}>Fixed amount (Rp)</option>
+                </select>
+            </div>
+            <div style="margin-top: 12px;">
+                <label class="field-label" for="discount_num">Discount value</label>
+                <input class="field" name="discount_num" id="discount_num" type="number" min="0" value="{{ data.row.discount_num or 0 }}" placeholder="e.g. 10 for 10%, or 25000 for Rp 25.000">
+                <p class="product-meta" style="margin-top: 8px;">Percent: 1–100. Fixed: rupiah off per unit. The rupiah off comes out of profit, not bahan baku.</p>
+            </div>
+            <div style="margin-top: 12px;">
+                <label class="field-label" for="discount_note">Discount note (shown on checkout)</label>
+                <textarea class="field" name="discount_note" id="discount_note" rows="2" placeholder="e.g. Use a member code to unlock this discount.">{{ data.row.discount_note or '' }}</textarea>
+            </div>
+            {% if data.row.discount %}
+            <p class="product-meta" style="margin-top: 10px;">Saved label: {{ data.row.discount }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="pay-box" style="padding: 16px;">
+        <div><label class="field-label" for="sizes">Sizes (comma)</label><input class="field" name="sizes" id="sizes" value="{{ data.row.sizes|join(', ') if data.row.sizes else '' }}" placeholder="e.g. S, M, L, XL">
+            <p class="product-meta" style="margin-top: 8px;">Leave blank for one-size items. When sizes are set, stock is tracked per size below.</p>
+        </div>
+        <div id="stock-total-wrap" style="margin-top: 14px;">
+            <label class="field-label" for="stock">Stock on hand (total)</label>
+            <input class="field" name="stock" id="stock" type="number" min="0" value="{{ data.row.stock or 0 }}">
+            <p class="product-meta" style="margin-top: 8px;" id="stock-total-hint">0 = out of stock. Used when there are no sizes.</p>
+        </div>
+        <div id="stock-by-size-wrap" style="margin-top: 14px;{% if not data.row.sizes %} display: none;{% endif %}">
+            <p class="field-label" style="margin: 0;">Stock by size</p>
+            <p class="product-meta" style="margin-top: 8px;">Total stock = sum of sizes. Change sizes above, then adjust qty here before save.</p>
+            <div id="stock-by-size-fields" style="margin-top: 12px;">
+                {% for row in data.row.size_stock_rows or [] %}
+                <div style="display: flex; gap: 12px; align-items: center; margin-top: 8px;">
+                    <label class="field-label" style="min-width: 64px; margin: 0;" for="stock_size_{{ row.idx }}">{{ row.size }}</label>
+                    <input class="field" type="number" min="0" name="stock_size_{{ row.idx }}" id="stock_size_{{ row.idx }}" value="{{ row.stock or 0 }}" data-size-stock="1" data-size-label="{{ row.size }}">
+                </div>
+                {% endfor %}
+            </div>
+            <p class="product-meta" style="margin-top: 10px;">Total: <strong id="stock-size-total">{{ data.row.stock or 0 }}</strong></p>
+        </div>
+        <label class="field-label" style="display: flex; align-items: center; gap: 10px; margin-top: 16px;">
+            <input type="checkbox" name="allow_preorder" value="1" id="allow_preorder"{% if data.row.allow_preorder or data.row.is_preorder %} checked{% endif %}>
+            Allow preorder when out of stock
+        </label>
+        <p class="product-meta" style="margin-top: 10px;">If checked and a size (or total) is 0, buyers can still order that as Preorder. If unchecked and stock is 0, it cannot be bought.</p>
+        <div style="margin-top: 14px;"><label class="field-label" for="preorder_eta">Expected ready / ship</label><input class="field" name="preorder_eta" id="preorder_eta" value="{{ data.row.preorder_eta or '' }}" placeholder="e.g. April 2027"></div>
+        <div style="margin-top: 12px;"><label class="field-label" for="preorder_note">Preorder note (shown to buyers)</label><textarea class="field" name="preorder_note" id="preorder_note" rows="2" placeholder="e.g. Ships after production. Payment still required to confirm.">{{ data.row.preorder_note or '' }}</textarea></div>
+    </div>
+
+    <div><label class="field-label" for="reserved">Reserved</label><input class="field" name="reserved" id="reserved" value="{{ data.row.reserved or 0 }}"></div>
+    <div><label class="field-label" for="sold">Sold</label><input class="field" name="sold" id="sold" value="{{ data.row.sold or 0 }}"></div>
+    <div><label class="field-label" for="colors">Colors (comma)</label><input class="field" name="colors" id="colors" value="{{ data.row.colors|join(', ') if data.row.colors else '' }}"></div>
+    <div><label class="field-label" for="image">Image URL</label><input class="field" name="image" id="image" value="{{ data.row.image or '' }}"></div>
+    <div>
+        <label class="field-label" for="image_file">Or upload image</label>
+        <input class="field" type="file" name="image_file" id="image_file" accept=".jpg,.jpeg,.png,.webp">
+        <p class="product-meta">jpg, png, or webp. Upload replaces the URL above on save.</p>
+    </div>
+    {% if data.row.image %}
+    <div>
+        <p class="product-meta">Current image</p>
+        <img class="admin-cover-preview" src="{{ data.row.image }}" alt="{{ data.row.name or 'Product' }}">
+    </div>
+    {% endif %}
+    <div>
+        <label class="field-label" for="status">Status</label>
+        <select class="field" name="status" id="status">
+            {% for item in data.statuses %}
+            <option value="{{ item }}"{% if data.row.status == item %} selected{% endif %}>{{ item }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    {% if data.can_write %}
+    <button class="btn-black" type="submit">Save product</button>
+    {% endif %}
+</form>
+
+{% if data.row.pkey and data.can_write %}
+<form class="form-stack" method="post" style="margin-top: 28px; padding-top: 24px; border-top: 1px solid #ddd;" onsubmit="return confirm('Set this stock and move waiting Preorder orders for this product to Ready?');">
+    <input type="hidden" name="action" value="stock_arrived">
+    <p class="field-label" style="margin: 0;">Stock arrived</p>
+    <p class="product-meta" style="margin-top: 8px;">Raises stock and advances orders still in <strong>Preorder</strong> for this product to <strong>Ready</strong>, so members can pack / ship.</p>
+    <div style="margin-top: 14px;"><label class="field-label" for="arrived_stock">New stock quantity</label><input class="field" name="arrived_stock" id="arrived_stock" type="number" min="1" value="{{ data.row.stock if data.row.stock and data.row.stock > 0 else 1 }}" required></div>
+    <button class="btn-line" type="submit" style="margin-top: 12px;">Stock arrived — update &amp; release preorders</button>
+</form>
+{% endif %}
+
+{% if data.row.pkey and data.can_delete %}
+<form method="post" style="margin-top: 16px;" onsubmit="return confirm('Delete this product? It will be removed from the store.');">
+    <input type="hidden" name="action" value="delete">
+    <button class="btn-line" type="submit">Delete product</button>
+</form>
+{% endif %}
+<script>
+(function () {
+    function n(el) {
+        var v = parseInt((el && el.value) || "0", 10);
+        return isNaN(v) || v < 0 ? 0 : v;
+    }
+    function rp(amount) {
+        var x = Math.max(0, Math.floor(amount || 0));
+        return "Rp " + String(x).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+    function discOn() {
+        var el = document.getElementById("discount_enabled");
+        return !!(el && el.checked);
+    }
+    function syncDiscFields() {
+        var box = document.getElementById("discount-fields");
+        if (box) box.style.display = discOn() ? "" : "none";
+    }
+    function refresh() {
+        syncDiscFields();
+        var price = n(document.getElementById("price_num"));
+        var bahan = n(document.getElementById("bahan_baku_num"));
+        var dtype = (document.getElementById("discount_type") || {}).value || "PCT";
+        var dnum = n(document.getElementById("discount_num"));
+        var base = price - bahan;
+        if (base < 0) base = 0;
+        var disc = 0;
+        if (discOn() && dnum > 0 && price > 0) {
+            if (dtype === "FIXED") disc = dnum;
+            else disc = Math.round(price * dnum / 100);
+            if (disc > price) disc = price;
+        }
+        var after = base - disc;
+        if (after < 0) after = 0;
+        var hitsBahan = disc > 0 && disc > base;
+        var baseEl = document.getElementById("profit-base-label");
+        var discRow = document.getElementById("profit-disc-row");
+        var discEl = document.getElementById("profit-disc-label");
+        var afterEl = document.getElementById("profit-after-label");
+        var warnEl = document.getElementById("profit-disc-warn");
+        if (baseEl) baseEl.textContent = rp(base);
+        if (discRow) discRow.style.display = disc > 0 ? "" : "none";
+        if (discEl) discEl.textContent = rp(disc);
+        if (afterEl) afterEl.textContent = rp(after);
+        var noteEl = document.getElementById("profit-final-note");
+        if (noteEl) {
+            noteEl.textContent = disc > 0
+                ? "(base − referral discount)"
+                : "(same as base — no referral discount)";
+        }
+        if (warnEl) warnEl.style.display = hitsBahan ? "" : "none";
+    }
+    ["price_num", "bahan_baku_num", "discount_type", "discount_num", "discount_enabled"].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener("input", refresh);
+        el.addEventListener("change", refresh);
+    });
+    var form = document.getElementById("product-form");
+    if (form) {
+        form.addEventListener("submit", function (ev) {
+            if (!discOn()) return;
+            var price = n(document.getElementById("price_num"));
+            var bahan = n(document.getElementById("bahan_baku_num"));
+            var dtype = (document.getElementById("discount_type") || {}).value || "PCT";
+            var dnum = n(document.getElementById("discount_num"));
+            var base = price - bahan;
+            if (base < 0) base = 0;
+            var disc = 0;
+            if (dnum > 0 && price > 0) {
+                if (dtype === "FIXED") disc = dnum;
+                else disc = Math.round(price * dnum / 100);
+                if (disc > price) disc = price;
+            }
+            if (disc > 0 && disc > base) {
+                var ok = window.confirm(
+                    "Warning: discount (" + rp(disc) + ") is higher than profit (" + rp(base) + "). " +
+                    "Profit final becomes Rp 0 and the extra hits bahan baku. Save anyway?"
+                );
+                if (!ok) {
+                    ev.preventDefault();
+                    return false;
+                }
+            }
+        });
+    }
+    function parseSizes() {
+        var raw = ((document.getElementById("sizes") || {}).value || "");
+        var parts = [];
+        raw.split(",").forEach(function (piece) {
+            var s = piece.trim();
+            if (s) parts.push(s);
+        });
+        return parts;
+    }
+    function readSizeStockMap() {
+        var map = {};
+        document.querySelectorAll("[data-size-stock='1']").forEach(function (el) {
+            var label = el.getAttribute("data-size-label") || "";
+            if (!label) {
+                var lab = el.parentNode ? el.parentNode.querySelector("label") : null;
+                label = lab ? lab.textContent.trim() : "";
+            }
+            if (label) map[label] = n(el);
+        });
+        return map;
+    }
+    function sumSizeStock() {
+        var total = 0;
+        document.querySelectorAll("[data-size-stock='1']").forEach(function (el) {
+            total += n(el);
+        });
+        return total;
+    }
+    function syncSizeStockUi() {
+        var sizes = parseSizes();
+        var wrap = document.getElementById("stock-by-size-wrap");
+        var totalWrap = document.getElementById("stock-total-wrap");
+        var fields = document.getElementById("stock-by-size-fields");
+        var stockEl = document.getElementById("stock");
+        var totalLabel = document.getElementById("stock-size-total");
+        var prev = readSizeStockMap();
+        if (!wrap || !fields || !totalWrap) return;
+        if (sizes.length === 0) {
+            wrap.style.display = "none";
+            totalWrap.style.display = "";
+            if (stockEl) stockEl.readOnly = false;
+            return;
+        }
+        wrap.style.display = "";
+        totalWrap.style.display = "none";
+        var html = "";
+        sizes.forEach(function (sz, idx) {
+            var qty = prev.hasOwnProperty(sz) ? prev[sz] : 0;
+            html += '<div style="display:flex;gap:12px;align-items:center;margin-top:8px;">' +
+                '<label class="field-label" style="min-width:64px;margin:0;" for="stock_size_' + idx + '">' + sz + '</label>' +
+                '<input class="field" type="number" min="0" name="stock_size_' + idx + '" id="stock_size_' + idx +
+                '" value="' + qty + '" data-size-stock="1" data-size-label="' + sz.replace(/"/g, "&quot;") + '">' +
+                "</div>";
+        });
+        fields.innerHTML = html;
+        fields.querySelectorAll("[data-size-stock='1']").forEach(function (el) {
+            el.addEventListener("input", function () {
+                var t = sumSizeStock();
+                if (totalLabel) totalLabel.textContent = String(t);
+                if (stockEl) stockEl.value = String(t);
+            });
+        });
+        var t = sumSizeStock();
+        if (totalLabel) totalLabel.textContent = String(t);
+        if (stockEl) {
+            stockEl.value = String(t);
+            stockEl.readOnly = true;
+        }
+    }
+    var sizesEl = document.getElementById("sizes");
+    if (sizesEl) {
+        sizesEl.addEventListener("input", syncSizeStockUi);
+        sizesEl.addEventListener("change", syncSizeStockUi);
+        sizesEl.addEventListener("blur", syncSizeStockUi);
+    }
+    syncSizeStockUi();
+    refresh();
+})();
+</script>
+{% endblock %}

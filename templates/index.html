@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% block title %}FRACO | {{ data.class_label }} | {{ data.event_full_name }}{% endblock %}
+{% block body_class %}home{% endblock %}
+
+{% block content %}
+<section class="hero" aria-label="FRACO">
+    <div class="hero-slide active" data-theme="light">
+        <img src="/static/upload/heroes/3f2a13b1e8aff1b8f642.jpg" alt="FRACO community">
+        <div class="hero-copy">
+            <p class="hero-kicker">{{ data.name }}</p>
+            <h1 class="hero-title hero-title-long">{{ data.tagline }}</h1>
+            <p class="hero-sub">{{ data.subtitle }}</p>
+            <p class="hero-kicker">{{ data.event_full_name }} · {{ data.class_label }}</p>
+            <div class="hero-actions">
+                <a class="btn-ghost" href="/about">{{ data.ui.explore }}</a>
+                <a class="btn-solid" href="/merchandise">{{ data.ui.shop }}</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="prose-fraco" style="text-align: center;">
+        <h2 class="section-title" style="margin-bottom: 20px;">{{ data.ui.about_title }}</h2>
+        <p>{{ data.description }}</p>
+        <p style="margin-top: 28px;">
+            <a class="btn-line" href="/about">{{ data.ui.learn_more }}</a>
+        </p>
+    </div>
+</section>
+
+<section class="section" style="padding-top: 0;">
+    <div class="section-head">
+        <h2 class="section-title">{{ data.ui.programs_title }}</h2>
+        <a class="section-link" href="/programs">{{ data.ui.view_all }}</a>
+    </div>
+    <div class="product-grid">
+        {% for item in data.programs %}
+        <a class="product-card" href="/programs/{{ item.slug }}">
+            <div class="product-media">
+                <img src="{{ item.image }}" alt="{{ item.title }}">
+            </div>
+            <h3 class="product-name">{{ item.title }}</h3>
+            <p class="product-meta">{{ item.description }}</p>
+            <p class="section-link" style="margin-top: 10px;">{{ data.ui.learn_more }}</p>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="section" style="padding-top: 0;">
+    <div class="section-head">
+        <h2 class="section-title">{{ data.ui.merch_title }}</h2>
+        <a class="section-link" href="/merchandise">{{ data.ui.shop_all }}</a>
+    </div>
+    <div class="product-grid">
+        {% for item in data.products %}
+        <article class="product-card">
+            <a href="/merchandise/{{ item.slug }}">
+                <div class="product-media">
+                    <img src="{{ item.image }}" alt="{{ item.name }}">
+                    <span class="badge-new">{{ item.availability }}</span>
+                </div>
+                <h3 class="product-name">{{ item.name }}</h3>
+                <p class="product-price">{{ item.price }}</p>
+                <p class="product-meta">{{ item.sizes | join(' / ') }}</p>
+            </a>
+            {% if item.category != 'Member Kit' and item.stock > 0 %}
+            <form method="post" action="/cart/add" style="margin-top: 12px;">
+                <input type="hidden" name="slug" value="{{ item.slug }}">
+                {% if item.sizes %}<input type="hidden" name="size" value="{{ item.sizes[0] }}">{% endif %}
+                <button class="btn-line" type="submit">{{ data.ui.add_cart }}</button>
+            </form>
+            {% else %}
+            <p style="margin-top: 12px;"><a class="btn-line" href="/merchandise/{{ item.slug }}">{{ data.ui.view }}</a></p>
+            {% endif %}
+        </article>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="signup-band">
+    <div class="signup-visual">
+        <img src="/static/upload/heroes/9ceaea578f803a3cd065.jpg" alt="Become a partner">
+        <div class="hero-copy">
+            <h2 class="hero-title" style="font-size: clamp(32px, 5vw, 56px);">{{ data.ui.partners_title }}</h2>
+            <p class="hero-kicker">{{ data.ui.partners_kicker }}</p>
+        </div>
+    </div>
+    <div class="signup-form">
+        <h2>{{ data.ui.partners_heading }}</h2>
+        <p>{{ data.ui.partners_body }}</p>
+        <div class="hero-actions" style="justify-content: flex-start;">
+            <a class="btn-solid" href="/sponsorship">{{ data.ui.become_sponsor }}</a>
+            <a class="btn-ghost" href="/sponsorship/apply">{{ data.ui.download_proposal }}</a>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="section-head">
+        <h2 class="section-title">{{ data.ui.updates_title }}</h2>
+        <a class="section-link" href="/updates">{{ data.ui.view_all }}</a>
+    </div>
+    <div class="product-grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
+        {% for item in data.updates %}
+        <a class="product-card news-card" href="/updates/{{ item.slug }}">
+            <div class="product-media" style="aspect-ratio: 16 / 9;">
+                <img src="{{ item.image }}" alt="{{ item.title }}">
+            </div>
+            <p class="product-meta">{{ item.category }} · {{ item.date }}</p>
+            <h3 class="product-name" style="font-size: 20px;">{{ item.title }}</h3>
+            <p class="product-price" style="text-transform: none; letter-spacing: 0;">{{ item.excerpt }}</p>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="section" style="padding-top: 0;">
+    <div class="section-head">
+        <h2 class="section-title">{{ data.ui.gallery_title }}</h2>
+        <a class="section-link" href="/gallery">{{ data.ui.view_all }}</a>
+    </div>
+    <div class="gallery-grid">
+        {% for shot in data.gallery %}
+        <img src="{{ shot.image }}" alt="{{ shot.alt }}">
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% block title %}{{ data.dash.proposal_title }} | FRACO{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="dash-layout">
+        {% include 'dashboard_nav.html' %}
+        <div>
+            <h1 class="section-title" style="margin-bottom: 12px;">{{ data.dash.proposal_title }}</h1>
+            <p class="product-meta" style="margin-bottom: 24px;">{{ data.dash.proposal_intro }}</p>
+
+            {% if data.proposal_progress %}
+            <div class="pay-box" style="margin-bottom: 32px;">
+                <p class="product-meta">{{ data.dash.shared_target }}</p>
+                <p class="prose-fraco" style="margin-top: 8px;">{{ data.proposal_progress.message }}</p>
+
+                <div class="proposal-track-wrap">
+                    <div class="proposal-track" aria-hidden="true">
+                        <div class="proposal-track-fill" style="width: {{ data.proposal_progress.marker_pct }}%;"></div>
+                        <div class="proposal-track-marker" style="left: {{ data.proposal_progress.marker_pct }}%;">
+                            <span class="proposal-track-dot"></span>
+                            <span class="proposal-track-bubble">{{ data.proposal_progress.raised }}</span>
+                        </div>
+                    </div>
+                    <div class="proposal-track-ends">
+                        <span>Rp 0</span>
+                        <span>{{ data.proposal_progress.target }}</span>
+                    </div>
+                </div>
+
+                <div class="dash-stats" style="margin-top: 20px;">
+                    <article class="dash-stat">
+                        <p class="product-meta">{{ data.dash.raised_total }}</p>
+                        <h3>{{ data.proposal_progress.raised }}</h3>
+                    </article>
+                    <article class="dash-stat">
+                        <p class="product-meta">{{ data.dash.merch_profit }}</p>
+                        <h3>{{ data.proposal_progress.merch }}</h3>
+                    </article>
+                    <article class="dash-stat">
+                        <p class="product-meta">{{ data.dash.left_to_target }}</p>
+                        <h3>{% if data.proposal_progress.achieved %}{{ data.dash.achieved }}{% else %}{{ data.proposal_progress.remaining }}{% endif %}</h3>
+                    </article>
+                    <article class="dash-stat">
+                        <p class="product-meta">{{ data.dash.progress }}</p>
+                        <h3>{{ data.proposal_progress.pct }}%</h3>
+                    </article>
+                </div>
+                <div class="dash-stats" style="margin-top: 12px;">
+                    <article class="dash-stat">
+                        <p class="product-meta">{{ data.dash.proposal_received }}</p>
+                        <h3>{{ data.proposal_progress.others }}</h3>
+                    </article>
+                    <article class="dash-stat">
+                        <p class="product-meta">{{ data.dash.own_contribution }}</p>
+                        <h3>{{ data.proposal_progress.self }}</h3>
+                    </article>
+                    <article class="dash-stat">
+                        <p class="product-meta">{{ data.dash.pending_follow_up }}</p>
+                        <h3>{{ data.proposal_progress.pending }}</h3>
+                    </article>
+                </div>
+                {% if data.proposal_progress.self_pending_num > 0 %}
+                <p class="product-meta" style="margin-top: 12px;">{{ data.dash.self_pending_note|replace('{amount}', data.proposal_progress.self_pending) }}</p>
+                {% endif %}
+                {% if data.proposal_progress.shipping_expense_num > 0 %}
+                <p class="product-meta" style="margin-top: 12px;">{{ data.dash.shipping_deducted_copy }}: −{{ data.proposal_progress.shipping_expense }}</p>
+                {% endif %}
+                {% if data.proposal_progress.over_num > 0 %}
+                <p class="product-meta" style="margin-top: 12px;">{{ data.dash.above_target_thanks|replace('{amount}', data.proposal_progress.over) }}</p>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <div class="pay-box" style="margin-bottom: 32px;">
+                <h2 class="section-title" style="font-size: 20px; margin-bottom: 8px;">{{ data.dash.add_own_title }}</h2>
+                <p class="product-meta" style="margin-bottom: 16px;">{{ data.dash.add_own_intro }}</p>
+                {% if data.form_ok %}
+                <p class="prose-fraco" style="margin-bottom: 16px;">{{ data.dash.pledge_saved }}</p>
+                {% endif %}
+                {% if data.form_error %}
+                <p class="prose-fraco" style="color: #b00000; margin-bottom: 16px;">{{ data.form_error }}</p>
+                {% endif %}
+                <form class="form-stack" method="post">
+                    <div>
+                        <label class="field-label" for="name">{{ data.dash.name }}</label>
+                        <input class="field" type="text" name="name" id="name" value="{{ data.participant.full_name or data.user.name }}" required>
+                    </div>
+                    <div>
+                        <label class="field-label" for="phone">{{ data.dash.phone }} <span class="product-meta">({{ data.dash.optional }})</span></label>
+                        <input class="field" type="text" name="phone" id="phone" value="{{ data.participant.phone or data.user.phone or '' }}">
+                    </div>
+                    <div>
+                        <label class="field-label" for="commitment">{{ data.dash.commitment_amount }}</label>
+                        <input class="field" type="text" name="commitment" id="commitment" placeholder="{{ data.dash.commitment_placeholder }}" required>
+                    </div>
+                    <button class="btn-black" type="submit">{{ data.dash.submit_pledge }}</button>
+                </form>
+            </div>
+
+            {% if data.proposal_pledges %}
+            <div class="filter-row" style="margin-bottom: 24px;">
+                <a class="filter-chip{% if data.proposal_tab == 'follow_up' %} active{% endif %}" href="/dashboard/proposal?tab=follow_up">{{ data.dash.tab_follow_up }} ({{ data.proposal_follow_up|length }})</a>
+                <a class="filter-chip{% if data.proposal_tab == 'done' %} active{% endif %}" href="/dashboard/proposal?tab=done">{{ data.dash.tab_done }} ({{ data.proposal_done|length }})</a>
+            </div>
+            {% if data.proposal_rows %}
+            <table class="dash-table">
+                <thead>
+                    <tr><th>{{ data.dash.th_name }}</th><th>{{ data.dash.th_phone }}</th><th>{{ data.dash.th_commitment }}</th><th>{{ data.dash.th_date }}</th></tr>
+                </thead>
+                <tbody>
+                    {% for item in data.proposal_rows %}
+                    <tr>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.phone or '—' }}</td>
+                        <td>{{ item.amount_label }}</td>
+                        <td>{{ item.rec_timestamp_str or '—' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="prose-fraco">{% if data.proposal_tab == 'done' %}{{ data.dash.no_received_pledges }}{% else %}{{ data.dash.nothing_follow_up }}{% endif %}</p>
+            {% endif %}
+            {% else %}
+            <p class="prose-fraco">{{ data.dash.no_pledges_yet }} <a class="section-link" href="/support">Support Us</a></p>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

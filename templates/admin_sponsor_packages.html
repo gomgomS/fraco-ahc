@@ -1,0 +1,11 @@
+{% extends 'admin_base.html' %}
+{% block title %}Sponsor packages | Admin{% endblock %}
+{% block content %}
+<div class="section-head" style="padding: 0; max-width: none;">
+    <h1 class="section-title">Sponsors</h1>
+    {% if data.can_write %}<a class="section-link" href="/admin/sponsors/packages/new">Create package</a>{% endif %}
+</div>
+{% include 'admin_sponsors_tabs.html' %}
+<p class="product-meta" style="margin: 0 0 20px; max-width: 60ch;">Packages: configure sponsorship tiers shown on /partners and /sponsorship (name, amount, benefits, booth, promo). Set status Enable to publish; Disable hides it from the public site.</p>
+{% with table=data.list_table %}{% include 'admin_table.html' %}{% endwith %}
+{% endblock %}

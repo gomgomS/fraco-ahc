@@ -1,0 +1,464 @@
+{% extends 'base.html' %}
+{% block title %}My Merchandise Orders | FRACO{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="dash-layout">
+        {% include 'dashboard_nav.html' %}
+        <div>
+            <h1 class="section-title" style="margin-bottom: 12px;">{{ data.dash.orders_title }}</h1>
+            {% if data.is_ahc_member %}
+            <p class="product-meta" style="margin-bottom: 8px; max-width: 52ch;">{{ data.dash.orders_intro }}</p>
+            <p class="product-meta" style="margin-bottom: 28px;">
+                {{ data.dash.referral_code }} <strong>{{ data.participant.referral_code or '' }}</strong>
+            </p>
+
+            {% if data.merch_progress %}
+            <div class="pay-box" style="margin-bottom: 40px;">
+                <p class="product-meta">{{ data.dash.shared_target }}</p>
+                <p class="prose-fraco" style="margin-top: 8px; max-width: 52ch;">{{ data.merch_progress.message }}</p>
+
+                <div class="proposal-track-wrap">
+                    <div class="proposal-track" aria-hidden="true">
+                        <div class="proposal-track-fill" style="width: {{ data.merch_progress.marker_pct }}%;"></div>
+                        <div class="proposal-track-marker" style="left: {{ data.merch_progress.marker_pct }}%;">
+                            <span class="proposal-track-dot"></span>
+                            <span class="proposal-track-bubble">{{ data.merch_progress.raised }}</span>
+                        </div>
+                    </div>
+                    <div class="proposal-track-ends">
+                        <span>Rp 0</span>
+                        <span>{{ data.merch_progress.target }}</span>
+                    </div>
+                </div>
+
+                <div class="dash-stats" style="margin-top: 28px;">
+                    <article class="dash-stat">
+                        <p class="product-meta">{{ data.dash.raised_total }}</p>
+                        <h3>{{ data.merch_progress.raised }}</h3>
+                    </article>
+                    <article class="dash-stat">
+                        <p class="product-meta">{{ data.dash.merch_profit }}</p>
+                        <h3>{{ data.merch_progress.merch }}</h3>
+                    </article>
+                    {% if data.merch_progress.shipping_expense_num %}
+                    <article class="dash-stat dash-stat-expense">
+                        <p class="product-meta">{{ data.dash.shipping_expense }}</p>
+                        <h3>−{{ data.merch_progress.shipping_expense }}</h3>
+                    </article>
+                    {% endif %}
+                    <article class="dash-stat">
+                        <p class="product-meta">{{ data.dash.left_to_target }}</p>
+                        <h3>{% if data.merch_progress.achieved %}{{ data.dash.achieved }}{% else %}{{ data.merch_progress.remaining }}{% endif %}</h3>
+                    </article>
+                    <article class="dash-stat">
+                        <p class="product-meta">{{ data.dash.progress }}</p>
+                        <h3>{{ data.merch_progress.pct }}%</h3>
+                    </article>
+                </div>
+
+                <p class="product-meta dash-breakdown" style="margin-top: 16px;">
+                    {{ data.dash.proposal_label }} {{ data.merch_progress.others }}
+                    · {{ data.dash.own_contribution }} {{ data.merch_progress.self }}
+                    · {{ data.dash.paid_orders }} {{ data.merch_progress.order_count }}
+                    {% if data.merch_progress.unpaid_count %}
+                    · {{ data.dash.unpaid_leads }} {{ data.merch_progress.unpaid_count }} ({{ data.merch_progress.unpaid_profit }} {{ data.dash.not_counted_yet }})
+                    {% endif %}
+                    {% if data.merch_progress.over_num > 0 %}
+                    · {{ data.dash.above_target }} {{ data.merch_progress.over }}
+                    {% endif %}
+                </p>
+            </div>
+            {% endif %}
+
+            {% if data.merch_progress and data.merch_progress.unpaid_leads %}
+            <div class="dash-lead-box" style="margin-bottom: 28px;">
+                <h2 class="section-title" style="font-size: 18px; margin-bottom: 8px;">{{ data.dash.unpaid_title }}</h2>
+                <p class="product-meta" style="margin-bottom: 14px; max-width: 56ch;">
+                    {{ data.dash.unpaid_intro }}
+                </p>
+                <ul class="dash-lead-list">
+                    {% for lead in data.merch_progress.unpaid_leads %}
+                    <li class="dash-lead-item">
+                        <p class="dash-mono">{{ lead.order_id }} · Pay {{ lead.payment_status }}</p>
+                        <p class="dash-order-buyer" style="font-size: 16px;">{{ lead.full_name }}</p>
+                        <p class="product-meta" style="margin-top: 6px;">{{ lead.message }}</p>
+                        <p class="product-meta" style="margin-top: 6px;">
+                            {{ data.dash.potential_profit }} {{ lead.profit }}
+                            {% if lead.phone %} · {{ lead.phone }}{% endif %}
+                            {% if lead.email %} · {{ lead.email }}{% endif %}
+                        </p>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <p class="product-meta" style="margin-top: 12px;">
+                    <a class="section-link" href="/dashboard/orders?pay=Pending{% if data.order_contact_q %}&q={{ data.order_contact_q|urlencode }}{% endif %}">{{ data.dash.show_pending }}</a>
+                </p>
+            </div>
+            {% endif %}
+
+            <h2 class="section-title" style="font-size: 20px; margin-bottom: 8px;">{{ data.dash.referral_orders }}</h2>
+            <p class="product-meta" style="margin-bottom: 20px; max-width: 52ch;">
+                {{ data.dash.orders_rule }}
+            </p>
+
+            <div class="dash-order-filters">
+                <div class="dash-order-filter-group">
+                    <p class="dash-order-filter-label">{{ data.dash.search_contact }}</p>
+                    <form class="dash-order-search" method="get" action="/dashboard/orders">
+                        {% if data.order_status_filter %}
+                        <input type="hidden" name="status" value="{{ data.order_status_filter }}">
+                        {% endif %}
+                        {% if data.payment_status_filter %}
+                        <input type="hidden" name="pay" value="{{ data.payment_status_filter }}">
+                        {% endif %}
+                        <input
+                            class="dash-order-search-input"
+                            type="search"
+                            name="q"
+                            value="{{ data.order_contact_q or '' }}"
+                            placeholder="{{ data.dash.search_contact_placeholder }}"
+                            autocomplete="off"
+                        >
+                        <button class="btn-line" type="submit">{{ data.dash.search_btn }}</button>
+                        {% if data.order_contact_q %}
+                        <a class="section-link" href="/dashboard/orders{% if data.order_status_filter or data.payment_status_filter %}?{% endif %}{% if data.order_status_filter %}status={{ data.order_status_filter|urlencode }}{% endif %}{% if data.order_status_filter and data.payment_status_filter %}&{% endif %}{% if data.payment_status_filter %}pay={{ data.payment_status_filter|urlencode }}{% endif %}">{{ data.dash.clear_search }}</a>
+                        {% endif %}
+                    </form>
+                </div>
+                <div class="dash-order-filter-group">
+                    <p class="dash-order-filter-label">{{ data.dash.filter_order_line }}</p>
+                    <div class="filter-row">
+                        <a class="filter-chip{% if not data.order_status_filter %} active{% endif %}" href="/dashboard/orders{% if data.payment_status_filter or data.order_contact_q %}?{% endif %}{% if data.payment_status_filter %}pay={{ data.payment_status_filter|urlencode }}{% endif %}{% if data.payment_status_filter and data.order_contact_q %}&{% endif %}{% if data.order_contact_q %}q={{ data.order_contact_q|urlencode }}{% endif %}">{{ data.dash.all }}</a>
+                        {% for st in data.order_status_filters %}
+                        <a class="filter-chip{% if data.order_status_filter == st %} active{% endif %}" href="/dashboard/orders?status={{ st|urlencode }}{% if data.payment_status_filter %}&pay={{ data.payment_status_filter|urlencode }}{% endif %}{% if data.order_contact_q %}&q={{ data.order_contact_q|urlencode }}{% endif %}">{{ st }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="dash-order-filter-group">
+                    <p class="dash-order-filter-label">{{ data.dash.filter_payment }}</p>
+                    <div class="filter-row">
+                        <a class="filter-chip{% if not data.payment_status_filter %} active{% endif %}" href="/dashboard/orders{% if data.order_status_filter or data.order_contact_q %}?{% endif %}{% if data.order_status_filter %}status={{ data.order_status_filter|urlencode }}{% endif %}{% if data.order_status_filter and data.order_contact_q %}&{% endif %}{% if data.order_contact_q %}q={{ data.order_contact_q|urlencode }}{% endif %}">{{ data.dash.all }}</a>
+                        {% for st in data.payment_status_filters %}
+                        <a class="filter-chip{% if data.payment_status_filter == st %} active{% endif %}" href="/dashboard/orders?pay={{ st|urlencode }}{% if data.order_status_filter %}&status={{ data.order_status_filter|urlencode }}{% endif %}{% if data.order_contact_q %}&q={{ data.order_contact_q|urlencode }}{% endif %}">{{ st }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            {% if data.form_ok %}
+            <p class="prose-fraco" style="margin-bottom: 16px;">{{ data.dash.order_updated }}</p>
+            {% endif %}
+            {% if data.form_error %}
+            <p class="prose-fraco" style="color: #b00000; margin-bottom: 16px;">{{ data.form_error }}</p>
+            {% endif %}
+
+            {% if data.referral_orders %}
+            <div class="dash-order-list">
+                {% for item in data.referral_orders %}
+                <article class="dash-order-card">
+                    <a class="dash-order-top" href="/dashboard/orders/{{ item.pkey }}?tab=details" style="color: inherit; text-decoration: none;" aria-label="Open transaction {{ item.order_id }}">
+                        <div>
+                            <p class="dash-order-meta">
+                                <span class="dash-mono">{{ item.order_id }}</span>
+                                {% if item.has_preorder %}<span class="badge-preorder-inline">Preorder</span>{% endif %}
+                                {% if item.counts_for_target %}
+                                <span class="dash-order-pill dash-order-pill-ok">{{ data.dash.counts_target }}</span>
+                                {% elif item.is_unpaid_lead %}
+                                <span class="dash-order-pill dash-order-pill-warn">{{ data.dash.not_counted }}</span>
+                                {% endif %}
+                            </p>
+                            <h3 class="dash-order-buyer">{{ item.full_name }}</h3>
+                            <p class="product-meta" style="margin-top: 6px;">{{ item.product_label }} · SKU {{ item.sku_label }}</p>
+                            {% if item.is_unpaid_lead %}
+                            <p class="product-meta" style="margin-top: 8px;">
+                                {{ data.dash.unpaid_card_hint|replace('{name}', item.full_name)|replace('{pay}', item.payment_status) }}
+                            </p>
+                            {% elif item.order_status == 'Preorder' %}
+                            <p class="product-meta" style="margin-top: 8px;">
+                                {{ data.dash.waiting_stock }}{% if item.preorder_eta %} ({{ item.preorder_eta }}){% endif %}.
+                            </p>
+                            {% elif item.order_status == 'Ready' %}
+                            <p class="product-meta" style="margin-top: 8px;">
+                                {{ data.dash.stock_ready }}
+                            </p>
+                            {% elif item.has_preorder %}
+                            <p class="product-meta" style="margin-top: 8px;">
+                                {{ data.dash.started_preorder }}{% if item.preorder_eta %} ({{ item.preorder_eta }}){% endif %}.
+                            </p>
+                            {% endif %}
+                            <p class="section-link" style="margin-top: 12px;">{{ data.dash.view_transaction_details }}</p>
+                        </div>
+                        <div class="dash-order-money">
+                            {% if item.shipping_deduction_active %}
+                            <div>
+                                <p class="product-meta">{{ data.dash.sale }}</p>
+                                <p class="dash-mono">{{ item.sale }}</p>
+                            </div>
+                            <div>
+                                <p class="product-meta">{{ data.dash.bahan_baku }}</p>
+                                <p class="dash-mono dash-muted">−{{ item.bahan_baku }}</p>
+                            </div>
+                            <div>
+                                <p class="product-meta">{{ data.dash.tab_shipping }}</p>
+                                <p class="dash-mono dash-muted">−{{ item.shipping_deduction }}</p>
+                            </div>
+                            <div>
+                                <p class="product-meta">{{ data.dash.your_profit }}</p>
+                                <p class="dash-profit">{{ item.net_profit }}</p>
+                            </div>
+                            {% else %}
+                            <div>
+                                <p class="product-meta">{{ data.dash.sale }}</p>
+                                <p class="dash-mono">{{ item.sale }}</p>
+                            </div>
+                            <div>
+                                <p class="product-meta">{{ data.dash.bahan_baku }}</p>
+                                <p class="dash-mono dash-muted">{{ item.bahan_baku }}</p>
+                            </div>
+                            <div>
+                                <p class="product-meta">{{ data.dash.your_profit }}</p>
+                                <p class="dash-profit">{{ item.profit }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="dash-status-grid dash-status-grid-compact">
+                            <article class="dash-status-card" data-state="{{ item.order_status }}">
+                                <p class="product-meta">{{ data.dash.order_status }}</p>
+                                <h3>{{ item.order_status_label }}</h3>
+                            </article>
+                            <article class="dash-status-card" data-state="{{ item.payment_status }}">
+                                <p class="product-meta">{{ data.dash.payment_status }}</p>
+                                <h3>{{ item.payment_status_label }}</h3>
+                            </article>
+                            <article class="dash-status-card" data-state="{{ item.shipping_request_status or item.shipping_handler }}">
+                                <p class="product-meta">{{ data.dash.tab_shipping }}</p>
+                                <h3>{{ item.shipping_status_label }}</h3>
+                                <p class="product-meta" style="margin-top:5px;">
+                                    {% if item.shipping_handler == 'OFFICER' %}{{ data.dash.shipping_by_officer }}
+                                    {% elif item.shipping_handler == 'SELF' %}{{ data.dash.shipping_by_self }}
+                                    {% else %}{{ data.dash.shipping_status_empty }}{% endif %}
+                                </p>
+                            </article>
+                        </div>
+                    </a>
+
+                    <form class="dash-order-form" method="post" hidden>
+                        <input type="hidden" name="pkey" value="{{ item.pkey }}">
+                        <input type="hidden" name="apply_all_lines" value="0" data-apply-all-lines>
+
+                        <div class="dash-order-grid">
+                            <section class="dash-order-block">
+                                <h4 class="dash-order-block-title">{{ data.dash.buyer_contact }} <span>{{ data.dash.view_only }}</span></h4>
+                                <dl class="dash-order-dl">
+                                    <div>
+                                        <dt>{{ data.dash.name }}</dt>
+                                        <dd>{{ item.full_name or '—' }}</dd>
+                                    </div>
+                                    <div>
+                                        <dt>{{ data.dash.email }}</dt>
+                                        <dd>{{ item.email or '—' }}</dd>
+                                    </div>
+                                    <div>
+                                        <dt>{{ data.dash.phone }}</dt>
+                                        <dd>{{ item.phone or '—' }}</dd>
+                                    </div>
+                                </dl>
+                            </section>
+
+                            <section class="dash-order-block dash-location-block" data-location-block data-label-edit="{{ data.dash.change_location }}" data-label-cancel="{{ data.dash.cancel }}">
+                                <div class="dash-order-block-head">
+                                    <h4 class="dash-order-block-title">{{ data.dash.delivery_location }}</h4>
+                                    <button class="btn-line dash-location-toggle" type="button" data-location-toggle>{{ data.dash.change_location }}</button>
+                                </div>
+                                <div data-location-view>
+                                    <dl class="dash-order-dl">
+                                        <div>
+                                            <dt>{{ data.dash.address }}</dt>
+                                            <dd data-location-display="address">{{ item.address or '—' }}</dd>
+                                        </div>
+                                        <div>
+                                            <dt>{{ data.dash.city }}</dt>
+                                            <dd data-location-display="city">{{ item.city or '—' }}</dd>
+                                        </div>
+                                        <div>
+                                            <dt>{{ data.dash.postal_code }}</dt>
+                                            <dd data-location-display="postal_code">{{ item.postal_code or '—' }}</dd>
+                                        </div>
+                                    </dl>
+                                </div>
+                                <div class="dash-order-fields dash-order-fields-location" data-location-edit hidden>
+                                    <div class="dash-order-field-full">
+                                        <label class="field-label" for="address_{{ item.pkey }}">{{ data.dash.address }}</label>
+                                        <textarea class="field" name="address" id="address_{{ item.pkey }}" rows="2" data-location-input="address" data-original="{{ item.address or '' }}">{{ item.address or '' }}</textarea>
+                                    </div>
+                                    <div>
+                                        <label class="field-label" for="city_{{ item.pkey }}">{{ data.dash.city }}</label>
+                                        <input class="field" type="text" name="city" id="city_{{ item.pkey }}" value="{{ item.city or '' }}" data-location-input="city" data-original="{{ item.city or '' }}">
+                                    </div>
+                                    <div>
+                                        <label class="field-label" for="postal_code_{{ item.pkey }}">{{ data.dash.postal_code }}</label>
+                                        <input class="field" type="text" name="postal_code" id="postal_code_{{ item.pkey }}" value="{{ item.postal_code or '' }}" data-location-input="postal_code" data-original="{{ item.postal_code or '' }}">
+                                    </div>
+                                    <p class="product-meta dash-location-hint">{{ data.dash.location_hint }}</p>
+                                </div>
+                            </section>
+                        </div>
+
+                        {% if item.line_rows %}
+                        <section class="dash-order-block">
+                            <h4 class="dash-order-block-title">{{ data.dash.items_label }} <span>{{ data.dash.status_per_size }}</span></h4>
+                            <div class="dash-line-list">
+                                {% for line in item.line_rows %}
+                                <div class="dash-line-row">
+                                    <div>
+                                        <p class="dash-mono">{{ line.name }}{% if line.size %} · {{ line.size }}{% endif %}{% if line.color %} · {{ line.color }}{% endif %}</p>
+                                        <p class="product-meta" style="margin-top: 4px;">Qty {{ line.qty }} · SKU {{ line.sku }}{% if line.is_preorder %} · Preorder{% if line.preorder_eta %} {{ line.preorder_eta }}{% endif %}{% endif %}</p>
+                                    </div>
+                                    <div>
+                                        <label class="field-label" for="line_status_{{ item.pkey }}_{{ line.idx }}">{{ data.dash.line_status }}</label>
+                                        <select class="field" name="line_status_{{ line.idx }}" id="line_status_{{ item.pkey }}_{{ line.idx }}" data-line-status>
+                                            {% for st in line.line_status_opts %}
+                                            <option value="{{ st }}"{% if line.line_status == st %} selected{% endif %}>{{ st }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </section>
+                        {% endif %}
+
+                        <section class="dash-order-block">
+                            <h4 class="dash-order-block-title">{{ data.dash.order_controls }}</h4>
+                            <div class="dash-order-fields">
+                                <div>
+                                    <label class="field-label" for="payment_status_{{ item.pkey }}">{{ data.dash.payment_status }}</label>
+                                    <select class="field" name="payment_status" id="payment_status_{{ item.pkey }}">
+                                        {% for st in item.pay_status_opts %}
+                                        <option value="{{ st }}"{% if item.payment_status == st %} selected{% endif %}>{{ st }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="field-label" for="order_status_{{ item.pkey }}">{{ data.dash.set_all_lines }}</label>
+                                    <select class="field" name="order_status" id="order_status_{{ item.pkey }}" data-set-all-lines>
+                                        {% for st in item.order_status_opts %}
+                                        <option value="{{ st }}"{% if item.order_status == st %} selected{% endif %}>{{ st }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <p class="product-meta" style="margin-top: 8px;">{{ data.dash.set_all_hint }}</p>
+                                </div>
+                            </div>
+                        </section>
+
+                        <div class="dash-order-actions">
+                            <p class="product-meta">{{ data.dash.order_status }}: <strong data-order-status-label>{{ item.order_status }}</strong></p>
+                            <button class="btn-line" type="submit">{{ data.dash.save_changes }}</button>
+                        </div>
+                    </form>
+                </article>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="prose-fraco">
+                {% if data.order_status_filter or data.payment_status_filter or data.order_contact_q %}
+                {{ data.dash.no_match }}
+                {% if data.order_contact_q %} “<strong>{{ data.order_contact_q }}</strong>”{% endif %}
+                {% if data.order_status_filter %} · status <strong>{{ data.order_status_filter }}</strong>{% endif %}
+                {% if data.payment_status_filter %} · payment <strong>{{ data.payment_status_filter }}</strong>{% endif %}.
+                <a class="section-link" href="/dashboard/orders">{{ data.dash.show_all }}</a>
+                {% else %}
+                {{ data.dash.no_orders|replace('{code}', data.participant.referral_code or '') }}
+                {% endif %}
+            </p>
+            {% endif %}
+            {% else %}
+            <p class="prose-fraco">{{ data.dash.orders_ahc_only }}</p>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% if data.is_ahc_member %}
+<script>
+(function () {
+  var blocks = document.querySelectorAll("[data-location-block]");
+  for (var i = 0; i < blocks.length; i++) {
+    (function (block) {
+      var toggle = block.querySelector("[data-location-toggle]");
+      var view = block.querySelector("[data-location-view]");
+      var edit = block.querySelector("[data-location-edit]");
+      if (!toggle || !view || !edit) {
+        return;
+      }
+      // end if
+      function setEditing(on) {
+        if (on) {
+          view.hidden = true;
+          edit.hidden = false;
+          block.classList.add("is-editing");
+          toggle.textContent = block.getAttribute("data-label-cancel") || "Cancel";
+        } else {
+          var inputs = edit.querySelectorAll("[data-location-input]");
+          for (var j = 0; j < inputs.length; j++) {
+            var el = inputs[j];
+            el.value = el.getAttribute("data-original") || "";
+          }
+          // end for
+          view.hidden = false;
+          edit.hidden = true;
+          block.classList.remove("is-editing");
+          toggle.textContent = block.getAttribute("data-label-edit") || "Change location";
+        }
+        // end if
+      }
+      // end def
+      toggle.addEventListener("click", function () {
+        setEditing(edit.hidden);
+      });
+    })(blocks[i]);
+  }
+  // end for
+
+  var forms = document.querySelectorAll(".dash-order-form");
+  for (var f = 0; f < forms.length; f++) {
+    (function (form) {
+      var setAll = form.querySelector("[data-set-all-lines]");
+      var applyFlag = form.querySelector("[data-apply-all-lines]");
+      var lines = form.querySelectorAll("[data-line-status]");
+      var label = form.querySelector("[data-order-status-label]");
+      if (!setAll) {
+        return;
+      }
+      // end if
+      setAll.addEventListener("change", function () {
+        var status = setAll.value;
+        for (var k = 0; k < lines.length; k++) {
+          lines[k].value = status;
+        }
+        // end for
+        if (applyFlag) {
+          applyFlag.value = "1";
+        }
+        // end if
+        if (label) {
+          label.textContent = status;
+        }
+        // end if
+      });
+      for (var n = 0; n < lines.length; n++) {
+        lines[n].addEventListener("change", function () {
+          if (applyFlag) {
+            applyFlag.value = "0";
+          }
+          // end if
+        });
+      }
+      // end for
+    })(forms[f]);
+  }
+  // end for
+})();
+</script>
+{% endif %}
+{% endblock %}

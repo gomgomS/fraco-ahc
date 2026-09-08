@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+{% block title %}{{ data.program.title }} | FRACO{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+    <img src="{{ data.program.image }}" alt="{{ data.program.title }}">
+    <div class="page-hero-copy">
+        <p>{{ data.name }}</p>
+        <h1>{{ data.program.title }}</h1>
+        <p>{{ data.event_full_name }}</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="prose-fraco">
+        <h2 class="section-title" style="margin: 0 0 16px;">{{ data.program.title }}</h2>
+        {% if data.program.about or data.program.description %}
+        <p>{{ data.program.about or data.program.description }}</p>
+        {% endif %}
+        {% if data.program.cta_href %}
+        <p style="margin-top: 28px;">
+            <a class="btn-black" href="{{ data.program.cta_href }}">{{ data.program.cta_label }}</a>
+        </p>
+        {% endif %}
+    </div>
+</section>
+
+{% if data.program.slug == 'university-fair' %}
+<section class="section" style="padding-top: 0;">
+    <div class="section-head">
+        <h2 class="section-title">Participant campuses</h2>
+        <a class="section-link" href="/university-fair/register">Register a booth</a>
+    </div>
+    {% if data.universities %}
+    <div class="campus-marquee" aria-label="Participant campus logos">
+        <div class="campus-marquee-track">
+            {% for item in data.universities %}
+            {% if item.logo %}
+            <div class="campus-marquee-item">
+                <img src="{{ item.logo }}" alt="{{ item.name }}">
+            </div>
+            {% endif %}
+            {% endfor %}
+            {% for item in data.universities %}
+            {% if item.logo %}
+            <div class="campus-marquee-item" aria-hidden="true">
+                <img src="{{ item.logo }}" alt="">
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <p class="prose-fraco">Participant campuses will appear here after FRACO confirms a booth and enables them on the application.</p>
+    {% endif %}
+</section>
+{% endif %}
+
+{% if data.program.slug == 'career-workshop' %}
+{% if data.program.industries %}
+<section class="section" style="padding-top: 0;">
+    <div class="section-head">
+        <h2 class="section-title">Industries</h2>
+    </div>
+    <div class="filter-row" style="max-width: 1440px; margin: 0 auto;">
+        {% for item in data.program.industries %}
+        <span class="filter-chip">{{ item }}</span>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+{% if data.program.topics %}
+<section class="section" style="padding-top: 0;">
+    <div class="section-head">
+        <h2 class="section-title">Topics</h2>
+    </div>
+    <div class="team-grid">
+        {% for item in data.program.topics %}
+        <article class="team-card">
+            <h3>{{ item }}</h3>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+<section class="section" style="padding-top: 0;">
+    <div class="section-head">
+        <h2 class="section-title">Speakers</h2>
+    </div>
+    {% if data.speakers %}
+    <div class="product-grid">
+        {% for item in data.speakers %}
+        <article class="product-card">
+            {% if item.photo %}
+            <div class="product-media">
+                <img src="{{ item.photo }}" alt="{{ item.name }}">
+            </div>
+            {% endif %}
+            <h3 class="product-name">{{ item.name }}</h3>
+            <p class="product-meta">{{ item.job_title }} · {{ item.industry }}</p>
+            <p class="product-price" style="text-transform: none; letter-spacing: 0;">{{ item.bio }}</p>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="prose-fraco">Speakers will be announced as names are confirmed. Register to be notified.</p>
+    {% endif %}
+</section>
+{% endif %}
+
+{% if data.program.slug == 'spiritual-affairs' %}
+<section class="section" style="padding-top: 0;">
+    <div class="section-head">
+        <h2 class="section-title">Upcoming activities</h2>
+    </div>
+    {% if data.activities %}
+    <div class="product-grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
+        {% for item in data.activities %}
+        <article class="product-card">
+            <p class="product-meta">{{ item.date }} · {{ item.time_label }}</p>
+            <h3 class="product-name">{{ item.name }}</h3>
+            <p class="product-meta">{{ item.location }}</p>
+            <p class="product-price" style="text-transform: none; letter-spacing: 0;">{{ item.description }}</p>
+            <p style="margin-top: 16px;">
+                <a class="btn-line" href="/participate">Reminder</a>
+            </p>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="prose-fraco">Spiritual activities will appear here as dates lock in.</p>
+    {% endif %}
+</section>
+{% endif %}
+
+{% if data.program.slug == 'events' %}
+<section class="section" style="padding-top: 0;">
+    <div class="section-head">
+        <h2 class="section-title">Event listing</h2>
+    </div>
+    {% if data.events %}
+    <div class="product-grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
+        {% for item in data.events %}
+        <article class="product-card">
+            <div class="product-media">
+                <img src="{{ item.image }}" alt="{{ item.title }}">
+                <span class="badge-new">{{ item.event_status }}</span>
+            </div>
+            <p class="product-meta">{{ item.date }} · {{ item.location }}</p>
+            <h3 class="product-name">{{ item.title }}</h3>
+            <p class="product-price" style="text-transform: none; letter-spacing: 0;">{{ item.description }}</p>
+            {% if item.event_status == 'Registration Open' %}
+            <p style="margin-top: 16px;">
+                <a class="btn-line" href="/participate">Register</a>
+            </p>
+            {% endif %}
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="prose-fraco">Events will appear here as the calendar is confirmed.</p>
+    {% endif %}
+</section>
+{% endif %}
+
+{% if data.schedule %}
+<section class="section" style="padding-top: 0;">
+    <div class="section-head">
+        <h2 class="section-title">Schedule</h2>
+    </div>
+    <ol class="timeline">
+        {% for item in data.schedule %}
+        <li class="timeline-item">
+            <p class="timeline-month">{{ item.time_label }}</p>
+            <p>{{ item.title }}</p>
+        </li>
+        {% endfor %}
+    </ol>
+</section>
+{% endif %}
+
+<section class="section" style="padding-top: 0;">
+    <div class="prose-fraco">
+        <p class="product-meta">Venue · {{ data.program.venue_mode or 'OFFLINE' }}</p>
+        <h2 class="section-title" style="margin-bottom: 16px;">Where we gather</h2>
+        {% if (data.program.venue_mode or 'OFFLINE') == 'ONLINE' %}
+        <p>{{ data.program.venue or 'Online session' }}</p>
+        {% if data.program.venue_url %}
+        <p style="margin-top: 16px;"><a class="btn-line" href="{{ data.program.venue_url }}" target="_blank" rel="noopener">Join online</a></p>
+        {% endif %}
+        {% elif (data.program.venue_mode or 'OFFLINE') == 'HYBRID' %}
+        <p>{{ data.program.venue or 'Venue to be announced' }}</p>
+        {% if data.program.venue_url %}
+        <p style="margin-top: 16px;"><a class="btn-line" href="{{ data.program.venue_url }}" target="_blank" rel="noopener">Join online</a></p>
+        {% endif %}
+        {% else %}
+        <p>{{ data.program.venue or 'Venue to be announced' }}</p>
+        {% endif %}
+    </div>
+</section>
+
+{% if data.updates %}
+<section class="section" style="padding-top: 0;">
+    <div class="section-head">
+        <h2 class="section-title">Updates</h2>
+        <a class="section-link" href="/updates">All updates</a>
+    </div>
+    <div class="product-grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
+        {% for item in data.updates %}
+        <a class="product-card news-card" href="/updates/{{ item.slug }}">
+            {% if item.image %}
+            <div class="product-media" style="aspect-ratio: 16 / 9;">
+                <img src="{{ item.image }}" alt="{{ item.title }}">
+            </div>
+            {% endif %}
+            <p class="product-meta">{{ item.category }} · {{ item.date }}</p>
+            <h3 class="product-name" style="font-size: 20px;">{{ item.title }}</h3>
+            <p class="product-price" style="text-transform: none; letter-spacing: 0; margin: 8px 0 12px;">{{ item.excerpt }}</p>
+            <p class="section-link">Read More</p>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+{% if data.faqs %}
+<section class="section" style="padding-top: 0;">
+    <div class="section-head">
+        <h2 class="section-title">FAQ</h2>
+    </div>
+    <div class="faq-list">
+        {% for item in data.faqs %}
+        <article class="faq-item">
+            <h3>{{ item.question }}</h3>
+            <p>{{ item.answer }}</p>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+{% if data.program.cta_href %}
+<section class="section" style="padding-top: 0; text-align: center;">
+    <a class="btn-black" href="{{ data.program.cta_href }}">{{ data.program.cta_label }}</a>
+    <a class="btn-line" href="/programs" style="margin-left: 8px;">All Programs</a>
+</section>
+{% endif %}
+{% endblock %}

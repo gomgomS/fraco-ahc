@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard | FRACO{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="dash-layout">
+        {% include 'dashboard_nav.html' %}
+        <div>
+            <p class="product-meta">{{ data.class_label }}</p>
+            <h1 class="section-title" style="margin: 8px 0 24px;">{{ data.dash.hello|replace('{name}', data.user.name) }}</h1>
+            {% if data.is_ahc_member %}
+            <div class="pay-box" style="margin-bottom: 32px;">
+                <p class="product-meta">{{ data.dash.opening }}</p>
+                <p class="prose-fraco" style="margin-top: 12px;">{{ data.opening_message }}</p>
+            </div>
+            <div class="dash-stats">
+                <article class="dash-stat">
+                    <p class="product-meta">{{ data.dash.your_referral }}</p>
+                    <h3>{{ data.participant.referral_code or '—' }}</h3>
+                </article>
+                <article class="dash-stat">
+                    <p class="product-meta">{{ data.dash.merch_profit }}</p>
+                    <h3>{{ data.participant.sales_total or 'Rp 0' }}</h3>
+                </article>
+                <article class="dash-stat">
+                    <p class="product-meta">{{ data.dash.referral_orders }}</p>
+                    <h3>{{ data.referral_orders|length }}</h3>
+                </article>
+                <article class="dash-stat">
+                    <p class="product-meta">{{ data.dash.support_pledges }}</p>
+                    <h3>{{ data.proposal_pledges|length }}</h3>
+                </article>
+            </div>
+            {% else %}
+            <p class="prose-fraco">{{ data.dash.alumni_welcome }}</p>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

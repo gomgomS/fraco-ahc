@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <title>Admin login | FRACO</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='v2/perumahan.output.css') }}">
+</head>
+<body class="admin-shell admin-login">
+    <main class="admin-main" style="max-width: 440px; margin: 80px auto;">
+        <p class="product-meta">FRACO</p>
+        <h1 class="section-title" style="margin: 8px 0 28px;">Staff login</h1>
+        <p class="prose-fraco" style="margin-bottom: 24px;">Staff accounts use this page. Participants log in on the public site.</p>
+        {% if data.form_error %}
+        <p class="prose-fraco" style="color:#b00000;margin-bottom:20px;">{{ data.form_error }}</p>
+        {% endif %}
+        <form class="form-stack" method="post">
+            <input type="hidden" name="next" value="{{ data.next_path }}">
+            <div>
+                <label class="field-label" for="email">Email</label>
+                <input class="field" type="email" name="email" id="email" required>
+            </div>
+            <div>
+                <label class="field-label" for="password">Password</label>
+                <input class="field" type="password" name="password" id="password" required>
+            </div>
+            <button class="btn-black" type="submit">Login</button>
+        </form>
+        <p style="margin-top: 28px;"><a class="section-link" href="/">Back to site</a></p>
+    </main>
+</body>
+</html>

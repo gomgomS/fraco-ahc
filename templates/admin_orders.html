@@ -1,0 +1,7 @@
+{% extends 'admin_base.html' %}
+{% block title %}Orders | Admin{% endblock %}
+{% block content %}
+<h1 class="section-title" style="margin-bottom: 12px;">Orders</h1>
+<p class="product-meta" style="margin: 0 0 20px; max-width: 60ch;">Orders: manage shop checkouts — customer, referral in charge, payment, and fulfillment status. Use this after someone places a merchandise order.</p>
+{% with table=data.list_table %}{% include 'admin_table.html' %}{% endwith %}
+{% endblock %}

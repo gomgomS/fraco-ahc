@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block title %}Checkout | FRACO{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="checkout-grid">
+        <div>
+            <p class="product-meta">Checkout</p>
+            <h1 class="section-title" style="margin: 8px 0 24px;">Shipping</h1>
+            {% if data.form_error %}
+            <p class="prose-fraco" style="color: #b00000; margin-bottom: 20px;">{{ data.form_error }}</p>
+            {% endif %}
+            <form class="form-stack" method="post" id="checkout-form">
+                <div>
+                    <label class="field-label" for="full_name">Full name</label>
+                    <input class="field" type="text" name="full_name" id="full_name" value="{{ data.form_values.full_name or '' }}" required>
+                </div>
+                <div>
+                    <label class="field-label" for="email">Email</label>
+                    <input class="field" type="email" name="email" id="email" value="{{ data.form_values.email or '' }}" required>
+                </div>
+                <div>
+                    <label class="field-label" for="phone">Phone</label>
+                    <input class="field" type="text" name="phone" id="phone" value="{{ data.form_values.phone or '' }}" required>
+                </div>
+                <div>
+                    <label class="field-label" for="address">Address</label>
+                    <input class="field" type="text" name="address" id="address" value="{{ data.form_values.address or '' }}" required>
+                </div>
+                <div>
+                    <label class="field-label" for="city">City</label>
+                    <input class="field" type="text" name="city" id="city" value="{{ data.form_values.city or '' }}" required>
+                </div>
+                <div>
+                    <label class="field-label" for="postal_code">Postal code</label>
+                    <input class="field" type="text" name="postal_code" id="postal_code" value="{{ data.form_values.postal_code or '' }}">
+                </div>
+                <div>
+                    <label class="field-label" for="referral_code">Referral code (optional)</label>
+                    <div class="hero-actions" style="justify-content: flex-start; gap: 10px; align-items: stretch;">
+                        <input class="field" type="text" name="referral_code" id="referral_code" value="{{ data.referral_code or data.form_values.referral_code or '' }}" placeholder="e.g. budi2017" style="flex: 1;">
+                        <button class="btn-line" type="submit" name="action" value="apply_referral">Apply</button>
+                    </div>
+                    {% if data.referral_code and not data.referral_valid %}
+                    <p class="product-meta" style="color: #b00000; margin-top: 8px;">Referral code not found. Leave blank or use a valid AHC member code.</p>
+                    {% elif data.discount_referral_applied %}
+                    <p class="product-meta" style="margin-top: 8px;">Nice — your member code unlocked a referral discount{% if data.referrer_name %} from {{ data.referrer_name }}{% endif %}.</p>
+                    {% elif data.referral_valid %}
+                    <p class="product-meta" style="margin-top: 8px;">Referral applied{% if data.referrer_name %} — credited to {{ data.referrer_name }}{% endif %}. No buyer discount on these items (optional per product).</p>
+                    {% elif data.referral_preview and data.referral_preview.has_discount %}
+                    <p class="product-meta" style="margin-top: 8px;">Optional: enter a member code and tap Apply. Some items in this bag offer a referral discount.</p>
+                    {% else %}
+                    <p class="product-meta" style="margin-top: 8px;">Optional: enter a member code to credit them. Discount is not automatic — only products that offer it will reduce the price.</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <label class="field-label" for="notes">Notes</label>
+                    <textarea class="field" name="notes" id="notes" rows="3">{{ data.form_values.notes or '' }}</textarea>
+                </div>
+                <div class="pay-box">
+                    <p class="product-meta">Payment</p>
+                    <p class="prose-fraco" style="margin: 8px 0 0;">Orders are created as Pending Payment. FRACO will send transfer details after the merchandise division confirms. This page does not charge a card.</p>
+                    {% if data.has_preorder %}
+                    <p class="prose-fraco" style="margin-top: 10px;">This bag includes <strong>preorder</strong> items{% if data.preorder_eta %} (expected {{ data.preorder_eta }}){% endif %}. You pay to reserve; shipping follows production.</p>
+                    {% endif %}
+                </div>
+                <button class="btn-black" type="submit">Place order</button>
+            </form>
+        </div>
+        <aside class="cart-summary">
+            <p class="product-meta">Order summary</p>
+            {% for item in data.cart_items %}
+            <p style="margin-top: 12px;">{{ item.name }} · {{ item.qty }} × {{ item.unit_price }}{% if item.is_preorder %} · Preorder{% endif %}</p>
+            <p class="product-meta">{{ item.size }} {{ item.color }}{% if item.preorder_eta %} · {{ item.preorder_eta }}{% endif %}</p>
+            {% endfor %}
+            <p class="product-meta" style="margin-top: 20px;">Subtotal {{ data.subtotal }}</p>
+            {% if data.discount_referral_applied %}
+            <div class="dash-note" style="margin-top: 12px;">
+                <p class="product-meta">You got a referral discount</p>
+                <p class="prose-fraco" style="margin-top: 6px;">
+                    − {{ data.discount_referral }}
+                    {% if data.referral_preview and data.referral_preview.labels %}
+                    · {{ data.referral_preview.labels|join(', ') }}
+                    {% endif %}
+                    {% if data.referrer_name %} · {{ data.referrer_name }}{% endif %}
+                </p>
+                {% for note in data.referral_preview.notes %}
+                <p class="product-meta" style="margin-top: 6px;">{{ note }}</p>
+                {% endfor %}
+            </div>
+            <p class="product-meta" style="margin-top: 8px;">Discount total − {{ data.discount_total }}</p>
+            {% endif %}
+            <p class="product-meta">Shipping {{ data.shipping }}</p>
+            <p class="section-title" style="font-size: 22px; margin-top: 12px;">{{ data.total }}</p>
+            {% if data.discount_referral_applied %}
+            <p class="product-meta">Total after discount</p>
+            {% endif %}
+        </aside>
+    </div>
+</section>
+{% endblock %}

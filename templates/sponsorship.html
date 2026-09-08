@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Sponsorship | FRACO{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+    <img src="/static/upload/heroes/f6d676f1cfc6c9bba842.jpg" alt="FRACO sponsorship">
+    <div class="page-hero-copy">
+        <p>{{ data.name }}</p>
+        <h1>Sponsorship</h1>
+        <p>Partner with {{ data.event_full_name }}</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="prose-fraco" style="text-align: center; margin-bottom: 40px;">
+        <h2 class="section-title" style="margin: 0 0 16px;">Partner with AHC 2027</h2>
+        <p class="hero-actions" style="justify-content: center; margin-top: 24px;">
+            <a class="btn-black" href="/sponsorship/apply">Become a Sponsor</a>
+            <a class="btn-line" href="/sponsorship/apply">Download Proposal</a>
+        </p>
+    </div>
+    <div class="product-grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
+        {% for item in data.packages %}
+        <article class="product-card">
+            <p class="product-meta">{{ item.amount }}</p>
+            <h3 class="product-name" style="font-size: 22px;">{{ item.name }}</h3>
+            <ul class="pkg-list">
+                {% for line in item.benefits %}
+                <li>{{ line }}</li>
+                {% endfor %}
+            </ul>
+            <p class="product-meta">Logo · {{ item.logo_placement }}</p>
+            <p class="product-meta">Booth · {{ item.booth }}</p>
+            <p class="product-meta">Promo · {{ item.promo }}</p>
+            <p class="product-price" style="text-transform: none; letter-spacing: 0; margin-top: 12px;">{{ item.other }}</p>
+        </article>
+        {% endfor %}
+    </div>
+    <p style="text-align: center; margin-top: 40px;">
+        <a class="btn-black" href="/sponsorship/apply">Become a Sponsor</a>
+    </p>
+</section>
+{% endblock %}

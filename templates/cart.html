@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}Bag | FRACO{% endblock %}
+
+{% block content %}
+<section class="section" style="min-height: 60vh;">
+    <div class="section-head">
+        <h1 class="section-title">Bag</h1>
+        <a class="section-link" href="/merchandise">Continue shopping</a>
+    </div>
+    {% if data.cart_items %}
+    <div class="cart-wrap">
+        {% for item in data.cart_items %}
+        <article class="cart-row">
+            <a href="/merchandise/{{ item.slug }}">
+                <img src="{{ item.image }}" alt="{{ item.name }}">
+            </a>
+            <div>
+                <h3 class="product-name">{{ item.name }}{% if item.is_preorder %} <span class="product-meta">· Preorder</span>{% endif %}</h3>
+                <p class="product-meta">{{ item.size }}{% if item.color %} · {{ item.color }}{% endif %}{% if item.is_preorder and item.preorder_eta %} · Ready {{ item.preorder_eta }}{% endif %}</p>
+                <p class="product-price">{{ item.unit_price }}</p>
+                <form method="post" action="/cart/update" class="qty-row js-cart-qty">
+                    <input type="hidden" name="pkey" value="{{ item.pkey }}">
+                    <label class="field-label" for="qty-{{ loop.index }}">Qty</label>
+                    <input class="field qty-field" type="number" name="qty" id="qty-{{ loop.index }}" min="1" value="{{ item.qty }}">
+                </form>
+                <form method="post" action="/cart/remove">
+                    <input type="hidden" name="pkey" value="{{ item.pkey }}">
+                    <button class="section-link" type="submit">Remove</button>
+                </form>
+            </div>
+            <p class="product-price">{{ item.line_price }}</p>
+        </article>
+        {% endfor %}
+        <div class="cart-summary">
+            <p class="product-meta">Subtotal</p>
+            <p class="section-title" style="font-size: 22px;">{{ data.subtotal }}</p>
+            <p class="product-meta" style="margin-top: 12px;">Shipping · {{ data.shipping }}</p>
+            <p class="product-meta">Total · {{ data.total }}</p>
+            {% if data.has_preorder %}
+            <p class="product-meta" style="margin-top: 12px;">Includes preorder item(s){% if data.preorder_eta %} · expected {{ data.preorder_eta }}{% endif %}. Payment still confirms the order.</p>
+            {% endif %}
+            <p style="margin-top: 24px;">
+                <a class="btn-black" href="/checkout">Checkout</a>
+            </p>
+        </div>
+    </div>
+    <script>
+    (function () {
+        var forms = document.querySelectorAll("form.js-cart-qty");
+        for (var i = 0; i < forms.length; i++) {
+            (function (form) {
+                var input = form.querySelector('input[name="qty"]');
+                if (!input) return;
+                var timer = null;
+                var last = String(input.value);
+                function submitIfChanged() {
+                    var val = String(input.value || "");
+                    if (val === "" || Number(val) < 1) return;
+                    if (val === last) return;
+                    last = val;
+                    form.submit();
+                }
+                input.addEventListener("change", submitIfChanged);
+                input.addEventListener("input", function () {
+                    clearTimeout(timer);
+                    timer = setTimeout(submitIfChanged, 400);
+                });
+            })(forms[i]);
+        }
+    })();
+    </script>
+    {% else %}
+    <p class="product-price" style="max-width: 720px; margin: 0 auto; text-align: center;">Your bag is currently empty.</p>
+    <p style="text-align: center; margin-top: 28px;">
+        <a class="btn-line" href="/merchandise">Continue shopping</a>
+    </p>
+    {% endif %}
+</section>
+{% endblock %}

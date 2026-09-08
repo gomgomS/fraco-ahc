@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Participate | FRACO{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+    <img src="/static/upload/heroes/3f2a13b1e8aff1b8f642.jpg" alt="Participate with FRACO">
+    <div class="page-hero-copy">
+        <p>{{ data.name }}</p>
+        <h1>Participate</h1>
+        <p>{{ data.event_full_name }} · {{ data.class_label }}</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="prose-fraco" style="text-align: center; margin-bottom: 40px;">
+        <h2 class="section-title" style="margin: 0 0 16px;">How Would You Like to Participate?</h2>
+    </div>
+    <div class="participate-grid">
+        <article class="participate-card">
+            <div>
+                <h3>Sponsor</h3>
+                <p>Become an AHC 2027 partner.</p>
+            </div>
+            <p><a class="btn-black" href="/sponsorship">Become a Sponsor</a></p>
+        </article>
+        <article class="participate-card">
+            <div>
+                <h3>Vendor</h3>
+                <p>Provide products or services for AHC 2027.</p>
+            </div>
+            <p><a class="btn-black" href="/vendor/register">Register as Vendor</a></p>
+        </article>
+        <article class="participate-card">
+            <div>
+                <h3>University</h3>
+                <p>Join the University Fair.</p>
+            </div>
+            <p><a class="btn-black" href="/university-fair/register">Register University</a></p>
+        </article>
+        <article class="participate-card">
+            <div>
+                <h3>Participant</h3>
+                <p>Register as an AHC Member (class of 2017) or as Alumni.</p>
+            </div>
+            <p><a class="btn-black" href="/register">Register Now</a></p>
+        </article>
+    </div>
+</section>
+{% endblock %}

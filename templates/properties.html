@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}FRACO | Shop{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+    <img src="/static/upload/heroes/9508f933ab5f77d8f898.jpg" alt="Shop FRACO">
+    <div class="page-hero-copy">
+        <h1>Shop</h1>
+        <p>New arrivals / all ground</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="filter-row">
+        <span class="filter-chip active">All</span>
+        <span class="filter-chip">Houses</span>
+        <span class="filter-chip">Ruko</span>
+        <span class="filter-chip">Clusters</span>
+    </div>
+    <div class="product-grid">
+        {% for prop in data.properties %}
+        <a class="product-card" href="/contact">
+            <div class="product-media">
+                <img src="{{ prop.image }}" alt="{{ prop.title }}">
+                <span class="badge-new">New</span>
+            </div>
+            <h3 class="product-name">{{ prop.title }}</h3>
+            <p class="product-price">{{ prop.price }}</p>
+            <p class="product-meta">{{ prop.bedrooms }} BD · {{ prop.bathrooms }} BA · {{ prop.lt }}m² LT</p>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

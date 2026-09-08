@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Gallery | FRACO{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+    <img src="/static/upload/heroes/3f2a13b1e8aff1b8f642.jpg" alt="FRACO gallery">
+    <div class="page-hero-copy">
+        <p>{{ data.name }}</p>
+        <h1>Gallery</h1>
+        <p>{{ data.event_full_name }}</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="filter-row">
+        <a class="filter-chip{% if data.active_album == '' %} active{% endif %}" href="/gallery">All</a>
+        {% for item in data.albums %}
+        <a class="filter-chip{% if data.active_album == item %} active{% endif %}" href="/gallery?album={{ item }}">{{ item }}</a>
+        {% endfor %}
+    </div>
+    <div class="gallery-grid">
+        {% for item in data.gallery %}
+        <img src="{{ item.image }}" alt="{{ item.alt }}">
+        {% else %}
+        <p class="prose-fraco">No photos in this album yet.</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

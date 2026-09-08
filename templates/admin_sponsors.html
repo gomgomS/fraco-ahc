@@ -1,0 +1,8 @@
+{% extends 'admin_base.html' %}
+{% block title %}Sponsors | Admin{% endblock %}
+{% block content %}
+<h1 class="section-title" style="margin-bottom: 12px;">Sponsors</h1>
+{% include 'admin_sponsors_tabs.html' %}
+<p class="product-meta" style="margin: 0 0 20px; max-width: 60ch;">Applications: review brand-partner applications from the public form. Use Packages tab to set the tiers shown on the site.</p>
+{% with table=data.list_table %}{% include 'admin_table.html' %}{% endwith %}
+{% endblock %}

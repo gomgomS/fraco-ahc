@@ -1,0 +1,22 @@
+{% if table.pager %}
+<nav class="admin-pager" aria-label="Pagination">
+    <p class="admin-pager-summary">{{ table.pager.summary }}</p>
+    {% if table.pager.show %}
+    {% if table.pager.has_prev %}
+    <a href="{{ table.pager.prev_href }}">Prev</a>
+    {% endif %}
+    {% for item in table.pager.links %}
+    {% if item.gap %}
+    <span class="admin-pager-gap">{{ item.text }}</span>
+    {% elif item.current %}
+    <span class="current" aria-current="page">{{ item.text }}</span>
+    {% else %}
+    <a href="{{ item.href }}">{{ item.text }}</a>
+    {% endif %}
+    {% endfor %}
+    {% if table.pager.has_next %}
+    <a href="{{ table.pager.next_href }}">Next</a>
+    {% endif %}
+    {% endif %}
+</nav>
+{% endif %}

@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}FRACO | Lifestyle{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+    <img src="/static/upload/heroes/430cb434c1d8683fd822.jpg" alt="Lifestyle">
+    <div class="page-hero-copy">
+        <h1>Lifestyle</h1>
+        <p>The heart of your kit</p>
+    </div>
+</section>
+
+<section class="tile-grid">
+    <article class="cat-tile">
+        <img src="/static/upload/heroes/6289124df4efd395838c.jpg" alt="Pool">
+        <div class="cat-copy">
+            <h3>Pool</h3>
+            <p>Resort-style water</p>
+        </div>
+    </article>
+    <article class="cat-tile">
+        <img src="/static/upload/heroes/b1d851e298f3ddde4944.jpg" alt="Club House">
+        <div class="cat-copy">
+            <h3>Club House</h3>
+            <p>For those who live to feel free</p>
+        </div>
+    </article>
+    <article class="cat-tile">
+        <img src="/static/upload/heroes/1dc90aee6609b53276ca.jpg" alt="Tennis">
+        <div class="cat-copy">
+            <h3>Tennis</h3>
+            <p>Always in motion</p>
+        </div>
+    </article>
+</section>
+
+<section class="section" style="text-align:center;">
+    <h2 class="section-title">Find the ground</h2>
+    <p class="product-price" style="margin: 12px 0 24px;">Premium cluster living with kit that stays out of the way.</p>
+    <a class="btn-line" href="{{ data.whatsapp_url }}" target="_blank" rel="noopener">Chat with us</a>
+</section>
+{% endblock %}

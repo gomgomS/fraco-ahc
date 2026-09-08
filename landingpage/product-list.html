@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <title>The Enrich City - Detail Perumahan Premium</title>
+
+  <!-- Bootstrap core CSS -->
+  <link href="../../static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Additional CSS Files -->
+  <link rel="stylesheet" href="../../static/assets/css/fontawesome.css">
+  <link rel="stylesheet" href="../../static/assets/css/enrich-housing.css">
+  <link rel="stylesheet" href="../../static/assets/css/owl.css">
+  <link rel="stylesheet" href="../../static/assets/css/animate.css">
+  <link rel="stylesheet"href="https://unpkg.com/swiper@7/swiper-bundle.min.css"/>
+  
+  <!-- Favicon -->
+  <link rel="icon" href="../../static/assets/images/TheEnrichLogo2.png" type="image/png">
+  
+  <!-- Custom Styles for Type Toggle Buttons -->
+  <style>
+    .type-toggle-btn {
+      padding: 8px 16px;
+      font-weight: 500;
+      font-size: 0.875rem;
+      border: 2px solid #1a324c;
+      background-color: #1a324c;
+      color: white;
+      border-radius: 25px;
+      transition: all 0.3s ease;
+    }
+    
+    .type-toggle-btn:hover {
+      opacity: 0.9;
+    }
+    
+    .type-toggle-btn.active {
+      background-color: #edcd94;
+      color: #1a324c;
+      border-color: #edcd94;
+    }
+    
+    .type-toggle-btn:not(.active) {
+      background-color: #1a324c;
+      color: white;
+      border-color: #1a324c;
+    }
+    
+    .type-toggle-btn:not(.active):hover {
+      opacity: 0.9;
+    }
+    
+    /* Mobile: Move toggle buttons to top */
+    @media (max-width: 991px) {
+      .best-deal .row {
+        display: flex;
+        flex-direction: column;
+      }
+      
+      .tab-pane .row {
+        display: flex;
+        flex-direction: column;
+      }
+      
+      /* Move the right column (with buttons) to top */
+      .tab-pane .row > .col-lg-3:last-child {
+        order: -1;
+        margin-bottom: 20px;
+        width: 100% !important;
+      }
+      
+      /* Move info table to middle */
+      .tab-pane .row > .col-lg-3:first-child {
+        order: 1;
+        width: 100% !important;
+      }
+      
+      /* Image stays in middle */
+      .tab-pane .row > .col-lg-6 {
+        order: 2;
+        width: 100% !important;
+        margin-bottom: 20px;
+      }
+      
+      /* Center and style buttons on mobile */
+      .tab-pane .row > .col-lg-3:last-child > div[style*="display: flex"] {
+        justify-content: center;
+        max-width: 100%;
+        margin-bottom: 20px;
+      }
+      
+      /* Show description text on mobile */
+      .tab-pane .row > .col-lg-3:last-child > h4 {
+        text-align: center;
+        margin-top: 20px;
+        margin-bottom: 15px;
+      }
+      
+      .tab-pane .row > .col-lg-3:last-child > p {
+        text-align: center;
+        margin-bottom: 15px;
+      }
+      
+      .tab-pane .row > .col-lg-3:last-child > .icon-button {
+        text-align: center;
+        display: block;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ***** Preloader Start ***** -->
+  <div id="js-preloader" class="js-preloader">
+    <div class="preloader-inner">
+      <span class="dot"></span>
+      <div class="dots">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+  </div>
+  <!-- ***** Preloader End ***** -->
+
+  <!-- ***** Header Area Start ***** -->
+  <header class="header-area header-sticky">
+    <div class="container">
+      <div class="row">
+        <div class="col-12">
+          <nav class="main-nav">
+            <!-- ***** Logo Start ***** -->
+            <a href="index.html" class="logo">
+              <img src="../../static/assets/images/TheEnrichLogo2.png" alt="" class="logo-img">
+            </a>
+            <!-- ***** Logo End ***** -->
+            <!-- ***** Menu Start ***** -->
+            <ul class="nav" id="mainNav">
+              <li><a href="/">Home</a></li>
+              <li><a href="/about-us">About Us</a></li>
+              <li class="has-dropdown">
+                <a href="javascript:void(0);">Product▾</a>
+                <ul class="dropdown-menu-desktop">
+                  <li><a href="/product-list">Product List</a></li>
+                  <li><a href="/site-plan">Site Plan</a></li>
+                </ul>
+              </li>
+              <!-- SUBMENU Akan diinject pakai JS -->
+              <!-- <li><a href="/project-overview">Project Overview</a></li> -->
+              <li><a href="/facility">Facility</a></li>
+              <li><a href="/news">News</a></li>
+              <li><a href="/contact">Contact Us</a></li>
+              <li><a href="https://wa.me/62811411951?text=Halo,%20saya%20ingin%20konsultasi%20tentang%20The%20Enrich%20City" target="_blank"><i class="fab fa-whatsapp" style="background-color: white; color: #222; padding: 6px; border-radius: 50%; margin-right: 5px;"></i> Consultation</a></li>
+            </ul>
+            <a class='menu-trigger'>
+              <span>Menu</span>
+            </a>
+            <!-- ***** Menu End ***** -->
+          </nav>
+        </div>
+      </div>
+    </div>
+  </header>
+  <!-- ***** Header Area End ***** -->
+
+  <div class="page-heading header-text">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-12">          
+          <h3 class="fadein-heading">Product List</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="section best-deal" style="margin-top: -50px;">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-12 text-center mb-4">
+          <div class="section-heading">
+            <h6>Penawaran Terbaik</h6>
+            <h2>Temukan Hunian Ideal Anda!</h2>
+          </div>
+        </div>
+        <div class="col-lg-12">
+          <div class="tabs-content">
+            <div class="row">
+              <div class="tab-content" id="myTabContent">
+                <div class="tab-pane fade show active" id="enricha1" role="tabpanel" aria-labelledby="enricha1-tab">
+                  <div class="row">
+                    <div class="col-lg-3">
+                      <div class="info-table">
+                        <ul>
+                          <li>Luas Bangunan <span>42 m2</span></li>
+                          <li>Luas Tanah <span>72 m2</span></li>
+                          <li>Kamar Tidur <span>2</span></li>
+                          <li>Kamar Mandi <span>1</span></li>
+                          <li>Garasi <span>1 Mobil</span></li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div class="col-lg-6">
+                      <img src="../../static/assets/images/Product_Product List_Layout Enrich - A1.webp" alt="The Enrich City - Tipe Enrich A1" style="width: 80%; height: auto; object-fit: cover; display: block; margin: 0 auto;">
+                    </div>
+                    <div class="col-lg-3">
+                      <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+                        <button class="btn btn-primary type-toggle-btn active" id="enricha1-tab" data-bs-toggle="tab" data-bs-target="#enricha1" type="button" role="tab" aria-controls="enricha1" aria-selected="true" style="flex: 1;">Tipe Enrich A1</button>
+                        <button class="btn btn-primary type-toggle-btn" id="enricha2-tab" data-bs-toggle="tab" data-bs-target="#enricha2" type="button" role="tab" aria-controls="enricha2" aria-selected="false" style="flex: 1;">Tipe Enrich A2 (Hook)</button>
+                      </div>
+                      <h4>Rumah Tipe Enrich A1</h4>
+                      
+                      <p><b>Tipe Enrich A1</b> adalah Rumah modern minimalis dengan 2 kamar tidur, 1 kamar mandi, dan dilengkapi lahan parkir kendaraan. Cocok untuk keluarga muda. Dibuat dengan material bangunan berkualitas tinggi, terdapat ruang keluarga luas yang terhubung dengan dapur modern dan area makan.</p>
+                      <!-- <div class="icon-button">  
+                        <a href="#"><i class="fa fa-calendar"></i> Jadwalkan Kunjungan</a>
+                      </div> -->
+                    </div>
+                  </div>
+                </div>
+                <div class="tab-pane fade" id="enricha2" role="tabpanel" aria-labelledby="enricha2-tab">
+                  <div class="row">
+                    <div class="col-lg-3">
+                      <div class="info-table">
+                        <ul>
+                          <li>Luas Bangunan <span>42 m2</span></li>
+                          <li>Luas Tanah <span>96 m2</span></li>
+                          <li>Kamar Tidur <span>2</span></li>
+                          <li>Kamar Mandi <span>1</span></li>
+                          <li>Garasi <span>2 Mobil</span></li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div class="col-lg-6">
+                      <img src="../../static/assets/images/Product_Product List_Layout Enrich - A1 Hook.webp" alt="The Enrich City - Tipe Enrich A2 Hook" style="width: 100%; height: auto; object-fit: cover; display: block; margin: 0 auto;">
+                    </div>
+                    <div class="col-lg-3">
+                      <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+                        <button class="btn btn-primary type-toggle-btn" id="enricha1-tab-2" data-bs-toggle="tab" data-bs-target="#enricha1" type="button" role="tab" aria-controls="enricha1" aria-selected="false" style="flex: 1;">Tipe Enrich A1</button>
+                        <button class="btn btn-primary type-toggle-btn active" id="enricha2-tab-2" data-bs-toggle="tab" data-bs-target="#enricha2" type="button" role="tab" aria-controls="enricha2" aria-selected="true" style="flex: 1;">Tipe Enrich A2 (Hook)</button>
+                      </div>
+                      <h4>Rumah Tipe Enrich A1 (Hook)</h4>
+                      <p><b>Tipe Enrich A1 (Hook) </b> merupakan
+                        rumah modern minimalis yang
+                        memiliki 2 kamar tidur, 1 kamar
+                        mandi, serta area parkir kendaraan.
+                        Unit ini sangat ideal untuk keluarga
+                        muda. Dibangun menggunakan
+                        material berkualitas tinggi, hunian
+                        ini menghadirkan ruang keluarga
+                        yang lapang yang terhubung
+                        langsung dengan dapur modern dan
+                        area makan.</p>
+                         
+                        <p> Karena berada di posisi hook, rumah
+                        ini memiliki lahan outdoor yang
+                        lebih luas, memberikan keleluasaan
+                        untuk taman, area bermain, atau
+                        ruang aktivitas luar lainnya.</p>
+                      <!-- <div class="icon-button">
+                        <a href="#"><i class="fa fa-calendar"></i> Jadwalkan Kunjungan</a>
+                      </div> -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer-pro">
+    <div class="container">
+      <div class="row">
+        <!-- Logo Section -->
+        <div class="col-lg-5 col-md-6 mb-4">
+          <div class="footer-logo-section">
+            <img src="../../static/assets/images/Design Icon-Logo Footer.webp" alt="The Enrich City Logo" class="footer-logo-img" width="200" height="60" loading="lazy">
+            <div class="footer-brand-info">
+              <!-- <h5 class="footer-brand-title">THE ENRICH CITY</h5> -->
+              <span class="footer-brand-comspanany" style="text-align: justify; display: block;">The Enrich City - Hunian modern berkonsep hijau di Kabupaten Mimika.
+                The Enrich City hadir sebagai simbol kenyamanan & Kualitas hidup
+                terbaik di Timur Indonesia.</span>
+              <!-- <p class="footer-brand-company">PT.PUINDO</p> -->
+            </div>
+          </div>
+        </div>
+        
+        <!-- Description Section -->
+        <div class="col-lg-3 col-md-6 mb-4">
+          <div class="footer-description">
+            <p class="footer-desc-text">
+              <!-- Dikembangkan di jantung Kota Mimika, The Enrich City adalah
+              kawasan hunian baru yang mengusung konsep hijau dan modern.
+              Dirancang untuk menghadirkan kenyamanan, ketenangan, serta
+              kualitas hidup yang lebih baik bagi keluarga masa kini.
+              The Enrich City menjadi simbol hunian masa depan di Timur
+              Indonesia. Dream City of The East. -->
+            </p>
+          </div>
+        </div>
+        <!-- Contact Section -->
+        <div class="col-lg-4 col-md-12 mb-4">
+          <div class="footer-contact">
+            <h6 class="footer-contact-title">Hubungi Kami</h6>
+            <div class="footer-contact-item">
+              <img src="../../static/assets/images/Design Icon-08.webp" alt="Instagram" class="footer-contact-icon">
+              <span class="footer-contact-text">theenrichcity</span>
+            </div>
+            <div class="footer-contact-item">
+              <img src="../../static/assets/images/Design Icon-09.webp" alt="WhatsApp" class="footer-contact-icon">
+              <span class="footer-contact-text">0811 411 951</span>
+            </div>
+            <div class="footer-contact-item">
+              <img src="../../static/assets/images/Design Icon-10.webp" alt="Location" class="footer-contact-icon">
+              <span class="footer-contact-text">Jalan Cendrawasih, Kelurahan Timika Indah, Kecamatan Mimika Baru, Kabupaten Mimika, Papua Tengah, 99910</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Copyright Section -->
+      <div class="row">
+        <div class="col-12">
+          <div class="footer-copyright">
+            <p class="mb-0">Hak Cipta © 2025 <strong>The Enrich City</strong>. Semua hak dilindungi.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <!-- Bootstrap core JavaScript -->
+  <script src="../../static/vendor/jquery/jquery.min.js"></script>
+  <script src="../../static/vendor/bootstrap/js/bootstrap.min.js"></script>
+  <script src="../../static/assets/js/isotope.min.js"></script>
+  <script src="../../static/assets/js/owl-carousel.js"></script>
+  <script src="../../static/assets/js/counter.js"></script>
+  <script src="../../static/assets/js/custom.js"></script>
+
+
+  <!-- Mobile Menu JavaScript -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Mobile Menu Toggle
+      const menuTrigger = document.querySelector('.menu-trigger');
+      const nav = document.querySelector('.main-nav .nav');
+      const body = document.body;
+      
+      if (menuTrigger && nav) {
+        menuTrigger.addEventListener('click', function() {
+          menuTrigger.classList.toggle('active');
+          nav.classList.toggle('active');
+          body.style.overflow = nav.classList.contains('active') ? 'hidden' : '';
+        });
+        
+        // Close menu when clicking on menu items
+        const menuItems = nav.querySelectorAll('a');
+        menuItems.forEach(item => {
+          item.addEventListener('click', function() {
+            menuTrigger.classList.remove('active');
+            nav.classList.remove('active');
+            body.style.overflow = '';
+          });
+        });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', function(e) {
+          if (!menuTrigger.contains(e.target) && !nav.contains(e.target)) {
+            menuTrigger.classList.remove('active');
+            nav.classList.remove('active');
+            body.style.overflow = '';
+          }
+        });
+      }
+
+      // Type Toggle Button Functionality
+      const typeToggleButtons = document.querySelectorAll('.type-toggle-btn');
+      typeToggleButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          const targetTab = this.getAttribute('data-bs-target');
+          
+          if (!targetTab) return;
+          
+          // Remove active class from all buttons
+          typeToggleButtons.forEach(btn => {
+            btn.classList.remove('active');
+            btn.setAttribute('aria-selected', 'false');
+          });
+          
+          // Add active class to all buttons that target the same tab
+          typeToggleButtons.forEach(btn => {
+            if (btn.getAttribute('data-bs-target') === targetTab) {
+              btn.classList.add('active');
+              btn.setAttribute('aria-selected', 'true');
+            }
+          });
+          
+          // Hide all tab panes first
+          document.querySelectorAll('.tab-pane').forEach(pane => {
+            pane.classList.remove('show', 'active');
+          });
+          
+          // Show target tab pane
+          const tabElement = document.querySelector(targetTab);
+          if (tabElement) {
+            tabElement.classList.add('show', 'active');
+          }
+        });
+      });
+
+      // Mobile Dropdown Toggle for Properti menu
+      const dropdownParents = document.querySelectorAll('.has-dropdown');
+      dropdownParents.forEach(parent => {
+        const parentLink = parent.querySelector('a');
+        if (parentLink && window.innerWidth <= 767) {
+          parentLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            parent.classList.toggle('open');
+          });
+        }
+      });
+      
+      // Update dropdown behavior on window resize
+      window.addEventListener('resize', function() {
+        if (window.innerWidth > 767) {
+          dropdownParents.forEach(parent => {
+            parent.classList.remove('open');
+          });
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,1310 @@
+MASTER PROMPT — AHC 2027 WEBSITE
+Build a modern, responsive web platform for AHC 2027, organized by FRACO.
+
+The website should not feel like a simple event landing page. It should function as a complete event and community platform with:
+
+1. Public-facing website
+2. Merchandise e-commerce
+3. Event and program information
+4. Sponsorship and partnership applications
+5. Vendor registration
+6. University Fair registration
+7. Participant registration
+8. Participant dashboard
+9. Admin dashboard / CMS
+
+The website must be modern, clean, professional, youthful, and community-oriented.
+
+The visual identity should feel premium but friendly, with strong typography, generous spacing, rounded cards/buttons, subtle animations, and a consistent visual system.
+
+The primary website navigation should be:
+
+HOME
+ABOUT
+PROGRAMS
+MERCHANDISE
+PARTNERS
+PARTICIPATE
+UPDATES
+CART
+PART 1 — PUBLIC FRONTEND
+## 1. HOME PAGE
+
+Create a strong hero section.
+
+Hero content:
+
+AHC 2027
+Presented by FRACO
+
+Headline:
+"Reconnect. Inspire. Give Back."
+
+Subtitle:
+"An experience that brings together alumni, students, partners, and the community through meaningful programs, collaboration, and shared experiences."
+
+Primary CTA:
+"Explore AHC 2027"
+
+Secondary CTA:
+"Shop Merchandise"
+
+Below the hero, create:
+
+### About AHC 2027
+
+Short introduction explaining the purpose and vision of AHC 2027.
+
+CTA:
+"Learn More"
+
+### Our Programs
+
+Display program cards:
+
+- University Fair
+- Career Workshop
+- Spiritual Affairs
+- Events
+
+Each card should contain:
+- Image
+- Title
+- Short description
+- Learn More button
+
+### Merchandise
+
+Create a product showcase section.
+
+Display 4 featured products.
+
+Each product card:
+- Product image
+- Product name
+- Price
+- Available sizes/options
+- Add to Cart button
+
+CTA:
+"Shop All Merchandise"
+
+### Become a Partner
+
+Create a sponsorship section:
+
+"Let's Build AHC 2027 Together"
+
+Explain that companies, brands, businesses, and organizations can collaborate with AHC 2027.
+
+Buttons:
+"Become a Sponsor"
+"Download Proposal"
+
+### Latest Updates
+
+Display the latest 3 articles or announcements.
+
+### Gallery
+
+Display a visual photo grid showing AHC preparation, alumni activities, events, and behind-the-scenes content.
+
+### Footer
+
+Include:
+- AHC 2027
+- FRACO
+- Navigation
+- Programs
+- Merchandise
+- Contact
+- Social media links
+- Copyright
+PART 2 — ABOUT
+## 2. ABOUT PAGE
+
+Create an About section with:
+
+### About FRACO
+
+Explain the organization/community behind AHC 2027.
+
+### About AHC 2027
+
+Explain:
+- What AHC 2027 is
+- Its purpose
+- Who it is for
+- Main activities
+- Community impact
+
+### Timeline
+
+Create a visual timeline covering the preparation period.
+
+Timeline:
+
+August 2026
+- Finalization of PIC and division members
+
+September 2026
+- Participant contribution
+- Vendor listing
+- Sponsorship listing
+
+October 2026
+- Price comparison
+
+November 2026
+- Officer visit
+- SLAPUR survey
+- Vendor survey
+
+December 2026
+- Progress update
+
+March 2027
+- Attendance confirmation
+- AHC proposal presentation
+
+April 2027
+- Finalization of member kits
+- Gift purchases
+- Other final preparations
+
+Display this timeline visually using a vertical or horizontal timeline.
+
+### Our Team
+
+Display the AHC 2027 divisions and team members.
+
+The internal divisions are:
+
+- Sponsorship
+- Proposal Handler
+- Merchandise
+- University Fair
+- FRACO Member Kit
+- Career Workshop
+- Gift Planner
+- Social Media Admin
+- Spiritual Affairs
+- Event Vendor Handler
+
+Do not necessarily expose every internal division as a main navigation item. Instead, organize them into appropriate public-facing features.
+PART 3 — PROGRAMS
+## 3. PROGRAMS PAGE
+
+Create a Programs landing page.
+
+Programs:
+
+### University Fair
+
+Description:
+A program connecting students with universities and educational opportunities.
+
+Page sections:
+- About University Fair
+- Participating Universities
+- Booth Information
+- Schedule
+- Venue
+- FAQ
+- Registration
+
+CTA:
+"Register Your University"
+
+Create separate registration route:
+
+/university-fair/register
+
+
+### Career Workshop
+
+Page sections:
+- About
+- Speakers
+- Industries
+- Topics
+- Workshop Schedule
+- Venue
+- FAQ
+
+Create speaker cards containing:
+- Photo
+- Name
+- Job title
+- Industry
+- Short biography
+
+CTA:
+"Register for Career Workshop"
+
+
+### Spiritual Affairs
+
+Create an upcoming activities section.
+
+Each activity should display:
+- Activity name
+- Date
+- Time
+- Location
+- Description
+- Registration/reminder button
+
+Examples:
+- Prayer Gathering
+- Wednesday Night
+- Vesper
+- Fasting
+- Other spiritual activities
+
+
+### Events
+
+Create a general event listing.
+
+Each event:
+- Event image
+- Event title
+- Date
+- Location
+- Description
+- Status
+- Register button
+
+Event statuses:
+- Upcoming
+- Registration Open
+- Registration Closed
+- Completed
+PART 4 — MERCHANDISE E-COMMERCE
+## 4. MERCHANDISE
+
+This should function like a real online store.
+
+Create:
+
+/merchandise
+
+Categories:
+
+- All Products
+- Apparel
+- Accessories
+- Member Kit
+- Other
+
+Product listing page:
+
+Each product card should contain:
+- Product image
+- Product name
+- Price
+- Availability
+- Rating/review placeholder
+- Add to Cart button
+
+Product detail page:
+
+/merchandise/[product-slug]
+
+Include:
+- Large product image
+- Image gallery
+- Product name
+- Price
+- Description
+- Size selection
+- Color selection if applicable
+- Quantity selector
+- Inventory status
+- Add to Cart
+- Buy Now
+
+Cart page:
+
+/cart
+
+Display:
+- Product
+- Variant
+- Quantity
+- Price
+- Subtotal
+- Remove item
+- Update quantity
+
+Checkout:
+
+/checkout
+
+Fields:
+- Full name
+- Email
+- Phone
+- Address
+- City
+- Postal code
+- Notes
+
+Order summary:
+- Products
+- Quantity
+- Subtotal
+- Shipping
+- Total
+
+Payment section.
+
+After successful payment:
+
+/order/[order-id]
+
+Display:
+- Order number
+- Payment status
+- Order status
+- Purchased items
+- Total
+- Customer information
+- Shipping information
+
+Order status:
+
+- Pending Payment
+- Paid
+- Processing
+- Ready
+- Shipped
+- Completed
+- Cancelled
+
+The merchandise functionality should reflect the actual merchandise division's responsibility for production, vendor management, pricing, inventory, sales distribution, and order distribution.
+
+PART 5 — PARTNERS
+## 5. PARTNERS
+
+Create a Partners landing page.
+
+Sections:
+
+### Sponsorship
+
+Headline:
+"Partner With AHC 2027"
+
+Explain sponsorship opportunities.
+
+Display sponsorship packages:
+
+Package A
+Package B
+Package C
+Custom Partnership
+
+Each package should contain:
+- Package name
+- Contribution amount
+- Benefits
+- Logo placement
+- Booth opportunities
+- Promotional benefits
+- Other benefits
+
+Buttons:
+"Become a Sponsor"
+"Download Proposal"
+
+Important:
+The sponsorship page itself should NOT contain a large registration form.
+
+Instead:
+
+/sponsorship
+
+CTA:
+"Become a Sponsor"
+
+Redirect to:
+
+/sponsorship/apply
+
+Create a dedicated sponsorship application form.
+
+Fields:
+- Company name
+- Contact person
+- Email
+- Phone
+- Website
+- Industry
+- Interested package
+- Proposed collaboration
+- Message
+- Attachment / company profile
+
+Submit button:
+"Submit Application"
+
+Show confirmation after submission.
+
+
+### Event Vendors
+
+Create:
+
+/vendors
+
+Content:
+"Become an AHC 2027 Event Vendor"
+
+Vendor categories:
+- Catering
+- Audio Visual
+- Event Equipment
+- Media
+- Venue Support
+- Decoration
+- Transportation
+- Other Event Services
+
+CTA:
+"Register as Vendor"
+
+Redirect to:
+
+/vendor/register
+
+Vendor registration form:
+- Business name
+- Contact person
+- Email
+- Phone
+- Business category
+- Services offered
+- Company profile
+- Portfolio
+- Estimated pricing
+- Additional information
+- File upload
+
+Submit button:
+"Submit Vendor Application"
+
+
+### University Partners
+
+Create a section for universities interested in joining University Fair.
+
+CTA:
+"Book a University Fair Booth"
+
+Redirect to:
+
+/university-fair/register
+PART 6 — PARTICIPATE
+## 6. PARTICIPATE PAGE
+
+This page should act as the main conversion hub.
+
+Headline:
+
+"How Would You Like to Participate?"
+
+Create 4 large cards:
+
+### SPONSOR
+Become an AHC 2027 partner.
+
+Button:
+"Become a Sponsor"
+
+### VENDOR
+Provide products or services for AHC 2027.
+
+Button:
+"Register as Vendor"
+
+### UNIVERSITY
+Join the University Fair.
+
+Button:
+"Register University"
+
+### PARTICIPANT
+Join AHC 2027 as a participant.
+
+Button:
+"Register Now"
+PART 7 — PARTICIPANT REGISTRATION
+## 7. PARTICIPANT REGISTRATION
+
+Create a multi-step registration process.
+
+Step 1:
+Personal Information
+
+- Full name
+- Email
+- Phone
+- Address
+- City
+- Other necessary information
+
+Step 2:
+Registration Details
+
+Step 3:
+Payment
+
+Step 4:
+Member Kit
+
+Step 5:
+Confirmation
+
+Participant contribution:
+Rp 2,000,000 per person.
+
+Allow:
+- Full payment
+- Installment payment
+
+Create a payment progress indicator.
+
+Example:
+
+Total:
+Rp 2,000,000
+
+Paid:
+Rp 1,000,000
+
+Remaining:
+Rp 1,000,000
+
+Payment history should be available from the participant dashboard.
+
+The source document specifies the participant contribution as Rp2,000,000 per person from September through March, with full or installment payment options.
+
+PART 8 — PARTICIPANT DASHBOARD
+## 8. USER / PARTICIPANT DASHBOARD
+
+Create a logged-in dashboard.
+
+Dashboard navigation:
+
+Overview
+My Registration
+My Payments
+My Merchandise Orders
+Member Kit
+Events
+Profile
+
+Overview should display:
+
+Hello, [Name]
+
+Registration:
+Completed
+
+Payment:
+50%
+
+Member Kit:
+Processing
+
+Upcoming Events:
+2
+
+Recent Orders:
+2
+
+
+### Payment Progress
+
+Total:
+Rp 2,000,000
+
+Paid:
+Rp 1,000,000
+
+Remaining:
+Rp 1,000,000
+
+Display payment history.
+
+
+### My Orders
+
+Display merchandise orders:
+
+Order ID
+Date
+Items
+Total
+Status
+
+### Member Kit
+
+Display:
+
+Member Kit Status:
+Processing
+
+Items:
+- T-Shirt
+- ID Card
+- Lanyard
+
+### Upcoming Events
+
+Display events the participant can join.
+
+The Member Kit division handles participant equipment such as shirts, ID cards, lanyards, posters, and banners, including packaging and distribution.
+
+PART 9 — UPDATES
+## 9. UPDATES
+
+Create a content/news section.
+
+Categories:
+
+- News
+- Announcements
+- Event Updates
+- Behind the Scenes
+- Throwback
+- Community
+
+News listing:
+
+Each article:
+- Cover image
+- Title
+- Date
+- Category
+- Short excerpt
+- Read More
+
+Article page:
+
+/updates/[slug]
+
+Include:
+- Title
+- Cover image
+- Author
+- Date
+- Content
+- Related articles
+- Social sharing
+
+### Gallery
+
+Create:
+
+/gallery
+
+Filter by:
+
+- Preparation
+- Alumni
+- Events
+- University Fair
+- Career Workshop
+- Behind the Scenes
+- AHC 2027
+
+Use a modern masonry/grid gallery.
+PART 10 — ADMIN DASHBOARD
+================================================
+ADMIN DASHBOARD
+================================================
+
+Create a separate protected admin interface.
+
+Admin navigation:
+
+Dashboard
+Participants
+Orders
+Products
+Programs
+Events
+Sponsors
+Vendors
+Universities
+Applications
+Payments
+Content
+Gallery
+Team
+Settings
+ADMIN DASHBOARD — OVERVIEW
+## Dashboard
+
+Display statistics:
+
+Total Participants
+Total Revenue
+Pending Payments
+Merchandise Orders
+Sponsors
+Vendors
+University Partners
+Upcoming Events
+
+Create charts:
+
+- Participant registrations over time
+- Payment collection
+- Merchandise sales
+- Order status
+- Application status
+ADMIN — PARTICIPANTS
+## Participants
+
+Table:
+
+ID
+Name
+Email
+Phone
+Registration Status
+Payment Status
+Amount Paid
+Remaining
+Member Kit
+Registered Date
+Actions
+
+Actions:
+View
+Edit
+Payment History
+Registration Details
+Deactivate
+
+Participant detail page:
+
+Personal Information
+
+Registration Information
+
+Payment Information
+
+Payment History
+
+Member Kit
+
+Event Participation
+
+Order History
+ADMIN — MERCHANDISE
+## Products
+
+CRUD functionality:
+
+Create Product
+Edit Product
+Delete Product
+Archive Product
+
+Fields:
+
+Product name
+SKU
+Category
+Description
+Price
+Discount
+Stock
+Sizes
+Colors
+Images
+Status
+
+Product status:
+
+Active
+Draft
+Out of Stock
+Archived
+
+Inventory:
+
+SKU
+Product
+Current Stock
+Reserved
+Sold
+Low Stock Alert
+ADMIN — ORDERS
+## Orders
+
+Display:
+
+Order ID
+Customer
+Date
+Items
+Total
+Payment Status
+Order Status
+
+Filters:
+
+- Pending Payment
+- Paid
+- Processing
+- Ready
+- Shipped
+- Completed
+- Cancelled
+
+Admin can update order status.
+
+Order detail:
+
+Customer information
+Products
+Payment
+Shipping
+Timeline
+Notes
+ADMIN — PROGRAMS
+## Programs
+
+Manage:
+
+University Fair
+Career Workshop
+Spiritual Affairs
+Events
+
+Admin can:
+
+Create
+Edit
+Delete
+Publish
+Unpublish
+
+Each program can contain:
+
+Title
+Description
+Cover Image
+Date
+Time
+Location
+Speakers
+Registration link
+Status
+FAQ
+Gallery
+ADMIN — EVENTS
+## Events
+
+Create event:
+
+Title
+Description
+Date
+Time
+Venue
+Capacity
+Registration deadline
+Speaker
+Image
+Status
+
+Event statuses:
+
+Draft
+Published
+Registration Open
+Registration Closed
+Completed
+ADMIN — SPONSORS
+## Sponsors
+
+Manage sponsorship applications.
+
+Table:
+
+Company
+PIC
+Email
+Package
+Status
+Submitted Date
+Assigned PIC
+
+Application status:
+
+New
+Under Review
+Contacted
+Negotiating
+Approved
+Rejected
+Completed
+
+Admin can:
+
+View application
+Download attachment
+Add notes
+Assign PIC
+Change status
+
+The sponsorship workflow should support targeting potential sponsors, customized sponsorship packages, contract negotiations, and ongoing partner relationship management.
+
+ADMIN — VENDORS
+## Vendors
+
+Manage vendor applications.
+
+Fields:
+
+Business Name
+PIC
+Category
+Email
+Phone
+Services
+Portfolio
+Pricing
+Status
+
+Statuses:
+
+New
+Reviewing
+Contacted
+Negotiating
+Approved
+Rejected
+Contracted
+ADMIN — UNIVERSITIES
+## Universities
+
+Manage University Fair participants.
+
+Fields:
+
+University Name
+Contact Person
+Email
+Phone
+Booth
+Payment
+Registration Status
+Notes
+
+Statuses:
+
+Applied
+Approved
+Payment Pending
+Confirmed
+Cancelled
+ADMIN — APPLICATIONS
+## Applications
+
+Create a unified application management system.
+
+Application types:
+
+- Sponsorship
+- Vendor
+- University Fair
+- Participant
+- Career Workshop
+
+Display:
+
+Application ID
+Applicant
+Type
+Submitted Date
+Status
+Assigned PIC
+Actions
+ADMIN — PAYMENTS
+## Payments
+
+Central payment management.
+
+Display:
+
+Transaction ID
+User
+Type
+Amount
+Payment Method
+Status
+Date
+
+Types:
+
+Participant Contribution
+Merchandise
+University Booth
+Sponsorship
+
+Payment statuses:
+
+Pending
+Paid
+Failed
+Refunded
+ADMIN — CONTENT MANAGEMENT
+## Content
+
+Manage website content.
+
+News
+Announcements
+Programs
+FAQ
+Homepage sections
+Footer
+Navigation
+
+Admin should be able to:
+
+Create
+Edit
+Publish
+Unpublish
+Delete
+Schedule
+ADMIN — GALLERY
+## Gallery
+
+Admin can:
+
+Upload images
+Create albums
+Edit captions
+Delete images
+Reorder images
+
+Albums:
+
+Preparation
+Alumni
+University Fair
+Career Workshop
+Spiritual Affairs
+Behind The Scenes
+AHC 2027
+ADMIN — TEAM
+## Team
+
+Manage team members.
+
+Fields:
+
+Name
+Position
+Division
+Photo
+Bio
+Social media
+Display order
+Status
+ADMIN — SETTINGS
+## Settings
+
+General Settings
+Website Settings
+Payment Settings
+Email Settings
+Social Media
+SEO
+Admin Users
+Roles & Permissions
+USER ROLES
+Create role-based access control.
+
+SUPER ADMIN
+Full access.
+
+ADMIN
+Manage website, participants, orders, programs, and applications.
+
+FINANCE
+Manage payments and financial information.
+
+MERCHANDISE ADMIN
+Manage products, inventory, and orders.
+
+PROGRAM ADMIN
+Manage programs and events.
+
+SPONSORSHIP ADMIN
+Manage sponsors and sponsorship applications.
+
+VENDOR ADMIN
+Manage vendors.
+
+CONTENT ADMIN
+Manage news, gallery, and website content.
+IMPORTANT UX REQUIREMENTS
+The website must be:
+
+- Fully responsive
+- Mobile-first
+- Desktop optimized
+- Fast loading
+- Accessible
+- SEO friendly
+- Modern
+- Clean
+- Easy to navigate
+
+Use consistent:
+
+- Typography
+- Border radius
+- Spacing
+- Buttons
+- Cards
+- Form components
+- Modal dialogs
+- Status badges
+- Tables
+- Empty states
+- Loading states
+- Error states
+- Success states
+
+All forms should have:
+
+- Validation
+- Required field indicators
+- Error messages
+- Loading state
+- Success confirmation
+IMPORTANT INFORMATION ARCHITECTURE
+DO NOT expose every internal division as a primary navigation menu.
+
+Instead organize the organization into public-facing experiences.
+
+INTERNAL DIVISION          WEBSITE FEATURE
+
+Sponsorship                Partners → Sponsorship
+
+Proposal Handler           Partners → Sponsorship
+
+Merchandise                Merchandise Store
+
+University Fair            Programs → University Fair
+
+FRACO Member Kit            Participant Dashboard
+
+Career Workshop             Programs → Career Workshop
+
+Gift Planner                Community / Event features
+
+Social Media Admin          Updates + Gallery
+
+Spiritual Affairs           Programs → Spiritual Affairs
+
+Event Vendor Handler        Partners → Vendors
+
+This distinction is important.
+
+The website should be designed around what the USER wants to accomplish, not around the organization's internal department structure.
+
+
+---
+
+# FINAL TECHNICAL REQUIREMENT
+
+```text
+The architecture should be designed so that the frontend and admin dashboard communicate through a proper backend API.
+
+Separate:
+
+PUBLIC WEBSITE
+USER AUTHENTICATION
+PARTICIPANT DASHBOARD
+E-COMMERCE
+APPLICATION SYSTEM
+PAYMENT SYSTEM
+ADMIN DASHBOARD
+CONTENT MANAGEMENT
+
+Use reusable components and modular architecture.
+
+The system should be scalable so additional programs, products, events, sponsors, vendors, and participants can be added without changing the core architecture.
+
+Create realistic sample data so the interface looks like a production-ready application rather than an empty prototype.
+
+Prioritize excellent UX, clear navigation, conversion-focused pages, and a premium event/community aesthetic.
+Recommended route structure
+/
+ /about
+ /about/timeline
+ /about/team
+
+ /programs
+ /programs/university-fair
+ /programs/career-workshop
+ /programs/spiritual-affairs
+ /programs/events
+
+ /merchandise
+ /merchandise/[slug]
+ /cart
+ /checkout
+ /order/[id]
+
+ /partners
+ /partners/sponsorship
+ /partners/sponsorship/apply
+ /partners/vendors
+ /partners/vendors/register
+
+ /participate
+ /participate/register
+ /university-fair/register
+
+ /updates
+ /updates/[slug]
+ /gallery
+
+ /login
+ /register
+ /dashboard
+ /dashboard/profile
+ /dashboard/registration
+ /dashboard/payments
+ /dashboard/orders
+ /dashboard/member-kit
+
+ /admin
+ /admin/participants
+ /admin/orders
+ /admin/products
+ /admin/programs
+ /admin/events
+ /admin/sponsors
+ /admin/vendors
+ /admin/universities
+ /admin/applications
+ /admin/payments
+ /admin/content
+ /admin/gallery
+ /admin/team
+ /admin/settings

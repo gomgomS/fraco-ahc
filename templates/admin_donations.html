@@ -1,0 +1,140 @@
+{% extends 'admin_base.html' %}
+{% block title %}Support Us | Admin{% endblock %}
+{% block content %}
+<h1 class="section-title" style="margin-bottom: 12px;">Support Us</h1>
+<p class="prose-fraco" style="margin-bottom: 28px;">Support Us: manage public pledges from /support. Mark Received when money is confirmed; Follow up keeps it pending.</p>
+
+{% if data.form_error %}
+<p class="prose-fraco" style="color: #b00000; margin-bottom: 24px;">{{ data.form_error }}</p>
+{% endif %}
+
+<div class="filter-row" style="margin-bottom: 28px;">
+    <a class="filter-chip{% if data.donations_tab == 'settings' %} active{% endif %}" href="/admin/donations?tab=settings">Contact &amp; list settings</a>
+    <a class="filter-chip{% if data.donations_tab == 'pledges' %} active{% endif %}" href="/admin/donations?tab=pledges">Pledges &amp; donors</a>
+    {% if data.can_write %}
+    <a class="filter-chip{% if data.donations_tab == 'add' %} active{% endif %}" href="/admin/donations?tab=add">{% if data.edit_donor and data.edit_donor.pkey %}Follow up / edit{% else %}Add manually{% endif %}</a>
+    {% endif %}
+</div>
+
+{% if data.donations_tab == 'settings' %}
+{% if data.can_write %}
+<section class="admin-block">
+    <h2 class="section-title" style="font-size: 20px; margin-bottom: 12px;">Contact &amp; list settings</h2>
+    <form class="form-stack" method="post">
+        <input type="hidden" name="action" value="save_settings">
+        <input type="hidden" name="tab" value="settings">
+        <div><label class="field-label" for="title">Page title</label><input class="field" name="title" id="title" value="{{ data.settings.title or 'Support Us' }}"></div>
+        <div><label class="field-label" for="email">Email</label><input class="field" name="email" id="email" value="{{ data.settings.email or '' }}"></div>
+        <div><label class="field-label" for="whatsapp">WhatsApp number (display)</label><input class="field" name="whatsapp" id="whatsapp" value="{{ data.settings.whatsapp or '' }}"></div>
+        <div><label class="field-label" for="whatsapp_url">WhatsApp URL</label><input class="field" name="whatsapp_url" id="whatsapp_url" value="{{ data.settings.whatsapp_url or '' }}" placeholder="https://wa.me/62..."></div>
+        <div><label class="field-label" for="phone">Phone</label><input class="field" name="phone" id="phone" value="{{ data.settings.phone or '' }}"></div>
+        <div>
+            <label class="field-label" for="list_mode">Top list mode</label>
+            <select class="field" name="list_mode" id="list_mode">
+                <option value="LIMIT" {% if (data.settings.list_mode or 'LIMIT') == 'LIMIT' %}selected{% endif %}>Limit count</option>
+                <option value="ALL" {% if data.settings.list_mode == 'ALL' %}selected{% endif %}>Show all (scroll on site)</option>
+            </select>
+        </div>
+        <div>
+            <label class="field-label" for="top_limit">How many to show (when Limit)</label>
+            <input class="field" name="top_limit" id="top_limit" type="number" min="1" value="{{ data.settings.top_limit or 10 }}">
+            <p class="product-meta">Supporters marked Received appear on the public top list.</p>
+        </div>
+        <div>
+            <label class="field-label" for="public_total_mode">Public total amount</label>
+            <select class="field" name="public_total_mode" id="public_total_mode">
+                <option value="ACCUMULATED" {% if (data.settings.public_total_mode or 'ACCUMULATED') == 'ACCUMULATED' %}selected{% endif %}>Accumulated received donations (default)</option>
+                <option value="CUSTOM" {% if data.settings.public_total_mode == 'CUSTOM' %}selected{% endif %}>Custom amount</option>
+                <option value="HIDDEN" {% if data.settings.public_total_mode == 'HIDDEN' %}selected{% endif %}>Hide total amount</option>
+            </select>
+        </div>
+        <div>
+            <label class="field-label" for="public_total_num">Custom public amount</label>
+            <input class="field" name="public_total_num" id="public_total_num" type="number" min="0" value="{{ data.settings.public_total_num or 0 }}">
+            <p class="product-meta">Used only when Public total amount is set to Custom amount.</p>
+        </div>
+        <button class="btn-black" type="submit">Save settings</button>
+    </form>
+</section>
+{% else %}
+<section class="admin-block">
+    <h2 class="section-title" style="font-size: 20px; margin-bottom: 12px;">Contact &amp; list settings</h2>
+    <p class="product-meta">Email: {{ data.settings.email or '—' }}</p>
+    <p class="product-meta">WhatsApp: {{ data.settings.whatsapp or data.settings.whatsapp_url or '—' }}</p>
+    <p class="product-meta">List: {{ data.settings.list_mode or 'LIMIT' }}{% if (data.settings.list_mode or 'LIMIT') == 'LIMIT' %} · top {{ data.settings.top_limit or 10 }}{% endif %}</p>
+    <p class="product-meta">Public total: {{ data.settings.public_total_mode or 'ACCUMULATED' }}</p>
+</section>
+{% endif %}
+{% endif %}
+
+{% if data.donations_tab == 'pledges' %}
+<section class="admin-block">
+    <h2 class="section-title" style="font-size: 20px; margin-bottom: 12px;">Pledges &amp; donors</h2>
+    {% with table=data.list_table %}{% include 'admin_table.html' %}{% endwith %}
+</section>
+{% endif %}
+
+{% if data.donations_tab == 'add' and data.can_write %}
+{% if data.edit_donor and data.edit_donor.pkey %}
+<section class="admin-block">
+    <h2 class="section-title" style="font-size: 20px; margin-bottom: 12px;">Follow up / edit</h2>
+    <form class="form-stack" method="post">
+        <input type="hidden" name="action" value="save_donor">
+        <input type="hidden" name="tab" value="add">
+        <input type="hidden" name="pkey" value="{{ data.edit_donor.pkey }}">
+        <div><label class="field-label" for="edit_name">Name</label><input class="field" name="name" id="edit_name" value="{{ data.edit_donor.name or '' }}" required></div>
+        <label style="display:flex; align-items:center; gap:10px;"><input type="checkbox" name="is_anonymous" value="YES"{% if data.edit_donor.is_anonymous %} checked{% endif %}> Show as Anonymous on the public Support Us page</label>
+        <div><label class="field-label" for="edit_phone">Phone</label><input class="field" name="phone" id="edit_phone" value="{{ data.edit_donor.phone or '' }}"></div>
+        <div>
+            <label class="field-label" for="edit_amount_num">Nominal (number)</label>
+            <input class="field" name="amount_num" id="edit_amount_num" type="number" min="0" value="{{ data.edit_donor.amount_num or 0 }}">
+        </div>
+        <div>
+            <label class="field-label" for="edit_amount">Amount label</label>
+            <input class="field" name="amount_label" id="edit_amount" value="{{ data.edit_donor.amount_label or '' }}" placeholder="e.g. Rp 1.000.000">
+        </div>
+        <div>
+            <label class="field-label" for="edit_score">Score (ranking)</label>
+            <input class="field" name="score" id="edit_score" type="number" min="0" value="{{ data.edit_donor.score or 0 }}">
+            <p class="product-meta">Higher score ranks higher on the public list. Defaults to nominal if left 0.</p>
+        </div>
+        <div>
+            <label class="field-label" for="edit_follow_status">Follow-up status</label>
+            <select class="field" name="follow_status" id="edit_follow_status">
+                <option value="FOLLOW_UP" {% if (data.edit_donor.follow_status or 'FOLLOW_UP') == 'FOLLOW_UP' %}selected{% endif %}>Follow up</option>
+                <option value="RECEIVED" {% if data.edit_donor.follow_status == 'RECEIVED' %}selected{% endif %}>Received</option>
+            </select>
+            <p class="product-meta">Received shows on the public /support top list. Follow up stays hidden.</p>
+        </div>
+        <div><label class="field-label" for="edit_note">Internal note</label><textarea class="field" name="note" id="edit_note" rows="2">{{ data.edit_donor.note or '' }}</textarea></div>
+        <button class="btn-black" type="submit">Save</button>
+        <a class="btn-line" href="/admin/donations?tab=pledges">Cancel</a>
+    </form>
+</section>
+{% else %}
+<section class="admin-block">
+    <h2 class="section-title" style="font-size: 20px; margin-bottom: 12px;">Add manually</h2>
+    <form class="form-stack" method="post">
+        <input type="hidden" name="action" value="save_donor">
+        <input type="hidden" name="tab" value="add">
+        <div><label class="field-label" for="name">Name</label><input class="field" name="name" id="name" required></div>
+        <label style="display:flex; align-items:center; gap:10px;"><input type="checkbox" name="is_anonymous" value="YES"> Show as Anonymous on the public Support Us page</label>
+        <div><label class="field-label" for="phone">Phone</label><input class="field" name="phone" id="phone"></div>
+        <div><label class="field-label" for="amount_num">Nominal (number)</label><input class="field" name="amount_num" id="amount_num" type="number" min="0" value="0"></div>
+        <div><label class="field-label" for="amount_label">Amount label</label><input class="field" name="amount_label" id="amount_label" placeholder="e.g. Rp 1.000.000"></div>
+        <div><label class="field-label" for="score">Score</label><input class="field" name="score" id="score" type="number" min="0" value="0"></div>
+        <div>
+            <label class="field-label" for="follow_status">Follow-up status</label>
+            <select class="field" name="follow_status" id="follow_status">
+                <option value="FOLLOW_UP">Follow up</option>
+                <option value="RECEIVED">Received</option>
+            </select>
+            <p class="product-meta">Received shows on the public /support top list. Follow up stays hidden.</p>
+        </div>
+        <div><label class="field-label" for="note">Internal note</label><textarea class="field" name="note" id="note" rows="2"></textarea></div>
+        <button class="btn-black" type="submit">Add</button>
+    </form>
+</section>
+{% endif %}
+{% endif %}
+{% endblock %}

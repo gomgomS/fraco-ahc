@@ -1,0 +1,71 @@
+{% extends 'admin_base.html' %}
+{% block title %}Vendor | Admin{% endblock %}
+{% block content %}
+<p class="product-meta"><a class="section-link" href="/admin/vendors">Vendors</a></p>
+<h1 class="section-title" style="margin: 8px 0 24px;">{{ data.row.business_name }}</h1>
+
+{% if data.form_error %}
+<p class="prose-fraco" style="color: #b00000; margin-bottom: 24px;">{{ data.form_error }}</p>
+{% endif %}
+
+{% if data.row.file_path %}
+<p style="margin-bottom: 16px;"><a class="section-link" href="{{ data.row.file_path }}" target="_blank" rel="noopener">Download attachment</a></p>
+{% endif %}
+
+<form class="form-stack" method="post">
+    <div><label class="field-label" for="business_name">Business name</label><input class="field" name="business_name" id="business_name" value="{{ data.row.business_name or '' }}" required{% if not data.can_write %} disabled{% endif %}></div>
+    <div><label class="field-label" for="contact_person">Contact person</label><input class="field" name="contact_person" id="contact_person" value="{{ data.row.contact_person or '' }}"{% if not data.can_write %} disabled{% endif %}></div>
+    <div><label class="field-label" for="email">Email</label><input class="field" type="email" name="email" id="email" value="{{ data.row.email or '' }}"{% if not data.can_write %} disabled{% endif %}></div>
+    <div><label class="field-label" for="phone">Phone</label><input class="field" name="phone" id="phone" value="{{ data.row.phone or '' }}"{% if not data.can_write %} disabled{% endif %}></div>
+    <div>
+        <label class="field-label" for="description">Description</label>
+        {% if data.can_write %}
+        <textarea class="field js-rich-text-source" name="description" id="description" rows="10">{{ data.row.description or '' }}</textarea>
+        <p class="product-meta">Format the vendor description with headings, links, lists, and images.</p>
+        {% elif data.row.description_html %}
+        <div class="article-rich-content admin-rich-readonly">{{ data.row.description_html|safe }}</div>
+        {% else %}
+        <p class="product-meta">No description yet.</p>
+        {% endif %}
+    </div>
+    <div>
+        <label class="field-label" for="division">Division that needs this vendor</label>
+        <select class="field" name="division" id="division"{% if not data.can_write %} disabled{% endif %}>
+            <option value="">—</option>
+            {% for item in data.divisions %}
+            <option value="{{ item }}"{% if data.row.division == item %} selected{% endif %}>{{ item }}</option>
+            {% endfor %}
+            {% if data.row.division and data.row.division not in data.divisions %}
+            <option value="{{ data.row.division }}" selected>{{ data.row.division }}</option>
+            {% endif %}
+        </select>
+        <p class="product-meta" style="margin-top: 8px;">Which FRACO division requested or will use this vendor.</p>
+    </div>
+    <div><label class="field-label" for="services">Services</label><textarea class="field" name="services" id="services" rows="2"{% if not data.can_write %} disabled{% endif %}>{{ data.row.services or '' }}</textarea></div>
+    <div><label class="field-label" for="profile">Profile</label><textarea class="field" name="profile" id="profile" rows="2"{% if not data.can_write %} disabled{% endif %}>{{ data.row.profile or '' }}</textarea></div>
+    <div><label class="field-label" for="portfolio">Portfolio</label><textarea class="field" name="portfolio" id="portfolio" rows="2"{% if not data.can_write %} disabled{% endif %}>{{ data.row.portfolio or '' }}</textarea></div>
+    <div><label class="field-label" for="pricing">Pricing</label><input class="field" name="pricing" id="pricing" value="{{ data.row.pricing or '' }}"{% if not data.can_write %} disabled{% endif %}></div>
+    <div>
+        <label class="field-label" for="status">Status</label>
+        <select class="field" name="status" id="status"{% if not data.can_write %} disabled{% endif %}>
+            {% for item in data.statuses %}
+            <option value="{{ item }}"{% if data.row.status == item %} selected{% endif %}>{{ item }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div><label class="field-label" for="assigned_pic">Assigned PIC</label><input class="field" name="assigned_pic" id="assigned_pic" value="{{ data.row.assigned_pic or '' }}"{% if not data.can_write %} disabled{% endif %}></div>
+    <div><label class="field-label" for="notes">Notes</label><textarea class="field" name="notes" id="notes" rows="4"{% if not data.can_write %} disabled{% endif %}>{{ data.row.notes or '' }}</textarea></div>
+    {% if data.can_write %}
+    <button class="btn-black" type="submit">Save</button>
+    {% endif %}
+</form>
+{% if data.can_delete %}
+<form method="post" style="margin-top: 16px;" onsubmit="return confirm('Delete this vendor?');">
+    <input type="hidden" name="action" value="delete">
+    <button class="btn-line" type="submit">Delete vendor</button>
+</form>
+{% endif %}
+{% if data.can_write %}
+{% include 'admin_rich_editor.html' %}
+{% endif %}
+{% endblock %}

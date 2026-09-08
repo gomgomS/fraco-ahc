@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Vendors | FRACO{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+    <img src="/static/upload/heroes/0aa6f69b9422e605ad94.jpg" alt="FRACO vendors">
+    <div class="page-hero-copy">
+        <p>{{ data.name }}</p>
+        <h1>Vendors</h1>
+        <p>Become an AHC 2027 event vendor</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="team-grid">
+        {% for item in data.vendor_categories %}
+        <article class="team-card">
+            <p class="product-meta">Category</p>
+            <h3>{{ item.name }}</h3>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

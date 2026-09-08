@@ -1,0 +1,62 @@
+---
+description: FRACO MongoDB save/read style — class procs, model schema, database.new/put/insert
+alwaysApply: true
+---
+
+# FRACO MongoDB and proc style
+
+Copy `REFRENCE_CODE_STYLE/` (pytavia). FRACO uses `slapz102_*` instead of `pytavia_*`. Do not invent a new persistence pattern.
+
+## Core files
+
+- Connection/secrets: `slapz102_core/config.py` (`mainDB = "fraco"`, `G_DATABASE_CONNECT`)
+- Collection schema: `slapz102_core/model.py` (`db["db_*"]` field map)
+- Helpers: `slapz102_core/database.py` (`get_db_conn`, `new`, `load`)
+- New field? Add it to `model.py` first. `put()` rejects keys not in the schema (`SETTING_NON_EXISTING_FIELD`).
+
+## Proc class (required)
+
+```python
+from slapz102_core import database
+from slapz102_core import config
+
+class merchandise_proc:
+    mgdDB = database.get_db_conn(config.mainDB)
+
+    def __init__(self, app=None):
+        self.webapp = app
+    # end def
+# end class
+```
+
+Views instantiate the class: `proc = merchandise_proc(); data = proc.get_merchandise_page()`.
+
+## Write (insert)
+
+```python
+rec = database.new(self.mgdDB, "db_product")
+rec.put("name", "AHC 2027 Tee")
+rec.put("slug", "ahc-tee")
+rec.insert()
+```
+
+Do not `insert_one({...})` with ad-hoc dicts for new domain rows. Use `database.new` + `put` + `insert`.
+
+## Read / update existing
+
+```python
+row = self.mgdDB.db_product.find_one({"pkey": pkey, "is_deleted": False}, {"_id": 0})
+self.mgdDB.db_product.update_one({"pkey": pkey}, {"$set": {"stock": 10}})
+```
+
+Collection names match model keys: `db_site`, `db_product`, `db_program`, `db_update`, `db_gallery`, `db_timeline`, `db_division`, `db_user`, `db_order`, `db_cart`, `db_participant`, `db_config`, `db_unique_counter`.
+
+## Other conventions
+
+- Every new `.py`: `sys.path.append` for `slapz102_core|modules|settings|stdlib|storage`
+- Close blocks: `# end if` / `# end for` / `# end def` / `# end class`
+- JSON/API responses: `helper.response_msg` (`message_id`, `message_action`, `message_desc`, `message_data`)
+- IDs: `idgen._get_api_call_id()`; records get `pkey` from `database.new`
+- Soft delete: `is_deleted`, never drop/rename collections
+- Config values from `config`, never hardcode DB URLs or secrets
+- Do not store site/product/program lists as in-memory Python constants once a `db_*` collection exists

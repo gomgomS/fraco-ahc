@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Updates | FRACO{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+    <img src="/static/upload/heroes/bf043478bb473fe1017b.jpg" alt="FRACO updates">
+    <div class="page-hero-copy">
+        <p>{{ data.name }}</p>
+        <h1>Updates</h1>
+        <p>{{ data.event_full_name }}</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="filter-row">
+        <a class="filter-chip{% if data.active_category == '' %} active{% endif %}" href="/updates">All</a>
+        {% for item in data.categories %}
+        <a class="filter-chip{% if data.active_category == item %} active{% endif %}" href="/updates?category={{ item|urlencode }}">{{ item }}</a>
+        {% endfor %}
+    </div>
+    <div class="product-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+        {% for item in data.updates %}
+        <a class="product-card news-card" href="/updates/{{ item.slug }}">
+            <div class="product-media" style="aspect-ratio: 16 / 9;">
+                <img src="{{ item.image }}" alt="{{ item.title }}">
+            </div>
+            <p class="product-meta">{{ item.category }} · {{ item.date }}</p>
+            <h3 class="product-name" style="font-size: 22px;">{{ item.title }}</h3>
+            <p class="product-price" style="text-transform: none; letter-spacing: 0; margin: 8px 0 12px;">{{ item.excerpt }}</p>
+            <p class="section-link">Read More</p>
+        </a>
+        {% else %}
+        <p class="prose-fraco">No updates in this category yet.</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

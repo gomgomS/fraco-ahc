@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}{{ data.article.title }} | FRACO{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+    <img src="{{ data.article.image }}" alt="{{ data.article.title }}">
+    <div class="page-hero-copy">
+        <p>{{ data.article.category }}</p>
+        <h1>{{ data.article.title }}</h1>
+        <p>{{ data.article.author or data.name }} · {{ data.article.date }}</p>
+    </div>
+</section>
+
+<section class="section">
+    <article class="prose-fraco" style="max-width: 720px; margin: 0 auto;">
+        {% if data.is_rich_content %}
+        <div class="article-rich-content">{{ data.content_html|safe }}</div>
+        {% else %}
+        {% for para in data.paragraphs %}
+        <p>{{ para }}</p>
+        {% endfor %}
+        {% endif %}
+        <p class="product-meta" style="margin-top: 32px;">Share</p>
+        <p>
+            <a class="section-link" href="{{ data.whatsapp_url }}" target="_blank" rel="noopener">WhatsApp</a>
+            ·
+            <a class="section-link" href="/updates">All updates</a>
+        </p>
+    </article>
+    {% if data.related %}
+    <div class="section-head" style="margin-top: 56px;">
+        <h2 class="section-title">Related</h2>
+    </div>
+    <div class="product-grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
+        {% for item in data.related %}
+        <a class="product-card news-card" href="/updates/{{ item.slug }}">
+            <p class="product-meta">{{ item.category }}</p>
+            <h3 class="product-name" style="font-size: 18px;">{{ item.title }}</h3>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

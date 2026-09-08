@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="id">
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <title>The Enrich City - Intip Proses Di Balik Pembangunan Tahap 1</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../../static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Additional CSS Files -->
+    <link rel="stylesheet" href="../../static/assets/css/fontawesome.css">
+    <link rel="stylesheet" href="../../static/assets/css/enrich-housing.css">
+    <link rel="stylesheet" href="../../static/assets/css/owl.css">
+    <link rel="stylesheet" href="../../static/assets/css/animate.css">
+    
+    <style>
+      .article-hero {
+        background: linear-gradient(135deg, #1a324c 0%, #2d5a8b 100%);
+        padding: 120px 0 80px 0;
+        color: white;
+        text-align: center;
+      }
+      .article-hero h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        color: #edcd94;
+      }
+      .article-hero .subtitle {
+        font-size: 1.2rem;
+        color: white;
+        opacity: 0.9;
+        margin-bottom: 30px;
+      }
+      .article-content {
+        padding: 80px 0;
+        background: #f8f9fa;
+      }
+      .article-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 60px 0;
+      }
+      .article-image {
+        width: 100%;
+        height: 400px;
+        object-fit: cover;
+        border-radius: 15px;
+        margin-bottom: 40px;
+      }
+      .article-title {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #1a324c;
+        margin-bottom: 30px;
+        text-align: center;
+      }
+      .article-intro {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: #555;
+        margin-bottom: 40px;
+        text-align: justify;
+      }
+      .process-section {
+        margin-bottom: 50px;
+      }
+      .process-item {
+        background: #f8f9fa;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 25px;
+        border-left: 5px solid #edcd94;
+      }
+      .process-number {
+        background: #1a324c;
+        color: #edcd94;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        margin-bottom: 20px;
+      }
+      .process-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #1a324c;
+        margin-bottom: 15px;
+      }
+      .process-content {
+        font-size: 1rem;
+        line-height: 1.7;
+        color: #555;
+        text-align: justify;
+      }
+      .cta-section {
+        background: linear-gradient(135deg, #edcd94 0%, #f4d9a8 100%);
+        padding: 40px;
+        border-radius: 15px;
+        text-align: center;
+        margin-top: 40px;
+      }
+      .cta-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1a324c;
+        margin-bottom: 20px;
+      }
+      .cta-text {
+        font-size: 1.1rem;
+        color: #1a324c;
+        margin-bottom: 25px;
+        line-height: 1.6;
+      }
+      .cta-btn {
+        background: #1a324c;
+        color: white;
+        padding: 15px 30px;
+        border: none;
+        border-radius: 25px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s ease;
+      }
+      .cta-btn:hover {
+        background: #2d5a8b;
+        color: white;
+        transform: translateY(-2px);
+      }
+      .back-btn {
+        position: fixed;
+        top: 100px;
+        left: 30px;
+        background: #1a324c;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: 600;
+        z-index: 1000;
+        transition: all 0.3s ease;
+      }
+      .back-btn:hover {
+        background: #2d5a8b;
+        color: white;
+      }
+      
+      @media (max-width: 768px) {
+        .article-hero h1 {
+          font-size: 2rem;
+        }
+        .article-container {
+          padding: 30px 20px;
+        }
+        .article-title {
+          font-size: 1.8rem;
+        }
+        .back-btn {
+          position: static;
+          margin-bottom: 20px;
+          display: inline-block;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- ***** Preloader Start ***** -->
+    <div id="preloader">
+        <div class="jumper">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+    </div>  
+    <!-- ***** Preloader End ***** -->
+
+    <!-- ***** Header Area Start ***** -->
+    <header class="header-area header-sticky">
+      <div class="container">
+        <div class="row">
+          <div class="col-12">
+            <nav class="main-nav">
+              <!-- ***** Logo Start ***** -->
+              <a href="/" class="logo">
+                <img src="../../static/assets/images/TheEnrichLogo2.png" alt="" class="logo-img">
+              </a>
+              <!-- ***** Logo End ***** -->
+              <!-- ***** Menu Start ***** -->
+              <ul class="nav" id="mainNav">
+                <li><a href="/">Home</a></li>
+                <li><a href="/about-us">About Us</a></li>
+                <li class="has-dropdown">
+                  <a href="javascript:void(0);">Product▾</a>
+                  <ul class="dropdown-menu-desktop">
+                    <li><a href="/product-list">Product List</a></li>
+                    <li><a href="/site-plan">Site Plan</a></li>
+                  </ul>
+                </li>
+                <!-- SUBMENU Akan diinject pakai JS -->
+                <!-- <li><a href="/project-overview">Project Overview</a></li> -->
+                <li><a href="/facility">Facility</a></li>
+                <li><a href="/news" class="active">News</a></li>
+                <li><a href="/contact">Contact Us</a></li>
+                <li><a href="https://wa.me/62811411951?text=Halo,%20saya%20ingin%20konsultasi%20tentang%20The%20Enrich%20City" target="_blank"><i class="fab fa-whatsapp" style="background-color: white; color: #222; padding: 6px; border-radius: 50%; margin-right: 5px;"></i> Consultation</a></li>
+              </ul>   
+              <a class='menu-trigger'>
+                <span>Menu</span>
+              </a>
+              <!-- ***** Menu End ***** -->
+            </nav>
+          </div>
+        </div>
+      </div>
+    </header>
+    <!-- ***** Header Area End ***** -->
+
+    <!-- Article Hero -->
+    <div class="article-hero">
+      <div class="container">
+        <h1>THE ENRICH CITY NEWS</h1>
+        <p class="subtitle">Berita dan Informasi Terkini</p>
+      </div>
+    </div>
+
+    <!-- Article Content -->
+    <div class="article-content">
+      <div class="container">
+        <div class="article-container">
+          <a href="/news" class="back-btn">← Kembali ke Highlight</a>
+          
+          <img src="../../static/assets/images/News_Intip Proses di balik pembangunan tahap 1 The Enrich City.webp" alt="Proses Pembangunan The Enrich City" class="article-image">
+          
+          <h1 class="article-title">Intip Proses Di Balik Pembangunan Tahap 1 The Enrich City</h1>
+          
+          <p class="article-intro">
+            Memilih rumah bukan hanya tentang desain dan lokasi, tapi juga tentang kepercayaan pada proses pembangunannya. Sebab, rumah yang dibangun dengan perencanaan matang dan pengawasan ketat akan memberikan kenyamanan dan ketenangan jangka panjang bagi penghuninya.
+          </p>
+          
+          <p class="article-intro">
+            Lantas, seperti apa sebenarnya proses pembangunan perumahan modern yang layak huni? Mari kita intip tahapan penting di balik pembangunan proyek hunian, khususnya tahap awalnya!
+          </p>
+
+          <div class="process-section">
+            <div class="process-item">
+              <div class="process-number">1</div>
+              <h3 class="process-title">Perencanaan dan Persiapan Lahan</h3>
+              <p class="process-content">
+                Sebelum pembangunan dimulai, tim pengembang melakukan survei lokasi, studi kelayakan, serta menyusun masterplan kawasan. Lahan diratakan dan ditata sesuai denah besar agar pembangunan berjalan rapi dan efisien. Tahap ini juga mencakup penentuan area fasilitas umum seperti taman, jalan utama, dan saluran air.
+              </p>
+            </div>
+
+            <div class="process-item">
+              <div class="process-number">2</div>
+              <h3 class="process-title">Pengerjaan Infrastruktur dan Fondasi</h3>
+              <p class="process-content">
+                Setelah lahan siap, pembangunan dimulai dari bawah: saluran drainase, pondasi rumah, jaringan listrik, dan air. Proses ini krusial karena akan menentukan kekuatan dan daya tahan bangunan dalam jangka panjang. Penggunaan material berkualitas dan metode konstruksi yang tepat menjadi prioritas utama.
+              </p>
+            </div>
+
+            <div class="process-item">
+              <div class="process-number">3</div>
+              <h3 class="process-title">Pembangunan Struktur dan Quality Control</h3>
+              <p class="process-content">
+                Setelah fondasi kokoh, struktur bangunan mulai dikerjakan: dinding, atap, hingga penyelesaian bagian dalam rumah. Seluruh proses diawasi oleh tim teknis profesional untuk memastikan bangunan aman, rapi, dan sesuai standar. Pengecekan berkala dilakukan mulai dari struktur, plumbing, hingga sistem kelistrikan.
+              </p>
+            </div>
+          </div>
+
+          <div class="cta-section">
+            <h3 class="cta-title">The Enrich City: Dari Perencanaan Hingga Siap Huni</h3>
+            <p class="cta-text">
+              Pembangunan tahap 1 di The Enrich City dilakukan secara bertahap, transparan, dan profesional. Setiap unit dibangun dengan standar tinggi, diawasi langsung oleh tim teknis berpengalaman, dan memprioritaskan kualitas.
+            </p>
+            <p class="cta-text">
+              Kini, Anda bisa menyaksikan langsung progres pembangunan kami—karena kami percaya, kepercayaan dimulai dari keterbukaan.
+            </p>
+            <p class="cta-text">
+              🏡 Segera miliki unit rumah impian Anda di The Enrich City tahap 1. Persediaan terbatas, booking sekarang sebelum kehabisan!<br>
+              📞 Hubungi tim marketing kami untuk info kunjungan dan penawaran spesial bulan ini!
+            </p>
+            <a href="/contact" class="cta-btn">Hubungi Kami Sekarang</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  <footer class="footer-pro">
+    <div class="container">
+      <div class="row">
+        <!-- Logo Section -->
+        <div class="col-lg-5 col-md-6 mb-4">
+          <div class="footer-logo-section">
+            <img src="../../static/assets/images/Design Icon-Logo Footer.webp" alt="The Enrich City Logo" class="footer-logo-img" width="200" height="60" loading="lazy">
+            <div class="footer-brand-info">
+              <!-- <h5 class="footer-brand-title">THE ENRICH CITY</h5> -->
+              <span class="footer-brand-comspanany" style="text-align: justify; display: block;">The Enrich City - Hunian modern berkonsep hijau di Kabupaten Mimika.
+                The Enrich City hadir sebagai simbol kenyamanan & Kualitas hidup
+                terbaik di Timur Indonesia.</span>
+              <!-- <p class="footer-brand-company">PT.PUINDO</p> -->
+            </div>
+          </div>
+        </div>
+        
+        <!-- Description Section -->
+        <div class="col-lg-3 col-md-6 mb-4">
+          <div class="footer-description">
+            <p class="footer-desc-text">
+              <!-- Dikembangkan di jantung Kota Mimika, The Enrich City adalah
+              kawasan hunian baru yang mengusung konsep hijau dan modern.
+              Dirancang untuk menghadirkan kenyamanan, ketenangan, serta
+              kualitas hidup yang lebih baik bagi keluarga masa kini.
+              The Enrich City menjadi simbol hunian masa depan di Timur
+              Indonesia. Dream City of The East. -->
+            </p>
+          </div>
+        </div>
+        <!-- Contact Section -->
+        <div class="col-lg-4 col-md-12 mb-4">
+          <div class="footer-contact">
+            <h6 class="footer-contact-title">Hubungi Kami</h6>
+            <div class="footer-contact-item">
+              <img src="../../static/assets/images/Design Icon-08.webp" alt="Instagram" class="footer-contact-icon">
+              <span class="footer-contact-text">theenrichcity</span>
+            </div>
+            <div class="footer-contact-item">
+              <img src="../../static/assets/images/Design Icon-09.webp" alt="WhatsApp" class="footer-contact-icon">
+              <span class="footer-contact-text">0811 411 951</span>
+            </div>
+            <div class="footer-contact-item">
+              <img src="../../static/assets/images/Design Icon-10.webp" alt="Location" class="footer-contact-icon">
+              <span class="footer-contact-text">Jalan Cendrawasih, Kelurahan Timika Indah, Kecamatan Mimika Baru, Kabupaten Mimika, Papua Tengah, 99910</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Copyright Section -->
+      <div class="row">
+        <div class="col-12">
+          <div class="footer-copyright">
+            <p class="mb-0">Hak Cipta © 2025 <strong>The Enrich City</strong>. Semua hak dilindungi.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+    <!-- Scripts -->
+    <!-- Bootstrap core JavaScript -->
+    <script src="../../static/vendor/jquery/jquery.min.js"></script>
+    <script src="../../static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Additional Scripts -->
+    <script src="../../static/assets/js/custom.js"></script>
+    <script src="../../static/assets/js/owl.js"></script>
+    <script src="../../static/assets/js/slick.js"></script>
+    <script src="../../static/assets/js/accordions.js"></script>
+
+    <script language = "text/Javascript"> 
+      cleared[0] = cleared[1] = cleared[2] = 0; //set a cleared flag for each field
+      function clearField(t){                   //declaring the array outside of the
+      if(! cleared[t.id]){                      // function makes it static and global
+          cleared[t.id] = 1;  // you could use true and false, but that's more typing
+          t.value='';         // with more chance of typos
+          t.style.color='#fff';
+          }
+      }
+    </script>
+
+    <!-- Mobile Menu JavaScript -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        // Mobile Menu Toggle
+        const menuTrigger = document.querySelector('.menu-trigger');
+        const nav = document.querySelector('.main-nav .nav');
+        const body = document.body;
+        
+        if (menuTrigger && nav) {
+          menuTrigger.addEventListener('click', function() {
+            menuTrigger.classList.toggle('active');
+            nav.classList.toggle('active');
+            body.style.overflow = nav.classList.contains('active') ? 'hidden' : '';
+          });
+          
+          // Close menu when clicking on menu items
+          const menuItems = nav.querySelectorAll('a');
+          menuItems.forEach(item => {
+            item.addEventListener('click', function() {
+              menuTrigger.classList.remove('active');
+              nav.classList.remove('active');
+              body.style.overflow = '';
+            });
+          });
+          
+          // Close menu when clicking outside
+          document.addEventListener('click', function(e) {
+            if (!menuTrigger.contains(e.target) && !nav.contains(e.target)) {
+              menuTrigger.classList.remove('active');
+              nav.classList.remove('active');
+              body.style.overflow = '';
+            }
+          });
+        }
+
+        // Mobile Dropdown Toggle for Product menu
+        const dropdownParents = document.querySelectorAll('.has-dropdown');
+        dropdownParents.forEach(parent => {
+          const parentLink = parent.querySelector('a');
+          if (parentLink && window.innerWidth <= 767) {
+            parentLink.addEventListener('click', function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              parent.classList.toggle('open');
+            });
+          }
+        });
+        
+        // Update dropdown behavior on window resize
+        window.addEventListener('resize', function() {
+          if (window.innerWidth > 767) {
+            dropdownParents.forEach(parent => {
+              parent.classList.remove('open');
+            });
+          }
+        });
+      });
+    </script>
+
+  </body>
+</html> 

@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}My Registration | FRACO{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="dash-layout">
+        {% include 'dashboard_nav.html' %}
+        <div>
+            <h1 class="section-title" style="margin-bottom: 24px;">My Registration</h1>
+            {% if data.participant %}
+            <p class="product-meta">{{ data.participant.reg_id }}</p>
+            <p>{{ data.participant.full_name }}</p>
+            <p>{{ data.participant.email }} · {{ data.participant.phone }}</p>
+            <p>{{ data.participant.address }} {{ data.participant.city }}</p>
+            <p class="product-meta" style="margin-top: 16px;">Status · {{ data.participant.registration_status }}</p>
+            <p class="product-meta">Plan · {{ data.participant.payment_plan }}</p>
+            <p class="product-meta">Shirt · {{ data.participant.shirt_size }}</p>
+            {% if data.participant.notes %}<p class="product-meta">Notes · {{ data.participant.notes }}</p>{% endif %}
+            {% else %}
+            <p class="prose-fraco">No registration yet. <a class="section-link" href="/register">Register Now</a></p>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

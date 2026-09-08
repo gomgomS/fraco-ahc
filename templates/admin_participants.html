@@ -1,0 +1,189 @@
+{% extends 'admin_base.html' %}
+{% block title %}Participants | Admin{% endblock %}
+{% block content %}
+<h1 class="section-title" style="margin-bottom: 12px;">Participants</h1>
+<p class="prose-fraco" style="margin-bottom: 28px;">
+            Participants: manage registered alumni / AHC members and their fundraising progress. Use this when you need member data, referral codes, or money tracking per person.
+        </p>
+
+<div class="filter-row" style="margin-bottom: 20px;">
+    <a class="filter-chip{% if data.part_section == 'overview' %} active{% endif %}" href="/admin/participants?section=overview">Overview</a>
+    <a class="filter-chip{% if data.part_section == 'ahc' %} active{% endif %}" href="/admin/participants?section=ahc&ahc_tab=list">AHC Members</a>
+    <a class="filter-chip{% if data.part_section == 'alumni' %} active{% endif %}" href="/admin/participants?section=alumni">Alumni</a>
+</div>
+
+{% if data.part_section == 'overview' %}
+<section class="admin-block part-overview">
+    <h2 class="section-title" style="font-size: 20px; margin: 0;">Class snapshot</h2>
+    <div class="dash-stats">
+        <article class="dash-stat">
+            <p class="product-meta">Total participants</p>
+            <h3>{{ data.overview_stats.total }}</h3>
+        </article>
+        <article class="dash-stat">
+            <p class="product-meta">AHC members</p>
+            <h3>{{ data.overview_stats.ahc_count }}</h3>
+        </article>
+        <article class="dash-stat">
+            <p class="product-meta">Alumni</p>
+            <h3>{{ data.overview_stats.alumni_count }}</h3>
+        </article>
+    </div>
+    <div class="dash-stats">
+        <article class="dash-stat">
+            <p class="product-meta">Merch profit (referral)</p>
+            <h3>{{ data.overview_stats.merch_total }}</h3>
+        </article>
+        <article class="dash-stat">
+            <p class="product-meta">Proposal received</p>
+            <h3>{{ data.overview_stats.proposal_total }}</h3>
+        </article>
+        <article class="dash-stat">
+            <p class="product-meta">Contribution (members)</p>
+            <h3>{{ data.overview_stats.contribution_total }}</h3>
+        </article>
+        <article class="dash-stat">
+            <p class="product-meta">Target achieved</p>
+            <h3>{{ data.overview_stats.achieved }}</h3>
+        </article>
+    </div>
+    <div class="dash-stats">
+        <article class="dash-stat">
+            <p class="product-meta">Members with sales</p>
+            <h3>{{ data.overview_stats.sellers }}</h3>
+        </article>
+        <article class="dash-stat">
+            <p class="product-meta">Members with proposal</p>
+            <h3>{{ data.overview_stats.proposers }}</h3>
+        </article>
+        <article class="dash-stat">
+            <p class="product-meta">Members who contributed</p>
+            <h3>{{ data.overview_stats.contributors }}</h3>
+        </article>
+    </div>
+    <p class="product-meta">Open <a class="section-link" href="/admin/participants?section=ahc&ahc_tab=overview">AHC Members → Overview</a> for per-member progress tracks.</p>
+</section>
+{% endif %}
+
+{% if data.part_section == 'ahc' %}
+<div class="filter-row" style="margin-bottom: 20px;">
+    <a class="filter-chip{% if data.ahc_tab == 'list' %} active{% endif %}" href="/admin/participants?section=ahc&ahc_tab=list">List</a>
+    <a class="filter-chip{% if data.ahc_tab == 'overview' %} active{% endif %}" href="/admin/participants?section=ahc&ahc_tab=overview&focus=active">Overview</a>
+</div>
+
+{% if data.ahc_tab == 'list' %}
+{% with table=data.list_table %}{% include 'admin_table.html' %}{% endwith %}
+{% else %}
+<section class="admin-block" style="margin-bottom: 24px;">
+    <div class="part-ahc-head">
+        <div>
+            {% if data.ahc_focus == 'active' %}
+            <h2 class="section-title" style="font-size: 20px; margin: 0 0 8px;">Active fundraising</h2>
+            <p class="product-meta">Showing members with any fundraising: merch sales, proposal, or own contribution.</p>
+            {% elif data.ahc_focus == 'own' %}
+            <h2 class="section-title" style="font-size: 20px; margin: 0 0 8px;">Own contribution</h2>
+            <p class="product-meta">Showing members whose own contribution pledge is marked Received.</p>
+            {% elif data.ahc_focus == 'sellers' %}
+            <h2 class="section-title" style="font-size: 20px; margin: 0 0 8px;">Merch sales</h2>
+            <p class="product-meta">Showing members with referral merchandise sales credited to them.</p>
+            {% elif data.ahc_focus == 'contributors' %}
+            <h2 class="section-title" style="font-size: 20px; margin: 0 0 8px;">Proposal</h2>
+            <p class="product-meta">Showing members with Support Us pledges from others using their referral (Received).</p>
+            {% else %}
+            <h2 class="section-title" style="font-size: 20px; margin: 0 0 8px;">All AHC members</h2>
+            <p class="product-meta">Showing every AHC member, including those with zero raised.</p>
+            {% endif %}
+        </div>
+        <div class="filter-row" style="margin: 0;">
+            <a class="filter-chip{% if data.ahc_focus == 'active' %} active{% endif %}" href="/admin/participants?section=ahc&ahc_tab=overview&focus=active">Active</a>
+            <a class="filter-chip{% if data.ahc_focus == 'own' %} active{% endif %}" href="/admin/participants?section=ahc&ahc_tab=overview&focus=own">Own contribution</a>
+            <a class="filter-chip{% if data.ahc_focus == 'sellers' %} active{% endif %}" href="/admin/participants?section=ahc&ahc_tab=overview&focus=sellers">Has merch sales</a>
+            <a class="filter-chip{% if data.ahc_focus == 'contributors' %} active{% endif %}" href="/admin/participants?section=ahc&ahc_tab=overview&focus=contributors">Has proposal</a>
+            <a class="filter-chip{% if data.ahc_focus == 'all' %} active{% endif %}" href="/admin/participants?section=ahc&ahc_tab=overview&focus=all">All members</a>
+        </div>
+    </div>
+</section>
+
+{% if data.ahc_cards %}
+<div class="part-card-grid">
+    {% for card in data.ahc_cards %}
+    <article class="part-card{% if card.achieved %} part-card-done{% endif %}">
+        <header class="part-card-head">
+            <div>
+                <a class="section-link" href="{{ card.href }}" style="font-size: 18px;">{{ card.name }}</a>
+                <p class="product-meta">{{ card.reg_id }} · referral {{ card.referral_code }}</p>
+            </div>
+            <div class="part-card-badge">{{ card.combined_pct }}%</div>
+        </header>
+
+        <div class="part-card-metrics">
+            <div>
+                <p class="product-meta">Merch profit</p>
+                <p class="part-card-value">{{ card.merch }}</p>
+            </div>
+            <div>
+                <p class="product-meta">Proposal</p>
+                <p class="part-card-value">{{ card.proposal }}</p>
+            </div>
+            <div>
+                <p class="product-meta">Own contribution</p>
+                <p class="part-card-value">{{ card.self_contribution }}</p>
+            </div>
+        </div>
+
+        <div class="part-card-tracks">
+            <div>
+                <div class="part-track-label"><span>Merchandise</span><span>{{ card.merch_pct }}%</span></div>
+                <div class="proposal-track part-track-sm">
+                    <div class="proposal-track-fill" style="width: {{ card.merch_marker }}%;"></div>
+                    <div class="proposal-track-marker" style="left: {{ card.merch_marker }}%;">
+                        <span class="proposal-track-dot"></span>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="part-track-label"><span>Proposal (referrals)</span><span>{{ card.proposal_pct }}%</span></div>
+                <div class="proposal-track part-track-sm">
+                    <div class="proposal-track-fill" style="width: {{ card.proposal_marker }}%;"></div>
+                    <div class="proposal-track-marker" style="left: {{ card.proposal_marker }}%;">
+                        <span class="proposal-track-dot"></span>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="part-track-label"><span>Own contribution</span><span>{{ card.self_pct }}%</span></div>
+                <div class="proposal-track part-track-sm">
+                    <div class="proposal-track-fill" style="width: {{ card.self_marker }}%;"></div>
+                    <div class="proposal-track-marker" style="left: {{ card.self_marker }}%;">
+                        <span class="proposal-track-dot"></span>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="part-track-label"><span>Combined vs target {{ card.target }}</span><span>{{ card.combined }}</span></div>
+                <div class="proposal-track">
+                    <div class="proposal-track-fill" style="width: {{ card.combined_marker }}%;"></div>
+                    <div class="proposal-track-marker" style="left: {{ card.combined_marker }}%;">
+                        <span class="proposal-track-dot"></span>
+                        <span class="proposal-track-bubble">{{ card.combined }}</span>
+                    </div>
+                </div>
+                <div class="proposal-track-ends">
+                    <span>Rp 0</span>
+                    <span>{{ card.target }}</span>
+                </div>
+            </div>
+        </div>
+    </article>
+    {% endfor %}
+</div>
+{% else %}
+<p class="prose-fraco">No members match this filter yet.</p>
+{% endif %}
+{% endif %}
+{% endif %}
+
+{% if data.part_section == 'alumni' %}
+{% with table=data.list_table %}{% include 'admin_table.html' %}{% endwith %}
+{% endif %}
+{% endblock %}

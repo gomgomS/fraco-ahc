@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="id">
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <title>The Enrich City - Highlight & News</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../../static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Additional CSS Files -->
+    <link rel="stylesheet" href="../../static/assets/css/fontawesome.css">
+    <link rel="stylesheet" href="../../static/assets/css/enrich-housing.css">
+    <link rel="stylesheet" href="../../static/assets/css/owl.css">
+    <link rel="stylesheet" href="../../static/assets/css/animate.css">    
+    <style>
+      .highlight-section {
+        background: #f7faff;
+        padding: 70px 0 54px 0;
+      }
+      .marketing-title {
+        margin-bottom: 42px;
+      }
+      .marketing-label {
+        display: block;
+        font-size: 1.06rem;
+        color: #1a324c;
+        font-weight: 600;
+        margin-bottom: 10px;
+        letter-spacing: 1.1px;
+      }
+      .marketing-main-title {
+        font-size: 2.1rem;
+        font-weight: 700;
+        color: #161d2a;
+        margin-bottom: 8px;
+      }
+      .marketing-desc {
+        color: #28324b;
+        font-size: 1.08rem;
+        margin-bottom: 0;
+      }
+      .marketing-team-list {
+        margin-top: 16px;
+      }
+      .marketing-card {
+        background: #fff;
+        border-radius: 18px;
+        box-shadow: 0 5px 28px rgba(44, 60, 140, 0.09);
+        overflow: hidden;
+        transition: box-shadow .19s, transform .19s;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .marketing-card:hover {
+        box-shadow: 0 13px 38px rgba(44,60,140,0.16);
+        transform: translateY(-2px) scale(1.03);
+      }
+      .marketing-card-img {
+        width: 108px;
+        height: 108px;
+        object-fit: cover;
+        border-radius: 50%;
+        margin-top: 24px;
+        margin-bottom: 12px;
+        border: 3px solid #1a324c0d;
+      }
+      .marketing-card-body {
+        padding: 18px 18px 24px 18px;
+        text-align: center;
+      }
+      .marketing-card-title {
+        font-size: 1.18rem;
+        font-weight: 700;
+        color: #181a2f;
+        margin-bottom: 3px;
+      }
+      .marketing-card-role {
+        color: #1a324c;
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      .marketing-card-contact {
+        color: #525b7a;
+        font-size: 0.99rem;
+        margin-bottom: 10px;
+        line-height: 1.7;
+      }
+      .wa-btn {
+        background: #23c163;
+        color: #fff;
+        border: none;
+        border-radius: 22px;
+        padding: 7px 22px;
+        font-size: 1rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: background .13s;
+        display: inline-block;
+      }
+      .wa-btn:hover {
+        background: #1e9e52;
+        color: #fff;
+      }
+
+      /* Responsive */
+      @media (max-width: 991px){
+        .highlight-section { padding: 32px 0 18px 0; }
+        .marketing-main-title { font-size: 1.23rem;}
+      }
+      @media (max-width: 600px){
+        .marketing-main-title { font-size: 1.07rem;}
+        .marketing-card-img { width: 78px; height: 78px;}
+        .marketing-card-body { padding: 12px 7px 16px 7px; }
+      }
+
+      /* part cta section impian */
+      .cta-section-impian {
+        background: #fff;
+        padding: 64px 0 38px 0;
+      }
+      .cta-impian-title {
+        font-size: 2.1rem;
+        font-weight: 700;
+        color: #181a2f;
+        margin-bottom: 16px;
+        letter-spacing: 0.2px;
+      }
+      .cta-impian-desc {
+        color: #384052;
+        font-size: 1.1rem;
+        margin-bottom: 30px;
+        max-width: 650px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .cta-impian-btn {
+        background: #1a324c;
+        color: #fff;
+        font-weight: 600;
+        border: none;
+        border-radius: 28px;
+        font-size: 1.07rem;
+        padding: 14px 34px 13px 34px;
+        text-decoration: none;
+        box-shadow: 0 2px 8px rgba(44,60,140,0.08);
+        transition: background .16s, box-shadow .16s;
+        display: inline-block;
+      }
+      .cta-impian-btn:hover {
+        background: #191f5d;
+        color: #fff;
+        box-shadow: 0 7px 16px rgba(44,60,140,0.14);
+      }
+      @media (max-width: 768px){
+        .cta-section-impian { padding: 40px 0 16px 0; }
+        .cta-impian-title { font-size: 1.13rem; }
+      }
+      /* part cta section impian end */
+
+      /* Highlight Section */
+      .highlight-section {
+        background: #f7faff;
+        padding: 70px 0 54px 0;
+      }
+      .highlight-title {
+        margin-bottom: 42px;
+      }
+      .highlight-label {
+        display: block;
+        font-size: 1.06rem;
+        color: #1a324c;
+        font-weight: 600;
+        margin-bottom: 10px;
+        letter-spacing: 1.1px;
+      }
+      .highlight-main-title {
+        font-size: 2.1rem;
+        font-weight: 700;
+        color: #161d2a;
+        margin-bottom: 8px;
+      }
+      .highlight-desc {
+        color: #28324b;
+        font-size: 1.08rem;
+        margin-bottom: 0;
+      }
+      .highlight-articles-list {
+        margin-top: 16px;
+      }
+      .article-card {
+        background: #fff;
+        border-radius: 18px;
+        box-shadow: 0 5px 28px rgba(44, 60, 140, 0.09);
+        overflow: hidden;
+        transition: box-shadow .19s, transform .19s;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .article-card:hover {
+        box-shadow: 0 13px 38px rgba(44,60,140,0.16);
+        transform: translateY(-2px) scale(1.03);
+      }
+      .article-card-img {
+        width: 100%;
+        height: 200px; /* Adjust as needed */
+        object-fit: cover;
+        border-radius: 18px 18px 0 0;
+      }
+      .article-card-body {
+        padding: 18px 18px 24px 18px;
+        text-align: center;
+      }
+      .article-category {
+        display: inline-block;
+        background: #1a324c;
+        color: #fff;
+        font-size: 0.85rem;
+        font-weight: 600;
+        padding: 5px 12px;
+        border-radius: 15px;
+        margin-bottom: 10px;
+        letter-spacing: 0.5px;
+      }
+      .article-card-title {
+        font-size: 1.18rem;
+        font-weight: 700;
+        color: #181a2f;
+        margin-bottom: 3px;
+      }
+      .article-card-text {
+        color: #28324b;
+        font-size: 0.95rem;
+        margin-bottom: 15px;
+        line-height: 1.6;
+      }
+      .article-meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85rem;
+        color: #525b7a;
+        margin-bottom: 15px;
+      }
+      .read-more-btn {
+        background: #1a324c;
+        color: #fff;
+        border: none;
+        border-radius: 22px;
+        padding: 7px 22px;
+        font-size: 1rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: background .13s;
+        display: inline-block;
+      }
+      .read-more-btn:hover {
+        background: #191f5d;
+        color: #fff;
+      }
+
+      /* Responsive */
+      @media (max-width: 991px){
+        .highlight-section { padding: 32px 0 18px 0; }
+        .highlight-main-title { font-size: 1.23rem;}
+      }
+      @media (max-width: 600px){
+        .highlight-main-title { font-size: 1.07rem;}
+        .article-card-img { height: 150px; }
+        .article-card-body { padding: 12px 7px 16px 7px; }
+      }
+
+    </style>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="../../static/assets/images/TheEnrichLogo2.png" type="image/png">
+  </head>
+
+
+<body>
+
+  <!-- ***** Preloader Start ***** -->
+  <div id="js-preloader" class="js-preloader">
+    <div class="preloader-inner">
+      <span class="dot"></span>
+      <div class="dots">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+  </div>
+  <!-- ***** Preloader End ***** -->
+
+  <!-- <div class="sub-header">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 col-md-8">
+          <ul class="info">
+            <li><i class="fa fa-envelope"></i> info@enrichcity.com</li>
+            <li><i class="fa fa-map"></i> Mimika, Papua, Indonesia</li>
+          </ul>
+        </div>
+        <div class="col-lg-4 col-md-4">
+          <ul class="social-links">
+            <li><a href="#"><i class="fab fa-facebook"></i></a></li>
+            <li><a href="#"><i class="fab fa-twitter"></i></a></li>
+            <li><a href="#"><i class="fab fa-linkedin"></i></a></li>
+            <li><a href="https://www.instagram.com/theenrichcity/" target="_blank"><i class="fab fa-instagram"></i></a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div> -->
+
+  <!-- ***** Header Area Start ***** -->
+  <header class="header-area header-sticky">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <nav class="main-nav">
+                    <!-- ***** Logo Start ***** -->
+                    <a href="index.html" class="logo">
+                        <img src="../../static/assets/images/TheEnrichLogo2.png" alt="" class="logo-img">
+                    </a>
+                    <!-- ***** Logo End ***** -->
+                    <!-- ***** Menu Start ***** -->
+                    <ul class="nav" id="mainNav">
+                      <li><a href="/">Home</a></li>
+                      <li><a href="/about-us">About Us</a></li>
+                      <li class="has-dropdown">
+                        <a href="javascript:void(0);">Product▾</a>
+                        <ul class="dropdown-menu-desktop">
+                          <li><a href="/product-list">Product List</a></li>
+                          <li><a href="/site-plan">Site Plan</a></li>
+                        </ul>
+                      </li>
+                      <!-- SUBMENU Akan diinject pakai JS -->
+                      <!-- <li><a href="/project-overview">Project Overview</a></li> -->
+                      <li><a href="/facility">Facility</a></li>
+                      <li><a href="/news" class="active">News</a></li>
+                      <li><a href="/contact">Contact Us</a></li>
+                      <li><a href="https://wa.me/62811411951?text=Halo,%20saya%20ingin%20konsultasi%20tentang%20The%20Enrich%20City" target="_blank"><i class="fab fa-whatsapp" style="background-color: white; color: #222; padding: 6px; border-radius: 50%; margin-right: 5px;"></i> Consultation</a></li>
+                    </ul>   
+                    <a class='menu-trigger'>
+                        <span>Menu</span>
+                    </a>
+                    <!-- ***** Menu End ***** -->
+                </nav>
+            </div>
+        </div>
+    </div>
+  </header>
+  <!-- ***** Header Area End ***** -->
+
+  <div class="page-heading header-text">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-12">          
+          <h3 class="fadein-heading">News</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: Highlight Articles -->
+  <div class="highlight-section">
+    <div class="container">
+      <div class="highlight-title text-center">
+        <span class="highlight-label">Latest News</span>
+        <h2 class="highlight-main-title">Berita & Update Terbaru</h2>
+        <p class="highlight-desc">
+          Dapatkan informasi terbaru seputar The Enrich City, tips properti, dan update pembangunan terkini.
+        </p>
+      </div>
+      <div class="row justify-content-center g-4 highlight-articles-list">
+        <!-- Article 1 -->
+        <div class="col-lg-6 col-md-6">
+          <div class="article-card">
+            <img src="../../static/assets/images/News_3 Tips memiliki Rumah untuk Pasangan Ideal.webp" class="article-card-img" alt="Tips Memilih Rumah">
+            <div class="article-card-body">
+              <span class="article-category">Tips</span>
+              <h5 class="article-card-title">3 Tips Memilih Rumah Ideal untuk Pasangan Baru!</h5>
+              <p class="article-card-text">Memulai hidup bersama pasangan adalah babak baru yang penuh harapan. Salah satu keputusan penting dalam perjalanan ini adalah memilih rumah pertama yang ideal.</p>
+              <div class="article-meta">
+                <span class="article-date"><i class="fa fa-calendar"></i> 15 Januari 2025</span>
+                <span class="article-author"><i class="fa fa-user"></i> Tim Marketing</span>
+              </div>
+              <a href="/article-1" class="read-more-btn">Baca Selengkapnya</a>
+            </div>
+          </div>
+        </div>
+        <!-- Article 2 -->
+        <div class="col-lg-6 col-md-6">
+          <div class="article-card">
+          
+            <img src="../../static/assets/images/News_Intip Proses di balik pembangunan tahap 1 The Enrich City.webp" class="article-card-img" alt="Proses Pembangunan">
+            <div class="article-card-body">
+              <span class="article-category">Progress</span>
+              <h5 class="article-card-title">Intip Proses Di Balik Pembangunan Tahap 1 The Enrich City</h5>
+              <p class="article-card-text">Memilih rumah bukan hanya tentang desain dan lokasi, tapi juga tentang kepercayaan pada proses pembangunannya. Sebab, rumah yang dibangun dengan perencanaan matang dan pengawasan ketat akan memberikan kenyamanan dan ketenangan jangka panjang bagi penghuninya.</p>
+              <div class="article-meta">
+                <span class="article-date"><i class="fa fa-calendar"></i> 12 Januari 2025</span>
+                <span class="article-author"><i class="fa fa-user"></i> Tim Marketing</span>
+              </div>
+              <a href="/article-2" class="read-more-btn">Baca Selengkapnya</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-section-impian">
+    <div class="container text-center">
+      <h2 class="cta-impian-title">Konsultasikan Kebutuhan Properti Anda</h2>
+      <p class="cta-impian-desc">
+        Tim Marketing kami siap membantu mulai dari info, survey, hingga proses transaksi secara profesional & aman!
+      </p>
+      <a href="https://wa.me/0811411951" class="cta-impian-btn" target="_blank">
+        Hubungi Marketing Sekarang
+      </a>
+    </div>
+  </div>
+
+  <!-- <div class="page-heading header-text">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-12">          
+          <h3 class="fadein-heading">Marketing Executive</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="highlight-section">
+    <div class="container">
+      <div class="marketing-title text-center">
+        <span class="marketing-label">Marketing Executive</span>
+        <h2 class="marketing-main-title">Tim Marketing The Enrich City</h2>
+        <p class="marketing-desc">
+          Siap membantu Anda menemukan hunian impian di The Enrich City.  
+          Konsultasi gratis, profesional, dan ramah!
+        </p>
+      </div>
+      <div class="row justify-content-center g-4 marketing-team-list">
+        <div class="col-lg-4 col-md-6">
+          <div class="marketing-card">
+            <img src="../../static/assets/images/enrico-example-about-us.webp" class="marketing-card-img" alt="Marketing 1">
+            <div class="marketing-card-body">
+              <h5 class="marketing-card-title">Andi Wijaya</h5>
+              <p class="marketing-card-role">Senior Marketing Executive</p>
+              <p class="marketing-card-contact">
+                <i class="fa fa-phone"></i> 0812-1234-5678<br>
+                <i class="fa fa-envelope"></i> andi@enrichcity.com
+              </p>
+              <a href="https://wa.me/0811411951" class="wa-btn" target="_blank">
+                Chat via WhatsApp
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-4 col-md-6">
+          <div class="marketing-card">
+            <img src="../../static/assets/images/enrico-example-about-us.webp" class="marketing-card-img" alt="Marketing 2">
+            <div class="marketing-card-body">
+              <h5 class="marketing-card-title">Sari Putri</h5>
+              <p class="marketing-card-role">Marketing Executive</p>
+              <p class="marketing-card-contact">
+                <i class="fa fa-phone"></i> 0821-9876-5432<br>
+                <i class="fa fa-envelope"></i> sari@enrichcity.com
+              </p>
+              <a href="https://wa.me/6282198765432" class="wa-btn" target="_blank">
+                Chat via WhatsApp
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div> -->
+
+  <footer class="footer-pro">
+    <div class="container">
+      <div class="row">
+        <!-- Logo Section -->
+        <div class="col-lg-5 col-md-6 mb-4">
+          <div class="footer-logo-section">
+            <img src="../../static/assets/images/Design Icon-Logo Footer.webp" alt="The Enrich City Logo" class="footer-logo-img" width="200" height="60" loading="lazy">
+            <div class="footer-brand-info">
+              <!-- <h5 class="footer-brand-title">THE ENRICH CITY</h5> -->
+              <span class="footer-brand-comspanany" style="text-align: justify; display: block;">The Enrich City - Hunian modern berkonsep hijau di Kabupaten Mimika.
+                The Enrich City hadir sebagai simbol kenyamanan & Kualitas hidup
+                terbaik di Timur Indonesia.</span>
+              <!-- <p class="footer-brand-company">PT.PUINDO</p> -->
+            </div>
+          </div>
+        </div>
+        
+        <!-- Description Section -->
+        <div class="col-lg-3 col-md-6 mb-4">
+          <div class="footer-description">
+            <p class="footer-desc-text">
+              <!-- Dikembangkan di jantung Kota Mimika, The Enrich City adalah
+              kawasan hunian baru yang mengusung konsep hijau dan modern.
+              Dirancang untuk menghadirkan kenyamanan, ketenangan, serta
+              kualitas hidup yang lebih baik bagi keluarga masa kini.
+              The Enrich City menjadi simbol hunian masa depan di Timur
+              Indonesia. Dream City of The East. -->
+            </p>
+          </div>
+        </div>
+        <!-- Contact Section -->
+        <div class="col-lg-4 col-md-12 mb-4">
+          <div class="footer-contact">
+            <h6 class="footer-contact-title">Hubungi Kami</h6>
+            <div class="footer-contact-item">
+              <img src="../../static/assets/images/Design Icon-08.webp" alt="Instagram" class="footer-contact-icon">
+              <span class="footer-contact-text">theenrichcity</span>
+            </div>
+            <div class="footer-contact-item">
+              <img src="../../static/assets/images/Design Icon-09.webp" alt="WhatsApp" class="footer-contact-icon">
+              <span class="footer-contact-text">0811 411 951</span>
+            </div>
+            <div class="footer-contact-item">
+              <img src="../../static/assets/images/Design Icon-10.webp" alt="Location" class="footer-contact-icon">
+              <span class="footer-contact-text">Jalan Cendrawasih, Kelurahan Timika Indah, Kecamatan Mimika Baru, Kabupaten Mimika, Papua Tengah, 99910</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Copyright Section -->
+      <div class="row">
+        <div class="col-12">
+          <div class="footer-copyright">
+            <p class="mb-0">Hak Cipta © 2025 <strong>The Enrich City</strong>. Semua hak dilindungi.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+  
+
+  <!-- Scripts -->
+  <!-- Bootstrap core JavaScript -->
+  <script src="../../static/vendor/jquery/jquery.min.js"></script>
+  <script src="../../static/vendor/bootstrap/js/bootstrap.min.js"></script>
+  <script src="../../static/assets/js/isotope.min.js"></script>
+  <script src="../../static/assets/js/owl-carousel.js"></script>
+  <script src="../../static/assets/js/counter.js"></script>
+  <script src="../../static/assets/js/custom.js"></script>
+
+
+  <!-- Mobile Menu JavaScript -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Mobile Menu Toggle
+      const menuTrigger = document.querySelector('.menu-trigger');
+      const nav = document.querySelector('.main-nav .nav');
+      const body = document.body;
+      
+      if (menuTrigger && nav) {
+        menuTrigger.addEventListener('click', function() {
+          menuTrigger.classList.toggle('active');
+          nav.classList.toggle('active');
+          body.style.overflow = nav.classList.contains('active') ? 'hidden' : '';
+        });
+        
+        // Close menu when clicking on menu items
+        const menuItems = nav.querySelectorAll('a');
+        menuItems.forEach(item => {
+          item.addEventListener('click', function() {
+            menuTrigger.classList.remove('active');
+            nav.classList.remove('active');
+            body.style.overflow = '';
+          });
+        });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', function(e) {
+          if (!menuTrigger.contains(e.target) && !nav.contains(e.target)) {
+            menuTrigger.classList.remove('active');
+            nav.classList.remove('active');
+            body.style.overflow = '';
+          }
+        });
+      }
+
+      // Mobile Dropdown Toggle for Properti menu
+      const dropdownParents = document.querySelectorAll('.has-dropdown');
+      dropdownParents.forEach(parent => {
+        const parentLink = parent.querySelector('a');
+        if (parentLink && window.innerWidth <= 767) {
+          parentLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            parent.classList.toggle('open');
+          });
+        }
+      });
+      
+      // Update dropdown behavior on window resize
+      window.addEventListener('resize', function() {
+        if (window.innerWidth > 767) {
+          dropdownParents.forEach(parent => {
+            parent.classList.remove('open');
+          });
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>

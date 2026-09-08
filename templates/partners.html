@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}Partners | FRACO{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+    <img src="/static/upload/heroes/6081bc377aaffde0b316.jpg" alt="FRACO partners">
+    <div class="page-hero-copy">
+        <p>{{ data.name }}</p>
+        <h1>Partners</h1>
+        <p>{{ data.event_full_name }} · {{ data.class_label }}</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="prose-fraco" style="text-align: center; margin-bottom: 40px;">
+        <h2 class="section-title" style="margin: 0 0 16px;">Partner with FRACO</h2>
+        <p class="hero-actions" style="justify-content: center; margin-top: 24px;">
+            <a class="btn-black" href="/sponsorship">Become a Sponsor</a>
+            <a class="btn-line" href="/sponsorship/apply">Request proposal</a>
+        </p>
+    </div>
+</section>
+
+<section class="section" style="padding-top: 0;">
+    <div class="section-head">
+        <h2 class="section-title">Sponsorship</h2>
+        <a class="section-link" href="/sponsorship">View packages</a>
+    </div>
+    <div class="product-grid">
+        {% for item in data.packages %}
+        <article class="product-card">
+            <p class="product-meta">{{ item.amount }}</p>
+            <h3 class="product-name" style="font-size: 20px;">{{ item.name }}</h3>
+            <p class="product-price" style="text-transform: none; letter-spacing: 0;">{{ item.promo }}</p>
+            <p style="margin-top: 16px;"><a class="btn-line" href="/sponsorship/apply">Become a Sponsor</a></p>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="section" style="padding-top: 0;">
+    <div class="section-head">
+        <h2 class="section-title">Event vendors</h2>
+        <a class="section-link" href="/vendors">Vendor listing</a>
+    </div>
+    <div class="filter-row">
+        {% for item in data.vendor_categories %}
+        <span class="filter-chip">{{ item.name }}</span>
+        {% endfor %}
+    </div>
+    <p style="margin-top: 8px;"><a class="btn-black" href="/vendor/register">Register as Vendor</a></p>
+</section>
+
+<section class="section" style="padding-top: 0;">
+    <div class="section-head">
+        <h2 class="section-title">University partners</h2>
+        <a class="section-link" href="/programs/university-fair">University Fair</a>
+    </div>
+    <div class="prose-fraco">
+        <p>Universities join Alumni Home Coming 2027 through University Fair booths. After FRACO confirms an application and enables “show as participant campus,” it appears on the University Fair page.</p>
+        <p style="margin-top: 24px;"><a class="btn-line" href="/university-fair/register">Book a University Fair Booth</a></p>
+    </div>
+</section>
+{% endblock %}

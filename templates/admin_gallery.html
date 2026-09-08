@@ -1,0 +1,26 @@
+{% extends 'admin_base.html' %}
+{% block title %}Gallery | Admin{% endblock %}
+{% block content %}
+<h1 class="section-title" style="margin-bottom: 12px;">Gallery</h1>
+<p class="product-meta" style="margin: 0 0 20px; max-width: 60ch;">Gallery: upload photos into albums for the public gallery. Use this when you want to show images without writing an article.</p>
+{% with table=data.list_table %}{% include 'admin_table.html' %}{% endwith %}
+{% if data.can_write %}
+<h2 class="section-title" style="font-size: 20px; margin: 40px 0 12px;">Add image</h2>
+<form class="form-stack" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="action" value="add">
+    <div>
+        <label class="field-label" for="album">Album</label>
+        <select class="field" name="album" id="album">
+            {% for item in data.albums %}
+            <option value="{{ item }}">{{ item }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div><label class="field-label" for="alt">Caption / alt</label><input class="field" name="alt" id="alt"></div>
+    <div><label class="field-label" for="order">Order</label><input class="field" name="order" id="order" value="0"></div>
+    <div><label class="field-label" for="image">Image URL</label><input class="field" name="image" id="image"></div>
+    <div><label class="field-label" for="file">Or upload</label><input class="field" type="file" name="file" id="file" accept=".jpg,.jpeg,.png,.webp"></div>
+    <button class="btn-black" type="submit">Add</button>
+</form>
+{% endif %}
+{% endblock %}

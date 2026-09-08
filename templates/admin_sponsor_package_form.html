@@ -1,0 +1,47 @@
+{% extends 'admin_base.html' %}
+{% block title %}{% if data.row.pkey %}Edit{% else %}New{% endif %} package | Admin{% endblock %}
+{% block content %}
+<p class="product-meta"><a class="section-link" href="/admin/sponsors/packages">Packages</a></p>
+{% include 'admin_sponsors_tabs.html' %}
+<h1 class="section-title" style="margin: 8px 0 24px;">{% if data.row.pkey %}Edit{% else %}Create{% endif %} package</h1>
+
+{% if data.form_error %}
+<p class="prose-fraco" style="color: #b00000; margin-bottom: 16px;">{{ data.form_error }}</p>
+{% endif %}
+
+<form class="form-stack" method="post">
+    <div><label class="field-label" for="name">Name</label><input class="field" name="name" id="name" value="{{ data.row.name or '' }}" required placeholder="e.g. Package A"></div>
+    <div><label class="field-label" for="slug">Slug</label><input class="field" name="slug" id="slug" value="{{ data.row.slug or '' }}" placeholder="auto from name if blank">
+        <p class="product-meta" style="margin-top: 8px;">Used on applications (package_slug). Keep stable once companies start applying.</p>
+    </div>
+    <div><label class="field-label" for="amount">Amount / price label</label><input class="field" name="amount" id="amount" value="{{ data.row.amount or '' }}" placeholder="e.g. On request · Rp 50.000.000"></div>
+    <div><label class="field-label" for="promo">Short promo (partners cards)</label><input class="field" name="promo" id="promo" value="{{ data.row.promo or '' }}" placeholder="One-line highlight"></div>
+    <div>
+        <label class="field-label" for="benefits">Benefits (one per line)</label>
+        <textarea class="field" name="benefits" id="benefits" rows="6" placeholder="Lead partner mention&#10;Priority logo placement&#10;Opening remarks">{% if data.row.benefits is string %}{{ data.row.benefits }}{% elif data.row.benefits %}{{ data.row.benefits|join('\n') }}{% endif %}</textarea>
+    </div>
+    <div><label class="field-label" for="logo_placement">Logo placement</label><input class="field" name="logo_placement" id="logo_placement" value="{{ data.row.logo_placement or '' }}"></div>
+    <div><label class="field-label" for="booth">Booth</label><input class="field" name="booth" id="booth" value="{{ data.row.booth or '' }}"></div>
+    <div><label class="field-label" for="other">Other notes</label><textarea class="field" name="other" id="other" rows="3">{{ data.row.other or '' }}</textarea></div>
+    <div><label class="field-label" for="order">Display order</label><input class="field" name="order" id="order" type="number" value="{{ data.row.order or 0 }}"></div>
+    <div>
+        <label class="field-label" for="status">Status</label>
+        <select class="field" name="status" id="status">
+            {% for item in data.package_statuses %}
+            <option value="{{ item }}"{% if (data.row.status or 'ENABLE') == item %} selected{% endif %}>{{ item }}</option>
+            {% endfor %}
+        </select>
+        <p class="product-meta" style="margin-top: 8px;">ENABLE = shown on the public partners / sponsorship pages. DISABLE = hidden.</p>
+    </div>
+    {% if data.can_write %}
+    <button class="btn-black" type="submit">Save package</button>
+    {% endif %}
+</form>
+
+{% if data.row.pkey and data.can_delete %}
+<form method="post" style="margin-top: 16px;" onsubmit="return confirm('Delete this package? It will disappear from the public site.');">
+    <input type="hidden" name="action" value="delete">
+    <button class="btn-line" type="submit">Delete package</button>
+</form>
+{% endif %}
+{% endblock %}

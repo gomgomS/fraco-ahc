@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Events | FRACO{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="dash-layout">
+        {% include 'dashboard_nav.html' %}
+        <div>
+            <h1 class="section-title" style="margin-bottom: 12px;">{{ data.dash.events_title }}</h1>
+            <p class="product-meta" style="margin-bottom: 24px; max-width: 52ch;">{{ data.dash.events_intro }}</p>
+            {% if data.events %}
+            <div class="product-grid">
+                {% for item in data.events %}
+                <article class="product-card">
+                    <p class="product-meta">{{ item.event_status }} · {{ item.date }}</p>
+                    <h3 class="product-name" style="font-size: 20px;">{{ item.title }}</h3>
+                    <p class="product-price" style="text-transform: none; letter-spacing: 0;">{{ item.location }}</p>
+                    <p class="product-meta">{{ item.description }}</p>
+                </article>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="prose-fraco">{{ data.dash.events_empty }}</p>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

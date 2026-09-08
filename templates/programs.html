@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Programs | FRACO{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+    <img src="/static/upload/heroes/03d4044065f01129e515.jpg" alt="FRACO programs">
+    <div class="page-hero-copy">
+        <p>{{ data.name }}</p>
+        <h1>Programs</h1>
+        <p>{{ data.event_full_name }} · {{ data.class_label }}</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="product-grid">
+        {% for item in data.programs %}
+        <a class="product-card" href="/programs/{{ item.slug }}">
+            <div class="product-media">
+                <img src="{{ item.image }}" alt="{{ item.title }}">
+            </div>
+            <h3 class="product-name">{{ item.title }}</h3>
+            <p class="product-meta">{{ item.description }}</p>
+            <p class="section-link" style="margin-top: 10px;">Learn More</p>
+        </a>
+        {% else %}
+        <p class="prose-fraco">Programs will appear here.</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="id">
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <title>The Enrich City - Facilities</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../../static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Additional CSS Files -->
+    <link rel="stylesheet" href="../../static/assets/css/fontawesome.css">
+    <link rel="stylesheet" href="../../static/assets/css/enrich-housing.css">
+    <link rel="stylesheet" href="../../static/assets/css/owl.css">
+    <link rel="stylesheet" href="../../static/assets/css/animate.css">    
+    <!-- Favicon -->
+    <link rel="icon" href="../../static/assets/images/TheEnrichLogo2.png" type="image/png">
+
+    <style>
+      .facilities-section {
+        background: #f8faff;
+        padding: 72px 0 52px 0;
+      }
+      .facilities-title {
+        margin-bottom: 42px;
+      }
+      .facilities-label {
+        display: block;
+        font-size: 1.05rem;
+        color: #edcd94;
+        font-weight: 600;
+        margin-bottom: 10px;
+        letter-spacing: 1.1px;
+      }
+      .facilities-main-title {
+        font-size: 2.1rem;
+        font-weight: 700;
+        color: #161d2a;
+        margin-bottom: 8px;
+      }
+      .facilities-desc {
+        color: #28324b;
+        font-size: 1.08rem;
+        margin-bottom: 0;
+      }
+      .facilities-list {
+        margin-top: 16px;
+      }
+      .facility-card {
+        background: #fff;
+        border-radius: 18px;
+        box-shadow: 0 5px 28px rgba(44, 60, 140, 0.09);
+        overflow: hidden;
+        transition: box-shadow .19s, transform .19s;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+      .facility-card:hover {
+        box-shadow: 0 13px 38px rgba(44,60,140,0.16);
+        transform: translateY(-2px) scale(1.03);
+      }
+      .facility-card-img {
+        width: 100%;
+        height: 210px;
+        object-fit: cover;
+        border-bottom: 1px solid #f0f0ff;
+      }
+      .facility-card-body {
+        padding: 22px 20px 16px 20px;
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+      }
+      .facility-card-title {
+        font-size: 1.21rem;
+        font-weight: 700;
+        color: #181a2f;
+        margin-bottom: 7px;
+      }
+      .facility-card-text {
+        color: #384052;
+        font-size: 1.02rem;
+        flex: 1 1 auto;
+      }
+
+      /* Responsive */
+      @media (max-width: 991px){
+        .facilities-section { padding: 36px 0 22px 0; }
+        .facilities-main-title { font-size: 1.24rem; }
+        .facility-card-img { height: 160px;}
+      }
+      @media (max-width: 600px){
+        .facilities-section { padding: 18px 0 8px 0; }
+        .facilities-main-title { font-size: 1.04rem;}
+        .facility-card-body { padding: 13px 8px 10px 8px; }
+        .facility-card-img { height: 95px;}
+      }
+
+       /* part cta section impian */
+      .cta-section-impian {
+        background: #fff;
+        padding: 64px 0 38px 0;
+      }
+      .cta-impian-title {
+        font-size: 2.1rem;
+        font-weight: 700;
+        color: #181a2f;
+        margin-bottom: 16px;
+        letter-spacing: 0.2px;
+      }
+      .cta-impian-desc {
+        color: #384052;
+        font-size: 1.1rem;
+        margin-bottom: 30px;
+        max-width: 650px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .cta-impian-btn {
+        background: #1a324c;
+        color: #fff;
+        font-weight: 600;
+        font-size: 1.05rem;
+        padding: 14px 32px;
+        border-radius: 28px;
+        text-decoration: none;
+        display: inline-block;
+        transition: background .17s, transform .17s;
+        letter-spacing: 0.3px;
+      }
+      .cta-impian-btn:hover {
+        background: #1a2a7a;
+        transform: scale(1.04);
+        color: #fff;
+      }
+
+      /* Responsive CTA */
+      @media (max-width: 991px){
+        .cta-section-impian { padding: 32px 0 18px 0; }
+        .cta-impian-title { font-size: 1.24rem; }
+      }
+      @media (max-width: 600px){
+        .cta-impian-title { font-size: 1.04rem; }
+        .cta-impian-btn { padding: 10px 24px; font-size: 0.95rem; }
+      }
+    </style>
+  </head>
+
+  <body>
+
+    <!-- ***** Preloader Start ***** -->
+    <div id="js-preloader" class="js-preloader">
+      <div class="preloader-inner">
+        <span class="dot"></span>
+        <div class="dots">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    </div>
+    <!-- ***** Preloader End ***** -->
+
+    <!-- ***** Header Area Start ***** -->
+    <header class="header-area header-sticky">
+      <div class="container">
+        <div class="row">
+          <div class="col-12">
+            <nav class="main-nav">
+              <!-- ***** Logo Start ***** -->
+              <a href="index.html" class="logo">
+                <img src="../../static/assets/images/TheEnrichLogo2.png" alt="" class="logo-img">
+              </a>
+              <!-- ***** Logo End ***** -->
+              <!-- ***** Menu Start ***** -->
+              <ul class="nav" id="mainNav">
+                <li><a href="/">Home</a></li>
+                <li><a href="/about-us">About Us</a></li>
+                <li class="has-dropdown">
+                  <a href="javascript:void(0);">Product▾</a>
+                  <ul class="dropdown-menu-desktop">
+                    <li><a href="/product-list">Product List</a></li>
+                    <li><a href="/site-plan">Site Plan</a></li>
+                  </ul>
+                </li>
+                <!-- SUBMENU Akan diinject pakai JS -->
+                <!-- <li><a href="/project-overview">Project Overview</a></li> -->
+                <li><a href="/facility" class="active">Facility</a></li>
+                <li><a href="/news">News</a></li>
+                <li><a href="/contact">Contact Us</a></li>
+                <li><a href="https://wa.me/62811411951?text=Halo,%20saya%20ingin%20konsultasi%20tentang%20The%20Enrich%20City" target="_blank"><i class="fab fa-whatsapp" style="background-color: white; color: #222; padding: 6px; border-radius: 50%; margin-right: 5px;"></i> Consultation</a></li>
+              </ul>
+                 
+              <a class='menu-trigger'>
+                  <span>Menu</span>
+              </a>
+              <!-- ***** Menu End ***** -->
+          </nav>
+      </div>
+  </div>
+</div>
+</header>
+<!-- ***** Header Area End ***** -->
+
+<div class="page-heading header-text">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12">          
+        <h3 class="fadein-heading">Facilities</h3>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION: Fasilitas -->
+<div class="facilities-section">
+  <div class="container">
+    <div class="facilities-title text-center">
+      <span class="facilities-label">Fasilitas Premium</span>
+      <h2 class="facilities-main-title">Nikmati Fasilitas Lengkap di The Enrich City</h2>
+      <p class="facilities-desc">
+        The Enrich City menghadirkan berbagai fasilitas premium yang dirancang untuk meningkatkan kualitas hidup penghuni. 
+        Dari area rekreasi hingga fasilitas olahraga, semua tersedia untuk kenyamanan Anda.
+      </p>
+    </div>
+    <div class="row justify-content-center g-4 facilities-list">
+      <!-- Swimming Pool -->
+      <div class="col-lg-4 col-md-6">
+        <div class="facility-card">
+          <img src="../../static/assets/images/Facility_Swimming Pool.webp" class="facility-card-img" alt="Swimming Pool">
+          <div class="facility-card-body text-center">
+            <h5 class="facility-card-title">Swimming Pool Resort-Style</h5>
+            <p class="facility-card-text">Kolam renang dengan desain resort yang mewah dan nyaman. Dilengkapi area berjemur luas, taman tropis asri, dan sistem filtrasi modern.</p>
+          </div>
+        </div>
+      </div>
+      <!-- Club House -->
+      <div class="col-lg-4 col-md-6">
+        <div class="facility-card">
+          <img src="../../static/assets/images/Image_Facilities_Club_House.png" class="facility-card-img" alt="Club House">
+          <div class="facility-card-body text-center">
+            <h5 class="facility-card-title">Club House Eksklusif</h5>
+            <p class="facility-card-text">Pusat aktivitas sosial dengan ruang meeting, gym modern, restoran, dan area karaoke untuk rekreasi penghuni.</p>
+          </div>
+        </div>
+      </div>
+      <!-- Tennis Court -->
+      <div class="col-lg-4 col-md-6">
+        <div class="facility-card">
+          <img src="../../static/assets/images/Image_Facilities_Huse_tennis.png" class="facility-card-img" alt="Tennis Court">
+          <div class="facility-card-body text-center">
+            <h5 class="facility-card-title">Tennis Court Profesional</h5>
+            <p class="facility-card-text">Lapangan tenis standar internasional dengan sistem pencahayaan LED modern untuk bermain di malam hari.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION: CTA Impian Anda -->
+<div class="cta-section-impian">
+  <div class="container text-center">
+    <h2 class="cta-impian-title">Temukan Hunian Impian Anda</h2>
+    <p class="cta-impian-desc">
+      The Enrich City mempersembahkan kawasan hunian premium dengan fasilitas lengkap untuk gaya hidup modern di Mimika, Papua.
+    </p>
+    <a href="https://wa.me/0811411951" class="cta-impian-btn" target="_blank">
+      Hubungi Marketing Sekarang
+    </a>
+  </div>
+</div>
+
+<footer class="footer-pro">
+  <div class="container">
+    <div class="row">
+      <!-- Logo Section -->
+      <div class="col-lg-5 col-md-6 mb-4">
+        <div class="footer-logo-section">
+          <img src="../../static/assets/images/Design Icon-Logo Footer.webp" alt="The Enrich City Logo" class="footer-logo-img" width="200" height="60" loading="lazy">
+          <div class="footer-brand-info">
+            <!-- <h5 class="footer-brand-title">THE ENRICH CITY</h5> -->
+            <span class="footer-brand-comspanany" style="text-align: justify; display: block;">The Enrich City - Hunian modern berkonsep hijau di Kabupaten Mimika.
+              The Enrich City hadir sebagai simbol kenyamanan & Kualitas hidup
+              terbaik di Timur Indonesia.</span>
+            <!-- <p class="footer-brand-company">PT.PUINDO</p> -->
+          </div>
+        </div>
+      </div>
+      
+      <!-- Description Section -->
+      <div class="col-lg-3 col-md-6 mb-4">
+        <div class="footer-description">
+          <p class="footer-desc-text">
+            <!-- Dikembangkan di jantung Kota Mimika, The Enrich City adalah
+            kawasan hunian baru yang mengusung konsep hijau dan modern.
+            Dirancang untuk menghadirkan kenyamanan, ketenangan, serta
+            kualitas hidup yang lebih baik bagi keluarga masa kini.
+            The Enrich City menjadi simbol hunian masa depan di Timur
+            Indonesia. Dream City of The East. -->
+          </p>
+        </div>
+      </div>
+      <!-- Contact Section -->
+      <div class="col-lg-4 col-md-12 mb-4">
+        <div class="footer-contact">
+          <h6 class="footer-contact-title">Hubungi Kami</h6>
+          <div class="footer-contact-item">
+            <img src="../../static/assets/images/Design Icon-08.webp" alt="Instagram" class="footer-contact-icon">
+            <span class="footer-contact-text">theenrichcity</span>
+          </div>
+          <div class="footer-contact-item">
+            <img src="../../static/assets/images/Design Icon-09.webp" alt="WhatsApp" class="footer-contact-icon">
+            <span class="footer-contact-text">0811 411 951</span>
+          </div>
+          <div class="footer-contact-item">
+            <img src="../../static/assets/images/Design Icon-10.webp" alt="Location" class="footer-contact-icon">
+            <span class="footer-contact-text">Jalan Cendrawasih, Kelurahan Timika Indah, Kecamatan Mimika Baru, Kabupaten Mimika, Papua Tengah, 99910</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Copyright Section -->
+    <div class="row">
+      <div class="col-12">
+        <div class="footer-copyright">
+          <p class="mb-0">Hak Cipta © 2025 <strong>The Enrich City</strong>. Semua hak dilindungi.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Scripts -->
+<!-- Bootstrap core JavaScript -->
+<script src="../../static/vendor/jquery/jquery.min.js"></script>
+<script src="../../static/vendor/bootstrap/js/bootstrap.min.js"></script>
+<script src="../../static/assets/js/isotope.min.js"></script>
+<script src="../../static/assets/js/owl-carousel.js"></script>
+<script src="../../static/assets/js/counter.js"></script>
+<script src="../../static/assets/js/custom.js"></script>
+
+
+  <!-- Mobile Menu JavaScript -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Mobile Menu Toggle
+      const menuTrigger = document.querySelector('.menu-trigger');
+      const nav = document.querySelector('.main-nav .nav');
+      const body = document.body;
+      
+      if (menuTrigger && nav) {
+        menuTrigger.addEventListener('click', function() {
+          menuTrigger.classList.toggle('active');
+          nav.classList.toggle('active');
+          body.style.overflow = nav.classList.contains('active') ? 'hidden' : '';
+        });
+        
+        // Close menu when clicking on menu items
+        const menuItems = nav.querySelectorAll('a');
+        menuItems.forEach(item => {
+          item.addEventListener('click', function() {
+            menuTrigger.classList.remove('active');
+            nav.classList.remove('active');
+            body.style.overflow = '';
+          });
+        });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', function(e) {
+          if (!menuTrigger.contains(e.target) && !nav.contains(e.target)) {
+            menuTrigger.classList.remove('active');
+            nav.classList.remove('active');
+            body.style.overflow = '';
+          }
+        });
+      }
+
+      // Mobile Dropdown Toggle for Properti menu
+      const dropdownParents = document.querySelectorAll('.has-dropdown');
+      dropdownParents.forEach(parent => {
+        const parentLink = parent.querySelector('a');
+        if (parentLink && window.innerWidth <= 767) {
+          parentLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            parent.classList.toggle('open');
+          });
+        }
+      });
+      
+      // Update dropdown behavior on window resize
+      window.addEventListener('resize', function() {
+        if (window.innerWidth > 767) {
+          dropdownParents.forEach(parent => {
+            parent.classList.remove('open');
+          });
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>

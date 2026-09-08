@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="id">
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <title>The Enrich City - Kota Impian di Timur Indonesia</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../../static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Additional CSS Files -->
+    <link rel="stylesheet" href="../../static/assets/css/fontawesome.css">
+    <link rel="stylesheet" href="../../static/assets/css/enrich-housing.css">
+    <link rel="stylesheet" href="../../static/assets/css/owl.css">
+    <link rel="stylesheet" href="../../static/assets/css/animate.css">    
+    <style>
+      .about-profile-section {
+        padding: 72px 0 56px 0;
+        background: #fff;
+      }
+      .about-profile-title {
+        text-align: center;
+        margin-bottom: 44px;
+      }
+      .about-label {
+        display: block;
+        font-size: 1.05rem;
+        color: #1a324c;
+        letter-spacing: 1.1px;
+        font-weight: 600;
+        margin-bottom: 10px;
+      }
+      .about-main-title {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #161d2a;
+        letter-spacing: -1px;
+        margin-bottom: 0;
+      }
+      /* .about-profile-content - Bootstrap row handles the layout */
+      .about-profile-img-wrap {
+        text-align: center;
+      }
+      .about-profile-img {
+        width: 320px;
+        max-width: 100%;
+        border-radius: 16px;
+        box-shadow: 0 4px 22px rgba(44, 60, 140, 0.11);
+        object-fit: cover;
+        margin-bottom: 18px;
+      }
+      .about-profile-text {
+        font-size: 1.13rem;
+        color: #26304c;
+        line-height: 1.7;
+        padding-top: 6px;
+      }
+      .about-profile-lead {
+        font-weight: 600;
+        color: #edcd94;
+        font-size: 1.12rem;
+        margin-bottom: 10px;
+      }
+
+      /* Responsive */
+      @media (max-width: 991px){
+        .about-profile-img {
+          margin-bottom: 0;
+        }
+        .about-profile-text {
+          padding-top: 0;
+        }
+        .about-profile-section {
+          padding: 38px 0 28px 0;
+        }
+      }
+      @media (max-width: 600px){
+        .about-main-title { font-size: 1.25rem; }
+        .about-profile-img { width: 90vw; border-radius: 9px; }
+        .about-profile-section { padding: 28px 0 10px 0; }
+        .about-profile-title { margin-bottom: 26px;}
+      }
+
+      /* perumahan section */
+      .perumahan-section {
+        background: #f7f8fa;
+        padding: 70px 0 60px 0;
+      }
+      .perumahan-label {
+        display: inline-block;
+        font-size: 1.05rem;
+        color: #edcd94;
+        font-weight: 600;
+        margin-bottom: 9px;
+        letter-spacing: 1.1px;
+      }
+      .perumahan-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #181a2f;
+        margin-bottom: 14px;
+      }
+      .perumahan-desc {
+        font-size: 1.1rem;
+        color: #28324b;
+        line-height: 1.65;
+        margin-bottom: 0;
+      }
+      .perumahan-img-card {
+        background: #fff;
+        border-radius: 18px;
+        box-shadow: 0 5px 30px rgba(44, 60, 140, 0.13);
+        padding: 18px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        max-width: 420px;
+        margin: 0 auto;
+        transition: box-shadow .17s;
+      }
+      .perumahan-img-card:hover {
+        box-shadow: 0 12px 42px rgba(44,60,140,0.19);
+      }
+      .perumahan-img {
+        border-radius: 10px;
+        max-width: 100%;
+        object-fit: cover;
+      }
+
+      /* Responsive */
+      @media (max-width: 991px){
+        .perumahan-section { padding: 36px 0 22px 0; }
+        .perumahan-title { font-size: 1.25rem; }
+        .perumahan-img-card { margin-top: 24px; }
+      }
+      @media (max-width: 600px){
+        .perumahan-title { font-size: 1.1rem; }
+        .perumahan-img-card { padding: 6px; }
+      }
+
+      /* part cta section impian */
+      .cta-section-impian {
+        background: #fff;
+        padding: 80px 0;
+        display: flex;
+        align-items: center;
+        min-height: 300px;
+      }
+      .cta-impian-title {
+        font-size: 2.1rem;
+        font-weight: 700;
+        color: #181a2f;
+        margin-bottom: 16px;
+        letter-spacing: 0.2px;
+      }
+      .cta-impian-desc {
+        color: #384052;
+        font-size: 1.1rem;
+        margin-bottom: 30px;
+        max-width: 650px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .cta-impian-btn {
+        background: #edcd94;
+        color: #fff;
+        font-weight: 600;
+        border: none;
+        border-radius: 28px;
+        font-size: 1.07rem;
+        padding: 14px 34px 13px 34px;
+        text-decoration: none;
+        box-shadow: 0 2px 8px rgba(44,60,140,0.08);
+        transition: background .16s, box-shadow .16s;
+        display: inline-block;
+      }
+      .cta-impian-btn:hover {
+        background: #191f5d;
+        color: #fff;
+        box-shadow: 0 7px 16px rgba(44,60,140,0.14);
+      }
+      @media (max-width: 768px){
+        .cta-section-impian { padding: 40px 0 16px 0; }
+        .cta-impian-title { font-size: 1.13rem; }
+      }
+      /* part cta section impian end */
+    </style>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="../../static/assets/images/TheEnrichLogo2.png" type="image/png">
+  </head>
+
+
+<body>
+
+  <!-- ***** Preloader Start ***** -->
+  <div id="js-preloader" class="js-preloader">
+    <div class="preloader-inner">
+      <span class="dot"></span>
+      <div class="dots">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+  </div>
+  <!-- ***** Preloader End ***** -->
+
+  <!-- <div class="sub-header">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 col-md-8">
+          <ul class="info">
+            <li><i class="fa fa-envelope"></i> info@enrichcity.com</li>
+            <li><i class="fa fa-map"></i> Mimika, Papua, Indonesia</li>
+          </ul>
+        </div>
+        <div class="col-lg-4 col-md-4">
+          <ul class="social-links">
+            <li><a href="#"><i class="fab fa-facebook"></i></a></li>
+            <li><a href="#"><i class="fab fa-twitter"></i></a></li>
+            <li><a href="#"><i class="fab fa-linkedin"></i></a></li>
+            <li><a href="https://www.instagram.com/theenrichcity/" target="_blank"><i class="fab fa-instagram"></i></a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div> -->
+
+  <!-- ***** Header Area Start ***** -->
+  <header class="header-area header-sticky">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <nav class="main-nav">
+                    <!-- ***** Logo Start ***** -->
+                    <a href="index.html" class="logo">
+                        <img src="../../static/assets/images/TheEnrichLogo2.png" alt="" class="logo-img">
+                    </a>
+                    <!-- ***** Logo End ***** -->
+                    <!-- ***** Menu Start ***** -->
+                    <ul class="nav" id="mainNav">
+                      <li><a href="/">Home</a></li>
+                      <li><a href="/about-us" class="active">About Us</a></li>
+                      <li class="has-dropdown">
+                        <a href="javascript:void(0);">Product▾</a>
+                        <ul class="dropdown-menu-desktop">
+                          <li><a href="/product-list">Product List</a></li>
+                          <li><a href="/site-plan">Site Plan</a></li>
+                        </ul>
+                      </li>
+                      <!-- SUBMENU Akan diinject pakai JS -->
+                      <!-- <li><a href="/project-overview">Project Overview</a></li> -->
+                      <li><a href="/facility">Facility</a></li>
+                      <li><a href="/news">News</a></li>
+                      <li><a href="/contact">Contact Us</a></li>
+                      <li><a href="https://wa.me/62811411951?text=Halo,%20saya%20ingin%20konsultasi%20tentang%20The%20Enrich%20City" target="_blank"><i class="fab fa-whatsapp" style="background-color: white; color: #222; padding: 6px; border-radius: 50%; margin-right: 5px;"></i> Consultation</a></li>
+                    </ul>   
+                    <a class='menu-trigger'>
+                        <span>Menu</span>
+                    </a>
+                    <!-- ***** Menu End ***** -->
+                </nav>
+            </div>
+        </div>
+    </div>
+  </header>
+  <!-- ***** Header Area End ***** -->
+
+  <div class="page-heading header-text">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-12">
+          
+          <h3 class="fadein-heading">About Us</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: About Us / Company Profile -->
+  <div class="about-profile-section" style="margin-top:40px;">
+    <div class="container">
+  
+      <div class="about-profile-title" style="margin-bottom: 20px;">
+        <h2 class="about-main-title" 
+            style="font-size:40px; font-weight:800; color:#0f223a; margin:0;">
+          PT. PIJINDO
+        </h2>
+      </div>
+  
+      <div class="about-profile-content row" style="align-items:flex-start;">
+  
+        <!-- TEXT -->
+        <div class="col-lg-7 col-md-12 about-profile-text order-2 order-lg-1" 
+             style=" color:#0f223a;">
+  
+          <p><b>PT Pijindo</b> adalah perusahaan pengembang properti yang berfokus pada pembangunan kawasan hunian modern & berkelanjutan di wilayah Papua. Melalui proyek unggulan The Enrich City, PT. Pijindo menghadirkan hunian yang mengutamakan kenyamanan, kualitas hidup, serta harmoni dengan alam.</p>
+  
+          <p>Dengan menggabungkan keahlian teknis, pemilihan material terbaik, serta manajemen proyek yang profesional, kami hadir sebagai mitra yang dapat diandalkan dalam setiap tahap pembangunan, mulai dari perencanaan, pengadaan material, hingga realisasi konstruksi. Kami percaya bahwa integritas, kualitas, dan ketepatan eksekusi adalah fondasi utama dalam menciptakan hasil kerja yang memuaskan dan berkelanjutan.</p>
+  
+          <p>PT Pijindo terus berkembang dengan membawa semangat inovasi dan solusi konstruktif bagi berbagai kebutuhan pembangunan di Indonesia.</p>
+  
+        </div>
+  
+        <!-- LOGO -->
+        <div class="col-lg-5 col-md-12 about-profile-img-wrap order-1 order-lg-2" 
+             style="text-align:center;">
+  
+          <img src="../../static/assets/images/logo_pijindo_blue.webp" 
+               alt="PT Pijindo Logo" 
+               class="about-profile-img"
+               style="width:100%; max-width:250px; border-radius:0; box-shadow:none; margin-bottom:10px;">
+  
+          <!-- <h3 style="font-weight:800; color:#0f223a; margin-top:10px; letter-spacing:2px;">
+            PT.PIJINDO
+          </h3> -->
+  
+        </div>
+  
+      </div>
+    </div>
+  </div>
+  
+
+  <!-- SECTION: Perumahan Data -->
+  <!-- SECTION: The Enrich City -->
+  <div class="container my-5">
+    <!-- Title -->
+    <div class="row">
+      <div class="col-12 mb-4">
+        <h2 class="fw-bold" style="font-size: 42px;">THE ENRICH CITY</h2>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="row align-items-center">
+      
+      <!-- LEFT IMAGE -->
+      <div class="col-lg-6 col-md-12 mb-4">
+        <img 
+          src="../../static/assets/images/gate_depan_tampak_depan.webp" 
+          alt="Enrich City Cluster" 
+          class="img-fluid rounded"
+        >
+      </div>
+
+      <!-- RIGHT TEXT -->
+      <div class="col-lg-6 col-md-12">
+        <p >
+          Proyek unggulan kami adalah <strong>The Enrich City</strong>, kawasan perumahan 
+          modern yang dikembangkan di Provinsi Papua Tengah. Proyek ini menggabungkan 
+          konsep ruang terbuka hijau, kenyamanan, dan aksesibilitas dalam satu lingkungan 
+          terpadu, menjadikannya pilihan ideal bagi keluarga muda dan masyarakat urban 
+          yang mendambakan hunian berkualitas.
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SECTION: CTA Impian Anda -->
+  <div class="cta-section-impian">
+    <div class="container text-center">
+      <h2 class="cta-impian-title">Temukan Segera Rumah Impian Anda</h2>
+      <!-- <p class="cta-impian-desc">
+        The Enrich City mempersembahkan sebuah kawasan hunian karya developer ternama dengan berbagai fasilitas modern dan lokasi strategis di Mimika, Papua.
+      </p> -->
+      <a href="https://wa.me/0811411951" class="cta-impian-btn" target="_blank">
+        Hubungi Marketing Sekarang
+      </a>
+    </div>
+  </div>
+
+  <footer class="footer-pro">
+    <div class="container">
+      <div class="row">
+        <!-- Logo Section -->
+        <div class="col-lg-5 col-md-6 mb-4">
+          <div class="footer-logo-section">
+            <img src="../../static/assets/images/Design Icon-Logo Footer.webp" alt="The Enrich City Logo" class="footer-logo-img" width="200" height="60" loading="lazy">
+            <div class="footer-brand-info">
+              <!-- <h5 class="footer-brand-title">THE ENRICH CITY</h5> -->
+              <span class="footer-brand-comspanany" style="text-align: justify; display: block;">The Enrich City - Hunian modern berkonsep hijau di Kabupaten Mimika.
+                The Enrich City hadir sebagai simbol kenyamanan & Kualitas hidup
+                terbaik di Timur Indonesia.</span>
+              <!-- <p class="footer-brand-company">PT.PUINDO</p> -->
+            </div>
+          </div>
+        </div>
+        
+        <!-- Description Section -->
+        <div class="col-lg-3 col-md-6 mb-4">
+          <div class="footer-description">
+            <p class="footer-desc-text">
+              <!-- Dikembangkan di jantung Kota Mimika, The Enrich City adalah
+              kawasan hunian baru yang mengusung konsep hijau dan modern.
+              Dirancang untuk menghadirkan kenyamanan, ketenangan, serta
+              kualitas hidup yang lebih baik bagi keluarga masa kini.
+              The Enrich City menjadi simbol hunian masa depan di Timur
+              Indonesia. Dream City of The East. -->
+            </p>
+          </div>
+        </div>
+        
+        <!-- Contact Section -->
+        <div class="col-lg-4 col-md-12 mb-4">
+          <div class="footer-contact">
+            <h6 class="footer-contact-title">Hubungi Kami</h6>
+            <div class="footer-contact-item">
+              <img src="../../static/assets/images/Design Icon-08.webp" alt="Instagram" class="footer-contact-icon">
+              <span class="footer-contact-text">theenrichcity</span>
+            </div>
+            <div class="footer-contact-item">
+              <img src="../../static/assets/images/Design Icon-09.webp" alt="WhatsApp" class="footer-contact-icon">
+              <span class="footer-contact-text">0811 411 951</span>
+            </div>
+            <div class="footer-contact-item">
+              <img src="../../static/assets/images/Design Icon-10.webp" alt="Location" class="footer-contact-icon">
+              <span class="footer-contact-text">Jalan Cendrawasih, Kelurahan Timika Indah, Kecamatan Mimika Baru, Kabupaten Mimika, Papua Tengah, 99910</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Copyright Section -->
+      <div class="row">
+        <div class="col-12">
+          <div class="footer-copyright">
+            <p class="mb-0">Hak Cipta © 2025 <strong>The Enrich City</strong>. Semua hak dilindungi.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <!-- Bootstrap core JavaScript -->
+  <script src="../../static/vendor/jquery/jquery.min.js"></script>
+  <script src="../../static/vendor/bootstrap/js/bootstrap.min.js"></script>
+  <script src="../../static/assets/js/isotope.min.js"></script>
+  <script src="../../static/assets/js/owl-carousel.js"></script>
+  <script src="../../static/assets/js/counter.js"></script>
+  <script src="../../static/assets/js/custom.js"></script>
+
+  <!-- Mobile Menu JavaScript -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Mobile Menu Toggle
+      const menuTrigger = document.querySelector('.menu-trigger');
+      const nav = document.querySelector('.main-nav .nav');
+      const body = document.body;
+      
+      if (menuTrigger && nav) {
+        menuTrigger.addEventListener('click', function() {
+          menuTrigger.classList.toggle('active');
+          nav.classList.toggle('active');
+          body.style.overflow = nav.classList.contains('active') ? 'hidden' : '';
+        });
+        
+        // Close menu when clicking on menu items
+        const menuItems = nav.querySelectorAll('a');
+        menuItems.forEach(item => {
+          item.addEventListener('click', function() {
+            menuTrigger.classList.remove('active');
+            nav.classList.remove('active');
+            body.style.overflow = '';
+          });
+        });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', function(e) {
+          if (!menuTrigger.contains(e.target) && !nav.contains(e.target)) {
+            menuTrigger.classList.remove('active');
+            nav.classList.remove('active');
+            body.style.overflow = '';
+          }
+        });
+      }
+
+      // Mobile Dropdown Toggle for Properti menu
+      const dropdownParents = document.querySelectorAll('.has-dropdown');
+      dropdownParents.forEach(parent => {
+        const parentLink = parent.querySelector('a');
+        if (parentLink && window.innerWidth <= 767) {
+          parentLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            parent.classList.toggle('open');
+          });
+        }
+      });
+      
+      // Update dropdown behavior on window resize
+      window.addEventListener('resize', function() {
+        if (window.innerWidth > 767) {
+          dropdownParents.forEach(parent => {
+            parent.classList.remove('open');
+          });
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>

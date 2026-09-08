@@ -1,0 +1,6 @@
+<nav class="dash-nav" aria-label="Dashboard">
+    {% for key, href, label in data.dash_nav %}
+    <a href="{{ href }}" class="{% if data.dash_page == key %}active{% endif %}">{{ label }}</a>
+    {% endfor %}
+    <a href="/logout">{{ data.dash.logout if data.dash else 'Log out' }}</a>
+</nav>

@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% block title %}{% if data.kind == 'vendor' %}Vendor application{% else %}Sponsorship application{% endif %} | FRACO{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+    <img src="/static/upload/heroes/f6d676f1cfc6c9bba842.jpg" alt="FRACO application">
+    <div class="page-hero-copy">
+        <p>{{ data.name }}</p>
+        <h1>{% if data.kind == 'vendor' %}Vendor{% else %}Sponsor{% endif %}</h1>
+        <p>Submit application</p>
+    </div>
+</section>
+
+<section class="section">
+    <div style="max-width: 720px; margin: 0 auto;">
+        {% if data.form_ok %}
+        <p class="prose-fraco" style="margin-bottom: 28px;">Thank you. FRACO received the application and will follow up.</p>
+        {% endif %}
+        {% if data.form_error %}
+        <p class="prose-fraco" style="color: #b00000; margin-bottom: 28px;">{{ data.form_error }}</p>
+        {% endif %}
+        <form class="form-stack" method="post" enctype="multipart/form-data">
+            {% if data.kind == 'vendor' %}
+            <div>
+                <label class="field-label" for="business_name">Business name</label>
+                <input class="field" type="text" name="business_name" id="business_name" required>
+            </div>
+            {% else %}
+            <div>
+                <label class="field-label" for="company_name">Company name</label>
+                <input class="field" type="text" name="company_name" id="company_name" required>
+            </div>
+            {% endif %}
+            <div>
+                <label class="field-label" for="contact_person">Contact person</label>
+                <input class="field" type="text" name="contact_person" id="contact_person" required>
+            </div>
+            <div>
+                <label class="field-label" for="email">Email</label>
+                <input class="field" type="email" name="email" id="email" required>
+            </div>
+            <div>
+                <label class="field-label" for="phone">Phone</label>
+                <input class="field" type="text" name="phone" id="phone" required>
+            </div>
+            {% if data.kind == 'vendor' %}
+            <div>
+                <label class="field-label" for="category">Business category</label>
+                <select class="field" name="category" id="category">
+                    {% for item in data.vendor_categories %}
+                    <option value="{{ item.name }}">{{ item.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="field-label" for="services">Services offered</label>
+                <textarea class="field" name="services" id="services" rows="3"></textarea>
+            </div>
+            <div>
+                <label class="field-label" for="profile">Company profile</label>
+                <textarea class="field" name="profile" id="profile" rows="3"></textarea>
+            </div>
+            <div>
+                <label class="field-label" for="portfolio">Portfolio</label>
+                <textarea class="field" name="portfolio" id="portfolio" rows="2"></textarea>
+            </div>
+            <div>
+                <label class="field-label" for="pricing">Estimated pricing</label>
+                <input class="field" type="text" name="pricing" id="pricing">
+            </div>
+            <div>
+                <label class="field-label" for="notes">Additional information</label>
+                <textarea class="field" name="notes" id="notes" rows="3"></textarea>
+            </div>
+            {% else %}
+            <div>
+                <label class="field-label" for="website">Website</label>
+                <input class="field" type="text" name="website" id="website">
+            </div>
+            <div>
+                <label class="field-label" for="industry">Industry</label>
+                <input class="field" type="text" name="industry" id="industry">
+            </div>
+            <div>
+                <label class="field-label" for="package_slug">Interested package</label>
+                <select class="field" name="package_slug" id="package_slug">
+                    {% for item in data.packages %}
+                    <option value="{{ item.slug }}">{{ item.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="field-label" for="collaboration">Proposed collaboration</label>
+                <textarea class="field" name="collaboration" id="collaboration" rows="3"></textarea>
+            </div>
+            <div>
+                <label class="field-label" for="message">Message</label>
+                <textarea class="field" name="message" id="message" rows="3"></textarea>
+            </div>
+            {% endif %}
+            <div>
+                <label class="field-label" for="attachment">{% if data.kind == 'vendor' %}File upload{% else %}Company profile / attachment{% endif %}</label>
+                <input class="field" type="file" name="attachment" id="attachment" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                <p class="product-meta">Optional. PDF, Word, or image. Max 3 MB.</p>
+            </div>
+            <button class="btn-black" type="submit">{% if data.kind == 'vendor' %}Submit Vendor Application{% else %}Submit Application{% endif %}</button>
+        </form>
+        <p style="margin-top: 28px;">
+            {% if data.kind == 'vendor' %}
+            <a class="section-link" href="/vendors">Back to vendors</a>
+            {% else %}
+            <a class="section-link" href="/sponsorship">Back to sponsorship</a>
+            {% endif %}
+        </p>
+    </div>
+</section>
+{% endblock %}

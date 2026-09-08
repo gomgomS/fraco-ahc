@@ -1,0 +1,56 @@
+{% extends 'admin_base.html' %}
+{% block title %}University application | Admin{% endblock %}
+{% block content %}
+<p class="product-meta"><a class="section-link" href="/admin/universities">Universities</a></p>
+<h1 class="section-title" style="margin: 8px 0 24px;">{{ data.row.organization or data.row.full_name or 'Application' }}</h1>
+
+{% if data.form_error %}
+<p class="prose-fraco" style="color: #b00000; margin-bottom: 16px;">{{ data.form_error }}</p>
+{% endif %}
+
+<form class="form-stack" method="post" enctype="multipart/form-data">
+    <div><label class="field-label" for="organization">Campus / university name</label><input class="field" name="organization" id="organization" value="{{ data.row.organization or '' }}" required></div>
+    <div><label class="field-label" for="full_name">Contact person</label><input class="field" name="full_name" id="full_name" value="{{ data.row.full_name or '' }}"></div>
+    <div><label class="field-label" for="email">Email</label><input class="field" name="email" id="email" value="{{ data.row.email or '' }}"></div>
+    <div><label class="field-label" for="phone">Phone</label><input class="field" name="phone" id="phone" value="{{ data.row.phone or '' }}"></div>
+    <div><label class="field-label" for="city">City</label><input class="field" name="city" id="city" value="{{ data.row.city or '' }}"></div>
+    <div><label class="field-label" for="booth">Booth label (optional)</label><input class="field" name="booth" id="booth" value="{{ data.row.booth or '' }}" placeholder="e.g. Booth A1"></div>
+    <div><label class="field-label" for="notes">Notes / short description</label><textarea class="field" name="notes" id="notes" rows="4">{{ data.row.notes or '' }}</textarea></div>
+
+    <div class="pay-box" style="padding: 16px;">
+        <p class="field-label" style="margin: 0;">Public participant campus</p>
+        <p class="product-meta" style="margin-top: 8px;">If enabled, this campus appears under Participant campuses on the University Fair page.</p>
+        <label class="field-label" style="display: flex; align-items: center; gap: 10px; margin-top: 14px;">
+            <input type="checkbox" name="show_campus" value="1" id="show_campus"{% if data.row.show_campus %} checked{% endif %}>
+            Show as participant campus on the public page
+        </label>
+        <div style="margin-top: 14px;">
+            <label class="field-label" for="logo">Logo URL</label>
+            <input class="field" name="logo" id="logo" value="{{ data.row.logo or '' }}">
+        </div>
+        <div style="margin-top: 12px;">
+            <label class="field-label" for="logo_file">Or upload logo</label>
+            <input class="field" type="file" name="logo_file" id="logo_file" accept=".jpg,.jpeg,.png,.webp">
+            <p class="product-meta">jpg, png, or webp. Upload replaces the URL above on save.</p>
+        </div>
+        {% if data.row.logo %}
+        <div style="margin-top: 12px;">
+            <p class="product-meta">Current logo</p>
+            <img class="admin-cover-preview" src="{{ data.row.logo }}" alt="Campus logo">
+        </div>
+        {% endif %}
+    </div>
+
+    <div>
+        <label class="field-label" for="status">Status</label>
+        <select class="field" name="status" id="status">
+            {% for item in data.statuses %}
+            <option value="{{ item }}"{% if data.row.status == item %} selected{% endif %}>{{ item }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    {% if data.can_write %}
+    <button class="btn-black" type="submit">Save</button>
+    {% endif %}
+</form>
+{% endblock %}

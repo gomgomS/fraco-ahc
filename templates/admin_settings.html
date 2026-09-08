@@ -1,0 +1,228 @@
+{% extends 'admin_base.html' %}
+{% block title %}Settings | Admin{% endblock %}
+{% block content %}
+<h1 class="section-title" style="margin-bottom: 24px;">Settings</h1>
+<p class="prose-fraco" style="margin-bottom: 24px;">Site-wide CMS copy for the landing page (English + Indonesian). News, events, and products stay single-language. Staff logins are under Users.</p>
+{% if data.form_ok %}
+<p class="prose-fraco" style="margin-bottom: 16px;">{{ data.form_ok }}</p>
+{% endif %}
+{% if data.form_error %}
+<p class="prose-fraco" style="color: #b00000; margin-bottom: 16px;">{{ data.form_error }}</p>
+{% endif %}
+<div class="filter-row" style="margin-bottom:28px;">
+    <a class="filter-chip{% if data.settings_tab == 'website' %} active{% endif %}" href="/admin/settings?tab=website">Website</a>
+    <a class="filter-chip{% if data.settings_tab == 'merchandise' %} active{% endif %}" href="/admin/settings?tab=merchandise">Merchandise</a>
+    <a class="filter-chip{% if data.settings_tab == 'finance' %} active{% endif %}" href="/admin/settings?tab=finance">Finance</a>
+    <a class="filter-chip{% if data.settings_tab == 'shipping' %} active{% endif %}" href="/admin/settings?tab=shipping">Shipping</a>
+    <a class="filter-chip{% if data.settings_tab == 'images' %} active{% endif %}" href="/admin/settings?tab=images">Images</a>
+</div>
+
+{% if data.settings_tab == 'website' %}
+<form class="form-stack" method="post">
+    <h2 class="section-title" style="font-size: 18px; margin: 0 0 12px;">Announcement bar</h2>
+    <div><label class="field-label" for="announcement">Announcement (EN)</label><input class="field" name="announcement" id="announcement" value="{{ data.announcement }}"></div>
+    <div><label class="field-label" for="announcement_id">Announcement (ID)</label><input class="field" name="announcement_id" id="announcement_id" value="{{ data.announcement_id }}"></div>
+
+    <h2 class="section-title" style="font-size: 18px; margin: 28px 0 12px;">Home hero &amp; about</h2>
+    <div><label class="field-label" for="tagline">Tagline / hero title (EN)</label><input class="field" name="tagline" id="tagline" value="{{ data.tagline }}"></div>
+    <div><label class="field-label" for="tagline_id">Tagline / hero title (ID)</label><input class="field" name="tagline_id" id="tagline_id" value="{{ data.tagline_id }}"></div>
+    <div><label class="field-label" for="subtitle">Hero subtitle (EN)</label><textarea class="field" name="subtitle" id="subtitle" rows="3">{{ data.subtitle }}</textarea></div>
+    <div><label class="field-label" for="subtitle_id">Hero subtitle (ID)</label><textarea class="field" name="subtitle_id" id="subtitle_id" rows="3">{{ data.subtitle_id }}</textarea></div>
+    <div><label class="field-label" for="description">About blurb (EN)</label><textarea class="field" name="description" id="description" rows="3">{{ data.description }}</textarea></div>
+    <div><label class="field-label" for="description_id">About blurb (ID)</label><textarea class="field" name="description_id" id="description_id" rows="3">{{ data.description_id }}</textarea></div>
+    <div><label class="field-label" for="presented_by">Presented by / footer (EN)</label><input class="field" name="presented_by" id="presented_by" value="{{ data.presented_by }}"></div>
+    <div><label class="field-label" for="presented_by_id">Presented by / footer (ID)</label><input class="field" name="presented_by_id" id="presented_by_id" value="{{ data.presented_by_id }}"></div>
+
+    <h2 class="section-title" style="font-size: 18px; margin: 28px 0 12px;">Contact &amp; target</h2>
+    <div><label class="field-label" for="phone">Phone</label><input class="field" name="phone" id="phone" value="{{ data.phone }}"></div>
+    <div><label class="field-label" for="whatsapp_url">WhatsApp URL</label><input class="field" name="whatsapp_url" id="whatsapp_url" value="{{ data.whatsapp_url }}"></div>
+    <div><label class="field-label" for="contribution_num">AHC member target (number)</label><input class="field" type="number" min="0" name="contribution_num" id="contribution_num" value="{{ data.contribution_num or 2000000 }}">
+        <p class="product-meta">General contribution target for new AHC Member registrations. Example: 2000000.</p>
+    </div>
+    <div><label class="field-label" for="contribution">AHC member contribution label</label><input class="field" name="contribution" id="contribution" value="{{ data.contribution }}" placeholder="e.g. Rp 2.000.000">
+        <p class="product-meta">Shown on register and dashboard. Leave blank to auto-format from the target number.</p>
+    </div>
+    <button class="btn-black" type="submit">Save website settings</button>
+</form>
+{% endif %}
+
+{% if data.settings_tab == 'merchandise' %}
+<section class="admin-block" id="merchandise-categories" style="margin-top: 40px;">
+    <h2 class="section-title" style="font-size: 20px; margin: 0 0 12px;">Merchandise categories</h2>
+    <p class="prose-fraco" style="margin: 0 0 18px;">These categories become product-form options and filters on the public merchandise page.</p>
+
+    {% for category in data.merchandise_categories %}
+    <details class="admin-fold">
+        <summary class="admin-fold-sum">
+            <span>{{ category.name }}</span>
+            <span class="product-meta">Order {{ category.order }} · {{ category.status }}</span>
+        </summary>
+        {% if data.can_write %}
+        <form class="form-stack" method="post" style="margin-top: 14px;">
+            <input type="hidden" name="action" value="merchandise_category_edit">
+            <input type="hidden" name="category_pkey" value="{{ category.pkey }}">
+            <div><label class="field-label">Category name</label><input class="field" name="name" value="{{ category.name }}" required></div>
+            <div><label class="field-label">Order</label><input class="field" type="number" name="order" value="{{ category.order or 0 }}"></div>
+            <div>
+                <label class="field-label">Status</label>
+                <select class="field" name="status">
+                    <option value="ENABLE"{% if category.status == 'ENABLE' %} selected{% endif %}>ENABLE</option>
+                    <option value="DISABLE"{% if category.status == 'DISABLE' %} selected{% endif %}>DISABLE</option>
+                </select>
+            </div>
+            <button class="btn-black" type="submit">Save category</button>
+        </form>
+        {% endif %}
+        {% if data.can_delete %}
+        <form method="post" style="margin-top: 12px;" onsubmit="return confirm('Delete this category? Existing products keep their saved category.');">
+            <input type="hidden" name="action" value="merchandise_category_delete">
+            <input type="hidden" name="category_pkey" value="{{ category.pkey }}">
+            <button class="btn-line" type="submit">Delete category</button>
+        </form>
+        {% endif %}
+    </details>
+    {% endfor %}
+
+    {% if data.can_write %}
+    <form class="form-stack" method="post" style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #ddd;">
+        <input type="hidden" name="action" value="merchandise_category_add">
+        <h3 class="section-title" style="font-size: 18px;">Add merchandise category</h3>
+        <div><label class="field-label" for="merch_category_name">Category name</label><input class="field" name="name" id="merch_category_name" required placeholder="e.g. Limited Edition"></div>
+        <div><label class="field-label" for="merch_category_order">Order</label><input class="field" type="number" name="order" id="merch_category_order" value="0"></div>
+        <input type="hidden" name="status" value="ENABLE">
+        <button class="btn-black" type="submit">Add category</button>
+    </form>
+    {% endif %}
+</section>
+{% endif %}
+
+{% if data.settings_tab == 'finance' %}
+<section class="admin-block" id="receiving-accounts" style="margin-top: 40px;">
+    <h2 class="section-title" style="font-size: 20px; margin: 0 0 12px;">Finance accounts</h2>
+    <p class="prose-fraco" style="margin: 0 0 18px;">Accounts listed here become options for income, expenses, and future finance features.</p>
+
+    {% for account in data.receive_accounts %}
+    <details class="admin-fold">
+        <summary class="admin-fold-sum">
+            <span>{{ account.display_label }}</span>
+            <span class="product-meta">{{ account.account_holder }} · {{ account.status }}</span>
+        </summary>
+        {% if data.can_write %}
+        <form class="form-stack" method="post" style="margin-top: 14px;">
+            <input type="hidden" name="action" value="receive_account_edit">
+            <input type="hidden" name="account_pkey" value="{{ account.pkey }}">
+            <div><label class="field-label">Display label</label><input class="field" name="label" value="{{ account.label or '' }}" placeholder="e.g. BCA FRACO"></div>
+            <div><label class="field-label">Bank name</label><input class="field" name="bank_name" value="{{ account.bank_name or '' }}" required></div>
+            <div><label class="field-label">Account number</label><input class="field" name="account_number" value="{{ account.account_number or '' }}" required></div>
+            <div><label class="field-label">Account holder</label><input class="field" name="account_holder" value="{{ account.account_holder or '' }}" required></div>
+            <div><label class="field-label">Order</label><input class="field" type="number" name="order" value="{{ account.order or 0 }}"></div>
+            <div>
+                <label class="field-label">Status</label>
+                <select class="field" name="status">
+                    <option value="ENABLE"{% if account.status == 'ENABLE' %} selected{% endif %}>ENABLE</option>
+                    <option value="DISABLE"{% if account.status == 'DISABLE' %} selected{% endif %}>DISABLE</option>
+                </select>
+            </div>
+            <button class="btn-black" type="submit">Save account</button>
+        </form>
+        {% endif %}
+        {% if data.can_delete %}
+        <form method="post" style="margin-top: 12px;" onsubmit="return confirm('Delete this account? Existing transactions keep their saved account label.');">
+            <input type="hidden" name="action" value="receive_account_delete">
+            <input type="hidden" name="account_pkey" value="{{ account.pkey }}">
+            <button class="btn-line" type="submit">Delete account</button>
+        </form>
+        {% endif %}
+    </details>
+    {% else %}
+    <p class="product-meta">No finance accounts yet.</p>
+    {% endfor %}
+
+    {% if data.can_write %}
+    <form class="form-stack" method="post" style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #ddd;">
+        <input type="hidden" name="action" value="receive_account_add">
+        <h3 class="section-title" style="font-size: 18px;">Add account</h3>
+        <div><label class="field-label" for="account_label">Display label</label><input class="field" name="label" id="account_label" placeholder="e.g. BCA FRACO"></div>
+        <div><label class="field-label" for="account_bank">Bank name</label><input class="field" name="bank_name" id="account_bank" required placeholder="BCA"></div>
+        <div><label class="field-label" for="account_number">Account number</label><input class="field" name="account_number" id="account_number" required></div>
+        <div><label class="field-label" for="account_holder">Account holder</label><input class="field" name="account_holder" id="account_holder" required></div>
+        <div><label class="field-label" for="account_order">Order</label><input class="field" type="number" name="order" id="account_order" value="0"></div>
+        <input type="hidden" name="status" value="ENABLE">
+        <button class="btn-black" type="submit">Add account</button>
+    </form>
+    {% endif %}
+</section>
+{% endif %}
+
+{% if data.settings_tab == 'shipping' %}
+<section class="admin-block" id="shipping-expeditions">
+    <h2 class="section-title" style="font-size:20px; margin:0 0 12px;">Officer shipping requirement</h2>
+    <p class="prose-fraco" style="margin:0 0 18px;">Set the minimum combined progress a member needs before requesting officer-handled shipping.</p>
+    {% if data.can_write %}
+    <form class="form-stack" method="post" style="margin-bottom:32px; padding-bottom:28px; border-bottom:1px solid #ddd;">
+        <input type="hidden" name="action" value="shipping_config_save">
+        <div>
+            <label class="field-label" for="shipping_minimum_progress_num">Minimum combined progress</label>
+            <input class="field" type="number" min="0" step="1000" name="shipping_minimum_progress_num" id="shipping_minimum_progress_num" value="{{ data.shipping_minimum_progress_num }}" required>
+            <p class="product-meta" style="margin-top:7px;">Example: 100000 for Rp 100.000.</p>
+        </div>
+        <button class="btn-black" type="submit">Save shipping requirement</button>
+    </form>
+    {% endif %}
+
+    <h2 class="section-title" style="font-size:20px; margin:0 0 12px;">Shipping expeditions</h2>
+    <p class="prose-fraco" style="margin:0 0 18px;">Enabled expeditions become options when an officer handles an order shipment.</p>
+    {% for expedition in data.shipping_expeditions %}
+    <details class="admin-fold">
+        <summary class="admin-fold-sum">
+            <span>{{ expedition.name }}</span>
+            <span class="product-meta">Order {{ expedition.order }} · {{ expedition.status }}</span>
+        </summary>
+        {% if data.can_write %}
+        <form class="form-stack" method="post" style="margin-top:14px;">
+            <input type="hidden" name="action" value="shipping_expedition_edit">
+            <input type="hidden" name="expedition_pkey" value="{{ expedition.pkey }}">
+            <div><label class="field-label">Expedition name</label><input class="field" name="name" value="{{ expedition.name }}" required></div>
+            <div><label class="field-label">Order</label><input class="field" type="number" name="order" value="{{ expedition.order or 0 }}"></div>
+            <div>
+                <label class="field-label">Status</label>
+                <select class="field" name="status">
+                    <option value="ENABLE"{% if expedition.status == 'ENABLE' %} selected{% endif %}>ENABLE</option>
+                    <option value="DISABLE"{% if expedition.status == 'DISABLE' %} selected{% endif %}>DISABLE</option>
+                </select>
+            </div>
+            <button class="btn-black" type="submit">Save expedition</button>
+        </form>
+        {% endif %}
+        {% if data.can_delete %}
+        <form method="post" style="margin-top:12px;" onsubmit="return confirm('Delete this expedition? Existing orders keep their saved expedition name.');">
+            <input type="hidden" name="action" value="shipping_expedition_delete">
+            <input type="hidden" name="expedition_pkey" value="{{ expedition.pkey }}">
+            <button class="btn-line" type="submit">Delete expedition</button>
+        </form>
+        {% endif %}
+    </details>
+    {% endfor %}
+
+    {% if data.can_write %}
+    <form class="form-stack" method="post" style="margin-top:24px; padding-top:20px; border-top:1px solid #ddd;">
+        <input type="hidden" name="action" value="shipping_expedition_add">
+        <h3 class="section-title" style="font-size:18px;">Add expedition</h3>
+        <div><label class="field-label" for="expedition_name">Expedition name</label><input class="field" name="name" id="expedition_name" required placeholder="e.g. TIKI"></div>
+        <div><label class="field-label" for="expedition_order">Order</label><input class="field" type="number" name="order" id="expedition_order" value="0"></div>
+        <input type="hidden" name="status" value="ENABLE">
+        <button class="btn-black" type="submit">Add expedition</button>
+    </form>
+    {% endif %}
+</section>
+{% endif %}
+
+{% if data.settings_tab == 'images' and data.can_write %}
+<form method="post" style="margin-top: 40px; padding-top: 24px; border-top: 1px solid #ddd;" onsubmit="return confirm('Download all remote image links into this server and update products, programs, content, gallery, events, team, and page heroes?');">
+    <input type="hidden" name="action" value="import_images">
+    <h2 class="section-title" style="font-size: 20px; margin: 0 0 12px;">Images on this server</h2>
+    <p class="prose-fraco">Admin forms can upload images (not only paste a URL). Use this once to download existing Unsplash / external links into <code>/static/upload/</code> and switch the site to those local files.</p>
+    <button class="btn-line" type="submit" style="margin-top: 16px;">Import remote images into system</button>
+</form>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends 'admin_base.html' %}
+{% block title %}Products | Admin{% endblock %}
+{% block content %}
+<div class="section-head" style="padding: 0; max-width: none;">
+    <h1 class="section-title">Products</h1>
+    {% if data.can_write %}<a class="section-link" href="/admin/products/new">Create product</a>{% endif %}
+</div>
+<p class="product-meta" style="margin: 0 0 20px;">Products: add items to the shop (price, stock, preorder, referral discount, image). Use this when something should be buyable online.</p>
+{% with table=data.list_table %}{% include 'admin_table.html' %}{% endwith %}
+{% endblock %}

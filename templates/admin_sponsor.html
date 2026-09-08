@@ -1,0 +1,29 @@
+{% extends 'admin_base.html' %}
+{% block title %}Sponsor | Admin{% endblock %}
+{% block content %}
+<p class="product-meta"><a class="section-link" href="/admin/sponsors">Sponsors</a></p>
+{% include 'admin_sponsors_tabs.html' %}
+<h1 class="section-title" style="margin: 8px 0 24px;">{{ data.row.company_name }}</h1>
+<p>{{ data.row.contact_person }} · {{ data.row.email }} · {{ data.row.phone }}</p>
+<p>{{ data.row.website }} · {{ data.row.industry }} · {{ data.row.package_slug }}</p>
+<p class="prose-fraco" style="margin-top: 16px;">{{ data.row.collaboration }}</p>
+<p class="prose-fraco">{{ data.row.message }}</p>
+{% if data.row.file_path %}
+<p style="margin-top: 16px;"><a class="section-link" href="{{ data.row.file_path }}" target="_blank" rel="noopener">Download attachment</a></p>
+{% endif %}
+<form class="form-stack" method="post" style="margin-top: 28px;">
+    <div>
+        <label class="field-label" for="status">Status</label>
+        <select class="field" name="status" id="status">
+            {% for item in data.statuses %}
+            <option value="{{ item }}"{% if data.row.status == item %} selected{% endif %}>{{ item }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div><label class="field-label" for="assigned_pic">Assigned PIC</label><input class="field" name="assigned_pic" id="assigned_pic" value="{{ data.row.assigned_pic or '' }}"></div>
+    <div><label class="field-label" for="notes">Notes</label><textarea class="field" name="notes" id="notes" rows="4">{{ data.row.notes or '' }}</textarea></div>
+    {% if data.can_write %}
+    <button class="btn-black" type="submit">Save</button>
+    {% endif %}
+</form>
+{% endblock %}

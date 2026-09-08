@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}{{ data.program.cta_label }} | FRACO{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+    <img src="{{ data.program.image }}" alt="{{ data.program.title }}">
+    <div class="page-hero-copy">
+        <p>{{ data.program.title }}</p>
+        <h1>Register</h1>
+        <p>{{ data.class_label }}</p>
+    </div>
+</section>
+
+<section class="section">
+    <div style="max-width: 720px; margin: 0 auto;">
+        {% if data.form_ok %}
+        <h2 class="section-title" style="margin: 0 0 16px;">Thank you</h2>
+        <p class="prose-fraco">FRACO received this registration and will follow up.</p>
+        <p style="margin-top: 28px;">
+            <a class="section-link" href="/programs/{{ data.program.slug }}">Back to {{ data.program.title }}</a>
+        </p>
+        {% else %}
+        {% if data.form_error %}
+        <p class="prose-fraco" style="margin-bottom: 28px; color: #b00000;">{{ data.form_error }}</p>
+        {% endif %}
+        <p class="product-meta">{{ data.program.title }}</p>
+        <h2 class="section-title" style="margin: 8px 0 24px;">{{ data.program.cta_label }}</h2>
+        <p class="prose-fraco" style="margin-bottom: 32px;">{{ data.program.about }}</p>
+        <form class="form-stack" method="post">
+            <div>
+                <label class="field-label" for="full_name">Full name</label>
+                <input class="field" type="text" name="full_name" id="full_name" required>
+            </div>
+            <div>
+                <label class="field-label" for="email">Email</label>
+                <input class="field" type="email" name="email" id="email" required>
+            </div>
+            <div>
+                <label class="field-label" for="phone">Phone</label>
+                <input class="field" type="text" name="phone" id="phone" required>
+            </div>
+            <div>
+                <label class="field-label" for="organization">{% if data.program.slug == 'university-fair' %}University{% else %}Organization{% endif %}</label>
+                <input class="field" type="text" name="organization" id="organization">
+            </div>
+            <div>
+                <label class="field-label" for="city">City</label>
+                <input class="field" type="text" name="city" id="city">
+            </div>
+            <div>
+                <label class="field-label" for="notes">Notes</label>
+                <textarea class="field" name="notes" id="notes" rows="4"></textarea>
+            </div>
+            <button class="btn-black" type="submit">Submit</button>
+        </form>
+        <p style="margin-top: 28px;">
+            <a class="section-link" href="/programs/{{ data.program.slug }}">Back to {{ data.program.title }}</a>
+        </p>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
