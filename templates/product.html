@@ -2,18 +2,105 @@
 {% block title %}{{ data.product.name }} | FRACO{% endblock %}
 
 {% block content %}
+<style>
+    .pdp-gallery-stage { position: relative; }
+    .pdp-gallery-stage > img { width: 100%; height: 100%; object-fit: cover; }
+    .pdp-gallery-arrow {
+        position: absolute;
+        top: 50%;
+        z-index: 2;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border: 1px solid #111;
+        border-radius: 50%;
+        background: rgba(255,255,255,.92);
+        color: #111;
+        font-size: 22px;
+        cursor: pointer;
+        transform: translateY(-50%);
+    }
+    .pdp-gallery-arrow:hover { background: #111; color: #fff; }
+    .pdp-gallery-prev { left: 12px; }
+    .pdp-gallery-next { right: 12px; }
+    .pdp-gallery-count {
+        position: absolute;
+        right: 12px;
+        bottom: 12px;
+        padding: 6px 9px;
+        background: rgba(0,0,0,.75);
+        color: #fff;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 11px;
+    }
+    .pdp-thumb-button {
+        padding: 0;
+        border: 2px solid transparent;
+        background: transparent;
+        cursor: pointer;
+    }
+    .pdp-thumb-button.is-active { border-color: #111; }
+    .pdp-thumb-button img { display: block; }
+</style>
 <section class="section pdp">
     <div class="pdp-grid">
         <div>
-            <div class="product-media pdp-hero">
-                <img src="{{ data.gallery[0] if data.gallery else data.product.image }}" alt="{{ data.product.name }}">
+            <div class="product-media pdp-hero pdp-gallery-stage" id="pdp-gallery-stage" tabindex="0" aria-label="{{ data.product.name }} image gallery">
+                <img id="pdp-gallery-main" src="{{ data.gallery[0] if data.gallery else data.product.image }}" alt="{{ data.product.name }}">
+                {% if data.gallery|length > 1 %}
+                <button class="pdp-gallery-arrow pdp-gallery-prev" id="pdp-gallery-prev" type="button" aria-label="Previous image">←</button>
+                <button class="pdp-gallery-arrow pdp-gallery-next" id="pdp-gallery-next" type="button" aria-label="Next image">→</button>
+                <span class="pdp-gallery-count" id="pdp-gallery-count">1 / {{ data.gallery|length }}</span>
+                {% endif %}
             </div>
             {% if data.gallery|length > 1 %}
-            <div class="pdp-thumbs">
+            <div class="pdp-thumbs" id="pdp-gallery-thumbs">
                 {% for shot in data.gallery %}
-                <img src="{{ shot }}" alt="{{ data.product.name }}">
+                <button class="pdp-thumb-button{% if loop.first %} is-active{% endif %}" type="button" data-gallery-index="{{ loop.index0 }}" data-gallery-image="{{ shot }}" aria-label="View image {{ loop.index }}">
+                    <img src="{{ shot }}" alt="{{ data.product.name }} image {{ loop.index }}">
+                </button>
                 {% endfor %}
             </div>
+            {% endif %}
+            {% if data.gallery|length > 1 %}
+            <script>
+            (function () {
+                var stage = document.getElementById("pdp-gallery-stage");
+                var main = document.getElementById("pdp-gallery-main");
+                var previous = document.getElementById("pdp-gallery-prev");
+                var next = document.getElementById("pdp-gallery-next");
+                var count = document.getElementById("pdp-gallery-count");
+                var thumbs = Array.prototype.slice.call(document.querySelectorAll(".pdp-thumb-button"));
+                if (!stage || !main || !previous || !next || !thumbs.length) return;
+                var current = 0;
+
+                function showImage(index) {
+                    if (index < 0) index = thumbs.length - 1;
+                    if (index >= thumbs.length) index = 0;
+                    current = index;
+                    main.src = thumbs[index].getAttribute("data-gallery-image") || main.src;
+                    main.alt = (stage.getAttribute("aria-label") || "Product") + " image " + String(index + 1);
+                    thumbs.forEach(function (thumb, thumbIndex) {
+                        thumb.classList.toggle("is-active", thumbIndex === index);
+                        thumb.setAttribute("aria-current", thumbIndex === index ? "true" : "false");
+                    });
+                    if (count) count.textContent = String(index + 1) + " / " + String(thumbs.length);
+                }
+
+                previous.addEventListener("click", function () { showImage(current - 1); });
+                next.addEventListener("click", function () { showImage(current + 1); });
+                thumbs.forEach(function (thumb, index) {
+                    thumb.addEventListener("click", function () { showImage(index); });
+                });
+                stage.addEventListener("keydown", function (event) {
+                    if (event.key === "ArrowLeft") showImage(current - 1);
+                    if (event.key === "ArrowRight") showImage(current + 1);
+                });
+                showImage(0);
+            })();
+            </script>
             {% endif %}
         </div>
         <div>

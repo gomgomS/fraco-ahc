@@ -125,14 +125,22 @@
     <div><label class="field-label" for="colors">Colors (comma)</label><input class="field" name="colors" id="colors" value="{{ data.row.colors|join(', ') if data.row.colors else '' }}"></div>
     <div><label class="field-label" for="image">Image URL</label><input class="field" name="image" id="image" value="{{ data.row.image or '' }}"></div>
     <div>
-        <label class="field-label" for="image_file">Or upload image</label>
-        <input class="field" type="file" name="image_file" id="image_file" accept=".jpg,.jpeg,.png,.webp">
-        <p class="product-meta">jpg, png, or webp. Upload replaces the URL above on save.</p>
+        <label class="field-label" for="image_file">Upload one or more product images</label>
+        <input class="field" type="file" name="image_file" id="image_file" accept=".jpg,.jpeg,.png,.webp" multiple>
+        <p class="product-meta" id="image-file-hint">Select multiple jpg, png, or webp files. The first selected image becomes the cover; the others appear in the product gallery. Maximum 12 images.</p>
     </div>
-    {% if data.row.image %}
+    {% set current_images = data.row.images if data.row.images else ([data.row.image] if data.row.image else []) %}
+    {% if current_images %}
     <div>
-        <p class="product-meta">Current image</p>
-        <img class="admin-cover-preview" src="{{ data.row.image }}" alt="{{ data.row.name or 'Product' }}">
+        <p class="product-meta">Current product gallery · {{ current_images|length }} image{% if current_images|length != 1 %}s{% endif %}</p>
+        <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(90px,1fr)); gap:10px; margin-top:10px; max-width:620px;">
+            {% for image in current_images %}
+            <div>
+                <img src="{{ image }}" alt="{{ data.row.name or 'Product' }} image {{ loop.index }}" style="display:block; width:100%; aspect-ratio:1; object-fit:cover; border:2px solid {% if loop.first %}#111{% else %}#ddd{% endif %};">
+                <p class="product-meta" style="margin-top:4px;">{% if loop.first %}Cover{% else %}Image {{ loop.index }}{% endif %}</p>
+            </div>
+            {% endfor %}
+        </div>
     </div>
     {% endif %}
     <div>
@@ -166,6 +174,17 @@
 {% endif %}
 <script>
 (function () {
+    var imageFile = document.getElementById("image_file");
+    var imageFileHint = document.getElementById("image-file-hint");
+    if (imageFile && imageFileHint) {
+        imageFile.addEventListener("change", function () {
+            var count = imageFile.files ? imageFile.files.length : 0;
+            imageFileHint.textContent = count
+                ? String(count) + " image" + (count === 1 ? "" : "s") + " selected. The first image will be the cover."
+                : "Select multiple jpg, png, or webp files. The first selected image becomes the cover; the others appear in the product gallery. Maximum 12 images.";
+        });
+    }
+
     function n(el) {
         var v = parseInt((el && el.value) || "0", 10);
         return isNaN(v) || v < 0 ? 0 : v;

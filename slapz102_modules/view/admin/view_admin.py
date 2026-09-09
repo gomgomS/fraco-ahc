@@ -824,44 +824,94 @@ def html_product_form(pkey=""):
         # end if
         old_image = rec.get("image") or ""
         image = (params.get("image") or "").strip()
-        stored, rel = proc.save_upload(request.files.get("image_file"), "products")
-        if stored == "ERR_TYPE":
+        existing_gallery = []
+        if isinstance(rec.get("images"), list):
+            existing_gallery = [
+                item for item in rec.get("images") if isinstance(item, str) and item.strip() != ""
+            ]
+        # end if
+        if existing_gallery == [] and old_image != "":
+            existing_gallery = [old_image]
+        # end if
+        upload_files = [
+            file_obj for file_obj in request.files.getlist("image_file")
+            if file_obj != None and file_obj.filename != ""
+        ]
+        kept_existing = [item for item in existing_gallery if item != old_image]
+        if len(upload_files) + len(kept_existing) > 12:
             fields = _decorate_product_form(proc, _product_fields(proc, params))
+            fields["image"] = image or old_image
+            fields["images"] = existing_gallery
             data = proc.page("products", {
                 "row": fields,
-                "form_error": "Image must be jpg, png, or webp",
+                "form_error": "A product can have up to 12 images. Remove some images before uploading more.",
                 "statuses": proc.PRODUCT_STATUSES,
                 "categories": _product_category_options(proc, fields)
             })
             return render_template("admin_product_form.html", data=data)
         # end if
-        if rel != "":
-            image = rel
+        uploaded_images = []
+        upload_error = ""
+        for file_obj in upload_files:
+            stored, rel = proc.save_upload(file_obj, "products")
+            if stored == "ERR_TYPE":
+                upload_error = "Every image must be jpg, png, or webp"
+                break
+            # end if
+            if rel != "":
+                uploaded_images.append(rel)
+            # end if
+        # end for
+        if upload_error != "":
+            for uploaded_image in uploaded_images:
+                proc.delete_local_upload(uploaded_image)
+            # end for
+            fields = _decorate_product_form(proc, _product_fields(proc, params))
+            fields["image"] = image or old_image
+            fields["images"] = existing_gallery
+            data = proc.page("products", {
+                "row": fields,
+                "form_error": upload_error,
+                "statuses": proc.PRODUCT_STATUSES,
+                "categories": _product_category_options(proc, fields)
+            })
+            return render_template("admin_product_form.html", data=data)
+        # end if
+        if uploaded_images != []:
+            image = uploaded_images[0]
         # end if
         params["image"] = image
         fields = _product_fields(proc, params)
         if image != "":
-            images = fields.get("images")
-            if not isinstance(images, list):
-                images = []
-            # end if
-            # Keep gallery list if already set on record; otherwise seed from cover
-            if pkey != "" and isinstance(rec.get("images"), list) and rec.get("images") != []:
-                gallery = list(rec.get("images"))
-                if rel != "":
-                    gallery = [image] + [x for x in gallery if x != image and x != old_image]
-                # end if
-                fields["images"] = gallery
+            if uploaded_images != []:
+                gallery = uploaded_images + [
+                    item for item in existing_gallery
+                    if item not in uploaded_images and item != old_image
+                ]
+            elif image != old_image:
+                gallery = [image] + [
+                    item for item in existing_gallery if item != image and item != old_image
+                ]
             else:
-                fields["images"] = [image]
+                gallery = existing_gallery if existing_gallery != [] else [image]
             # end if
+            fields["images"] = gallery[:12]
+        else:
+            fields["images"] = []
         # end if
         result = proc.save_row("db_product", pkey, fields)
         if result.get("status") == "SUCCESS":
-            if rel != "" and old_image != "" and old_image != image:
+            if uploaded_images != [] and old_image != "" and old_image != image:
                 proc.delete_local_upload(old_image)
             # end if
             return redirect("/admin/products")
+        # end if
+        for uploaded_image in uploaded_images:
+            proc.delete_local_upload(uploaded_image)
+        # end for
+        if uploaded_images != []:
+            fields["image"] = old_image
+            fields["images"] = existing_gallery
         # end if
         data = proc.page("products", {
             "row": _decorate_product_form(proc, fields),
