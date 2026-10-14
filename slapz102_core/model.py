@@ -487,6 +487,8 @@ db = {
         "list_mode": "LIMIT",
         "public_total_mode": "ACCUMULATED",
         "public_total_num": 0,
+        "proposal_pdf_url": "",
+        "proposal_pdf_label": "Download proposal (PDF)",
         "status": "ENABLE"
     },
 

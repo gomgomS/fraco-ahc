@@ -22,6 +22,16 @@ def support():
     # end try
 # end def
 
+@support_blueprint.route("/support/proposal.pdf", methods=["GET"])
+def support_proposal_pdf():
+    try:
+        return view_support.download_proposal_pdf()
+    except Exception:
+        print(traceback.format_exc())
+        return "An error occurred", 500
+    # end try
+# end def
+
 @support_blueprint.route("/support/check-referral", methods=["GET", "POST"])
 def support_check_referral():
     try:

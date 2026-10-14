@@ -11,6 +11,14 @@
     </div>
 </section>
 
+{% if data.donation.proposal_pdf_url %}
+<section class="section" style="padding-top: 0; padding-bottom: 8px;">
+    <p class="hero-actions" style="justify-content: center; margin: 0;">
+        <a class="btn-line" href="/support/proposal.pdf">{{ data.donation.proposal_pdf_label or 'Download proposal (PDF)' }}</a>
+    </p>
+</section>
+{% endif %}
+
 <section class="merch-proof">
     <div class="merch-proof-summary{% if not data.social_proof.show_total %} is-single{% endif %}">
         <div>

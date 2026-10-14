@@ -6,6 +6,7 @@ sys.path.append("slapz102_settings")
 sys.path.append("slapz102_stdlib")
 sys.path.append("slapz102_storage")
 
+import os
 import re
 import time
 from slapz102_core import database
@@ -34,8 +35,32 @@ class support_proc:
             "list_mode": "LIMIT",
             "public_total_mode": "ACCUMULATED",
             "public_total_num": 0,
+            "proposal_pdf_url": "",
+            "proposal_pdf_label": "Download proposal (PDF)",
             "status": "ENABLE"
         }
+    # end def
+
+    def resolve_proposal_pdf_path(self):
+        url = (self.get_settings().get("proposal_pdf_url") or "").strip()
+        if url == "":
+            return None
+        # end if
+        prefix = config.G_UPLOAD_URL_PATH + "/"
+        path = url.replace("\\", "/")
+        if path.find(prefix) != 0:
+            return None
+        # end if
+        rel = path[len(prefix):].lstrip("/")
+        parts = rel.split("/")
+        if rel == "" or ".." in parts:
+            return None
+        # end if
+        full = os.path.join(config.G_UPLOAD_PATH, *parts)
+        if os.path.isfile(full):
+            return full
+        # end if
+        return None
     # end def
 
     def get_settings(self):

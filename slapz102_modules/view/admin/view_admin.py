@@ -2019,6 +2019,13 @@ def html_settings():
             # end if
             return redirect("/admin/settings?tab=finance&ok=" + quote("Account saved"))
         # end if
+        if action == "support_proposal_save":
+            result = proc.save_support_proposal_pdf(params, request.files.get("proposal_pdf"))
+            if result.get("status") != "SUCCESS":
+                return redirect("/admin/settings?tab=support&error=" + quote(result.get("desc") or "Could not save proposal PDF"))
+            # end if
+            return redirect("/admin/settings?tab=support&ok=" + quote("Support proposal PDF saved"))
+        # end if
         if action == "import_images":
             db_stats = proc.migrate_remote_images()
             tpl_stats = proc.migrate_template_remote_images()
@@ -2066,7 +2073,7 @@ def html_settings():
     form_ok = (request.args.get("ok") or "").strip()
     form_error = (request.args.get("error") or "").strip()
     settings_tab = (request.args.get("tab") or "website").strip().lower()
-    if settings_tab not in ["website", "merchandise", "finance", "shipping", "images"]:
+    if settings_tab not in ["website", "merchandise", "finance", "shipping", "images", "support"]:
         settings_tab = "website"
     # end if
     site = proc.site.get_site() or {}
@@ -2100,7 +2107,8 @@ def html_settings():
         "phone": site.get("phone") or "",
         "whatsapp_url": site.get("whatsapp_url") or "",
         "contribution": site.get("contribution") or "",
-        "contribution_num": site.get("contribution_num") or 2000000
+        "contribution_num": site.get("contribution_num") or 2000000,
+        "donation_settings": proc.get_donation_settings()
     })
     return render_template("admin_settings.html", data=data)
 # end def

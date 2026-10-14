@@ -2052,6 +2052,45 @@ class admin_proc:
         return self.save_row("db_donation_settings", pkey, fields)
     # end def
 
+    def save_support_proposal_pdf(self, params, file_obj=None):
+        settings = self.get_donation_settings()
+        pkey = settings.get("pkey") or ""
+        label = (params.get("proposal_pdf_label") or "Download proposal (PDF)").strip()
+        if label == "":
+            label = "Download proposal (PDF)"
+        # end if
+        fields = {
+            "proposal_pdf_label": label,
+            "proposal_pdf_url": settings.get("proposal_pdf_url") or ""
+        }
+        remove = (params.get("remove_proposal_pdf") or "").upper() == "YES"
+        if remove:
+            self.delete_local_upload(settings.get("proposal_pdf_url"))
+            fields["proposal_pdf_url"] = ""
+            return self.save_row("db_donation_settings", pkey, fields)
+        # end if
+        if file_obj != None and file_obj.filename != "":
+            stored, rel = self.save_upload(file_obj, "support")
+            if stored == "ERR_TYPE":
+                return {"status": "FAILED", "desc": "Upload a PDF file only."}
+            # end if
+            if stored == "":
+                return {"status": "FAILED", "desc": "Could not save the PDF file."}
+            # end if
+            ext = stored.rsplit(".", 1)[-1].lower() if "." in stored else ""
+            if ext != "pdf":
+                self.delete_local_upload(rel)
+                return {"status": "FAILED", "desc": "Upload a PDF file only."}
+            # end if
+            old_url = settings.get("proposal_pdf_url") or ""
+            if old_url != "":
+                self.delete_local_upload(old_url)
+            # end if
+            fields["proposal_pdf_url"] = rel
+        # end if
+        return self.save_row("db_donation_settings", pkey, fields)
+    # end def
+
     def save_donor(self, pkey, params):
         name = (params.get("name") or "").strip()
         if name == "":

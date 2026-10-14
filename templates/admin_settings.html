@@ -15,6 +15,7 @@
     <a class="filter-chip{% if data.settings_tab == 'finance' %} active{% endif %}" href="/admin/settings?tab=finance">Finance</a>
     <a class="filter-chip{% if data.settings_tab == 'shipping' %} active{% endif %}" href="/admin/settings?tab=shipping">Shipping</a>
     <a class="filter-chip{% if data.settings_tab == 'images' %} active{% endif %}" href="/admin/settings?tab=images">Images</a>
+    <a class="filter-chip{% if data.settings_tab == 'support' %} active{% endif %}" href="/admin/settings?tab=support">Support</a>
 </div>
 
 {% if data.settings_tab == 'website' %}
@@ -217,6 +218,38 @@
         <div><label class="field-label" for="expedition_order">Order</label><input class="field" type="number" name="order" id="expedition_order" value="0"></div>
         <input type="hidden" name="status" value="ENABLE">
         <button class="btn-black" type="submit">Add expedition</button>
+    </form>
+    {% endif %}
+</section>
+{% endif %}
+
+{% if data.settings_tab == 'support' %}
+<section class="admin-block">
+    <h2 class="section-title" style="font-size: 20px; margin: 0 0 12px;">Support page — proposal PDF</h2>
+    <p class="prose-fraco" style="margin: 0 0 18px;">Upload the proposal PDF shown on the public <a href="/support" target="_blank" rel="noopener">/support</a> page. Visitors can download it without logging in.</p>
+    {% if data.donation_settings.proposal_pdf_url %}
+    <p class="product-meta" style="margin-bottom: 16px;">Current file: <a href="{{ data.donation_settings.proposal_pdf_url }}" target="_blank" rel="noopener">View uploaded PDF</a> · Public download: <a href="/support/proposal.pdf" target="_blank" rel="noopener">/support/proposal.pdf</a></p>
+    {% else %}
+    <p class="product-meta" style="margin-bottom: 16px;">No proposal PDF uploaded yet. The download button stays hidden on /support until you upload one.</p>
+    {% endif %}
+    {% if data.can_write %}
+    <form class="form-stack" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="action" value="support_proposal_save">
+        <div>
+            <label class="field-label" for="proposal_pdf_label">Download button label</label>
+            <input class="field" name="proposal_pdf_label" id="proposal_pdf_label" value="{{ data.donation_settings.proposal_pdf_label or 'Download proposal (PDF)' }}">
+        </div>
+        <div>
+            <label class="field-label" for="proposal_pdf">Proposal PDF</label>
+            <input class="field" type="file" name="proposal_pdf" id="proposal_pdf" accept=".pdf,application/pdf">
+            <p class="product-meta">PDF only. Leave empty to keep the current file; upload a new file to replace it.</p>
+        </div>
+        {% if data.donation_settings.proposal_pdf_url %}
+        <label style="display:flex; align-items:center; gap:10px;">
+            <input type="checkbox" name="remove_proposal_pdf" value="YES"> Remove current PDF
+        </label>
+        {% endif %}
+        <button class="btn-black" type="submit">Save support PDF</button>
     </form>
     {% endif %}
 </section>

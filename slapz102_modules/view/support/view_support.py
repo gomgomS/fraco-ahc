@@ -5,7 +5,8 @@ sys.path.append("slapz102_settings")
 sys.path.append("slapz102_stdlib")
 sys.path.append("slapz102_storage")
 
-from flask import render_template, request, jsonify, redirect
+from flask import render_template, request, jsonify, redirect, send_file
+import re
 import sanitize
 from support.support_proc import support_proc
 
@@ -51,4 +52,22 @@ def api_check_referral():
             "referrer_name": result.get("referrer_name") or ""
         }
     })
+# end def
+
+def download_proposal_pdf():
+    proc = support_proc()
+    path = proc.resolve_proposal_pdf_path()
+    if path == None:
+        return "Not found", 404
+    # end if
+    settings = proc.get_settings()
+    label = (settings.get("proposal_pdf_label") or "FRACO-proposal").strip()
+    download_name = re.sub(r"[^a-zA-Z0-9._ -]", "", label)
+    if download_name == "":
+        download_name = "FRACO-proposal"
+    # end if
+    if download_name.lower().find(".pdf") < 0:
+        download_name = download_name + ".pdf"
+    # end if
+    return send_file(path, mimetype="application/pdf", as_attachment=True, download_name=download_name)
 # end def
