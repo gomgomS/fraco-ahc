@@ -363,6 +363,21 @@ class support_proc:
         if form_values == None:
             form_values = {}
         # end if
+        lang = self.site.get_lang()
+        event = (site.get("event_full_name") or "Alumni Home Coming 2027").strip()
+        class_label = (site.get("class_label") or "Class of 2017").strip()
+        page_title = (settings.get("title") or "Support Us").strip()
+        if lang == "id":
+            share_desc = (
+                "Dukung " + event + " — unduh proposal PDF dan isi komitmen dukungan. "
+                + class_label + "."
+            )
+        else:
+            share_desc = (
+                "Support " + event + " — download the proposal PDF and share your pledge. "
+                + class_label + "."
+            )
+        # end if
         return self.site.with_site({
             "donation": settings,
             "donors": ranked,
@@ -371,7 +386,10 @@ class support_proc:
             "form_ok": form_ok,
             "form_error": form_error,
             "form_field": form_field or "",
-            "form_values": form_values
+            "form_values": form_values,
+            "share_title": page_title + " | FRACO",
+            "share_description": share_desc,
+            "share_url": "/support"
         })
     # end def
 # end class

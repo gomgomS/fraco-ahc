@@ -144,11 +144,83 @@ class ahc_site_proc:
         return user
     # end def
 
+    def abs_public_url(self, path):
+        base = (config.G_PUBLIC_SITE_URL or "").strip().rstrip("/")
+        text = str(path or "").strip()
+        if text == "":
+            text = "/"
+        # end if
+        if text.lower().find("http://") == 0 or text.lower().find("https://") == 0:
+            return text
+        # end if
+        if base == "":
+            try:
+                from flask import has_request_context, request
+                if has_request_context():
+                    base = (request.url_root or "").strip().rstrip("/")
+                # end if
+            except Exception:
+                base = ""
+            # end try
+        # end if
+        if not text.startswith("/"):
+            text = "/" + text
+        # end if
+        if base == "":
+            return text
+        # end if
+        return base + text
+    # end def
+
+    def default_share_meta(self, site, lang="en"):
+        name = (site.get("name") or "FRACO").strip()
+        event = (site.get("event_full_name") or "Alumni Home Coming 2027").strip()
+        class_label = (site.get("class_label") or "Class of 2017").strip()
+        share_title = name + " | " + class_label + " | " + event
+        desc = (site.get("subtitle") or site.get("description") or "").strip()
+        if desc == "":
+            if lang == "id":
+                desc = (
+                    "FRACO angkatan 2017 — program, merchandise, mitra, dan Support Us untuk "
+                    + event + "."
+                )
+            else:
+                desc = (
+                    "FRACO · " + class_label + " — programs, merchandise, partners, "
+                    + "and Support Us for " + event + "."
+                )
+            # end if
+        # end if
+        return {
+            "share_title": share_title,
+            "share_description": desc,
+            "share_url": "/",
+            "share_image": config.G_OG_IMAGE_PATH
+        }
+    # end def
+
     def with_site(self, extra):
-        data = self.apply_lang(self.get_site(), self.get_lang())
+        site = self.get_site()
+        lang = self.get_lang()
+        data = self.apply_lang(site, lang)
         data["cart_count"] = self.get_cart_count()
         data["auth_user"] = self.get_auth_user()
-        data.update(extra)
+        data.update(extra or {})
+        lang = data.get("lang") or lang
+        share = self.default_share_meta(self.apply_lang(site, lang), lang)
+        for key in ["share_title", "share_description", "share_url", "share_image"]:
+            val = data.get(key)
+            if val != None and str(val).strip() != "":
+                share[key] = val
+            # end if
+        # end for
+        share["share_url"] = self.abs_public_url(share.get("share_url") or "/")
+        share["share_image"] = self.abs_public_url(share.get("share_image") or config.G_OG_IMAGE_PATH)
+        share["share_description"] = (share.get("share_description") or "").strip()
+        if len(share["share_description"]) > 300:
+            share["share_description"] = share["share_description"][0:297] + "..."
+        # end if
+        data.update(share)
         return data
     # end def
 

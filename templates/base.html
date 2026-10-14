@@ -5,6 +5,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}FRACO | Class of 2017 | Alumni Home Coming 2027{% endblock %}</title>
+    <meta name="description" content="{{ data.share_description or '' }}">
+    <link rel="canonical" href="{{ data.share_url or '' }}">
+    <link rel="icon" href="{{ data.share_image or '/static/brand/fraco-og.jpg' }}" type="image/jpeg">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="{{ data.name or 'FRACO' }}">
+    <meta property="og:locale" content="{% if data.lang == 'id' %}id_ID{% else %}en_US{% endif %}">
+    <meta property="og:title" content="{{ data.share_title or (data.name or 'FRACO') }}">
+    <meta property="og:description" content="{{ data.share_description or '' }}">
+    <meta property="og:url" content="{{ data.share_url or '' }}">
+    <meta property="og:image" content="{{ data.share_image or '' }}">
+    <meta property="og:image:secure_url" content="{{ data.share_image or '' }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ data.share_title or (data.name or 'FRACO') }}">
+    <meta name="twitter:description" content="{{ data.share_description or '' }}">
+    <meta name="twitter:image" content="{{ data.share_image or '' }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,600;0,700;0,800;1,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
