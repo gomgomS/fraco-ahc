@@ -6,6 +6,7 @@ sys.path.append("slapz102_stdlib")
 sys.path.append("slapz102_storage")
 
 from flask import render_template, request, jsonify, redirect, send_file
+import inspect
 import re
 import sanitize
 from support.support_proc import support_proc
@@ -69,5 +70,14 @@ def download_proposal_pdf():
     if download_name.lower().find(".pdf") < 0:
         download_name = download_name + ".pdf"
     # end if
-    return send_file(path, mimetype="application/pdf", as_attachment=True, download_name=download_name)
+    send_kwargs = {
+        "mimetype": "application/pdf",
+        "as_attachment": True
+    }
+    if "download_name" in inspect.signature(send_file).parameters:
+        send_kwargs["download_name"] = download_name
+    else:
+        send_kwargs["attachment_filename"] = download_name
+    # end if
+    return send_file(path, **send_kwargs)
 # end def

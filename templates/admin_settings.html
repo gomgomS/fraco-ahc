@@ -228,7 +228,7 @@
     <h2 class="section-title" style="font-size: 20px; margin: 0 0 12px;">Support page — proposal PDF</h2>
     <p class="prose-fraco" style="margin: 0 0 18px;">Upload the proposal PDF shown on the public <a href="/support" target="_blank" rel="noopener">/support</a> page. Visitors can download it without logging in.</p>
     {% if data.donation_settings.proposal_pdf_url %}
-    <p class="product-meta" style="margin-bottom: 16px;">Current file: <a href="{{ data.donation_settings.proposal_pdf_url }}" target="_blank" rel="noopener">View uploaded PDF</a> · Public download: <a href="/support/proposal.pdf" target="_blank" rel="noopener">/support/proposal.pdf</a></p>
+    <p class="product-meta" style="margin-bottom: 16px;">Proposal PDF is saved. <a href="/support/proposal.pdf">Download saved PDF</a> (same file visitors get on /support).</p>
     {% else %}
     <p class="product-meta" style="margin-bottom: 16px;">No proposal PDF uploaded yet. The download button stays hidden on /support until you upload one.</p>
     {% endif %}
