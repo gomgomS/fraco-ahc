@@ -1124,6 +1124,24 @@ class admin_proc:
         table["search_label"] = "Search by order ID or customer name"
         table["search_placeholder"] = "Order ID or customer name"
         table["search_hint"] = "Find orders using the transaction/order ID or the customer's name."
+        col_classes = [
+            "col-order-id",
+            "col-customer",
+            "col-referral",
+            "col-date",
+            "col-buyer-total",
+            "col-total-cuts",
+            "col-seller-net",
+            "col-payment",
+            "col-shipping",
+            "col-order-status",
+            "col-actions"
+        ]
+        if shipping == "OFFICER":
+            col_classes.insert(0, "col-select")
+        # end if
+        table["table_class"] = "admin-orders-list-table"
+        table["column_classes"] = col_classes
         return table
     # end def
 

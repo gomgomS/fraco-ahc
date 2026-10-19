@@ -2,6 +2,51 @@
 {% block title %}Orders | Admin{% endblock %}
 {% block content %}
 <style>
+.admin-orders-page .admin-orders-list-table { table-layout: fixed; min-width: 1120px; }
+.admin-orders-page .admin-orders-list-table .col-select { width: 52px; }
+.admin-orders-page .admin-orders-list-table .col-order-id { width: 118px; }
+.admin-orders-page .admin-orders-list-table .col-customer { width: 120px; }
+.admin-orders-page .admin-orders-list-table .col-referral { width: 140px; }
+.admin-orders-page .admin-orders-list-table .col-date { width: 108px; }
+.admin-orders-page .admin-orders-list-table .col-buyer-total { width: 96px; }
+.admin-orders-page .admin-orders-list-table .col-total-cuts {
+    width: 172px;
+    min-width: 172px;
+    max-width: 172px;
+}
+.admin-orders-page .admin-orders-list-table .col-seller-net {
+    width: 108px;
+    min-width: 108px;
+    white-space: nowrap;
+}
+.admin-orders-page .admin-orders-list-table .col-payment {
+    width: 220px;
+    min-width: 220px;
+    max-width: 220px;
+}
+.admin-orders-page .admin-orders-list-table .col-shipping { width: 108px; }
+.admin-orders-page .admin-orders-list-table .col-order-status { width: 100px; }
+.admin-orders-page .admin-orders-list-table .col-actions { width: 88px; }
+.admin-orders-page .admin-orders-list-table td.col-total-cuts.admin-cell-wrap {
+    max-width: 172px;
+    font-size: 13px;
+    line-height: 1.45;
+}
+.admin-orders-page .admin-econ-cell strong {
+    display: block;
+    font-size: 13px;
+}
+.admin-orders-page .admin-econ-cell .product-meta {
+    font-size: 11px;
+    line-height: 1.35;
+}
+.admin-orders-page .admin-orders-list-table td.col-payment .admin-inline-form {
+    align-items: flex-start;
+}
+.admin-orders-page .admin-orders-list-table td.col-payment .field {
+    min-width: 0;
+    width: 100%;
+}
 @media (max-width: 899px) {
     html, body {
         max-width: 100%;
@@ -87,6 +132,7 @@
         width: 100%;
         padding: 11px 14px;
     }
+    .admin-orders-page .admin-orders-list-table { table-layout: auto; min-width: 0; }
     .admin-orders-page .admin-table-wrap {
         overflow: visible;
         border: 0;

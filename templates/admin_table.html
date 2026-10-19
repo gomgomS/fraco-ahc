@@ -37,11 +37,11 @@
 </div>
 {% endif %}
 <div class="admin-table-wrap">
-    <table class="admin-table">
+    <table class="admin-table{% if table.table_class %} {{ table.table_class }}{% endif %}">
         <thead>
             <tr>
                 {% for col in table.columns %}
-                <th>{{ col }}</th>
+                <th{% if table.column_classes and table.column_classes[loop.index0] %} class="{{ table.column_classes[loop.index0] }}"{% endif %}>{{ col }}</th>
                 {% endfor %}
             </tr>
         </thead>
@@ -49,7 +49,7 @@
             {% for row in table.rows %}
             <tr>
                 {% for cell in row.cells %}
-                <td data-label="{{ table.columns[loop.index0] }}"{% if cell.wrap %} class="admin-cell-wrap"{% endif %}>
+                <td data-label="{{ table.columns[loop.index0] }}" class="{% if cell.wrap %}admin-cell-wrap {% endif %}{% if table.column_classes and table.column_classes[loop.index0] %}{{ table.column_classes[loop.index0] }}{% endif %}">
                     {% if cell.kind == 'link' %}
                     <a class="section-link" href="{{ cell.href }}">{{ cell.text }}</a>
                     {% elif cell.kind == 'html_block' %}
