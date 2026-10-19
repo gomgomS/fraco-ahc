@@ -24,16 +24,12 @@
                     <input class="field" type="text" name="phone" id="phone" value="{{ data.form_values.phone or '' }}" required>
                 </div>
                 <div>
-                    <label class="field-label" for="address">Address</label>
-                    <input class="field" type="text" name="address" id="address" value="{{ data.form_values.address or '' }}" required>
-                </div>
-                <div>
-                    <label class="field-label" for="city">City</label>
-                    <input class="field" type="text" name="city" id="city" value="{{ data.form_values.city or '' }}" required>
-                </div>
-                <div>
-                    <label class="field-label" for="postal_code">Postal code</label>
-                    <input class="field" type="text" name="postal_code" id="postal_code" value="{{ data.form_values.postal_code or '' }}">
+                    <p class="field-label" style="margin-bottom:10px;">Alamat pengiriman</p>
+                    <p class="product-meta" style="margin-bottom:14px;">Pilih wilayah Indonesia, lalu isi nama jalan. Kode pos terisi otomatis.</p>
+                    {% set addr_prefix = '' %}
+                    {% set addr_rec = data.form_values %}
+                    {% set addr_required = True %}
+                    {% include 'address_fields.html' %}
                 </div>
                 <div>
                     <label class="field-label" for="referral_code">Referral code (optional)</label>
@@ -98,4 +94,5 @@
         </aside>
     </div>
 </section>
+<script src="{{ url_for('static', filename='js/wilayah-address.js') }}"></script>
 {% endblock %}

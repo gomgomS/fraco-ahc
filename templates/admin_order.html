@@ -107,8 +107,9 @@
         <p class="field-label">Customer</p>
         <p style="margin-top:8px;"><strong>{{ data.row.full_name }}</strong></p>
         <p class="product-meta" style="margin-top:6px;">{{ data.row.email }} · {{ data.row.phone }}</p>
-        <p style="margin-top:10px;">{{ data.row.address }}</p>
-        <p class="product-meta">{{ data.row.city }} {{ data.row.postal_code }}</p>
+        {% set addr_rows = data.address_rows %}
+        {% set addr_fallback = data.row.address %}
+        {% include 'address_display.html' %}
     </section>
     <section class="pay-box" style="padding:18px;">
         <p class="field-label">Referral in charge</p>
@@ -185,14 +186,23 @@
         </section>
     </div>
 
+    <section class="pay-box" style="padding:18px; margin-bottom:20px;">
+        <p class="field-label">Alamat checkout pembeli</p>
+        <p class="product-meta" style="margin-top:6px;">{{ data.row.full_name }} · {{ data.row.phone }}</p>
+        {% set addr_rows = data.address_rows %}
+        {% set addr_fallback = data.row.address %}
+        {% include 'address_display.html' %}
+    </section>
+
     {% if data.row.shipping_handler == 'OFFICER' %}
     <div class="admin-order-stack">
         <section class="pay-box" style="padding:18px;">
             <p class="field-label">Package recipient (from member)</p>
             <p style="margin-top:8px;"><strong>{{ data.row.shipping_name or data.row.full_name }}</strong></p>
             <p class="product-meta" style="margin-top:6px;">{{ data.row.shipping_phone or data.row.phone }}</p>
-            <p style="margin-top:10px;">{{ data.row.shipping_address or data.row.address }}</p>
-            <p class="product-meta">{{ data.row.shipping_city or data.row.city }} {{ data.row.shipping_postal_code or data.row.postal_code }}</p>
+            {% set addr_rows = data.shipping_address_rows or data.address_rows %}
+            {% set addr_fallback = data.row.shipping_address or data.row.address %}
+            {% include 'address_display.html' %}
             {% if data.row.shipping_package_note %}<p class="product-meta" style="margin-top:10px;">Note: {{ data.row.shipping_package_note }}</p>{% endif %}
         </section>
         <section class="pay-box" style="padding:18px;">

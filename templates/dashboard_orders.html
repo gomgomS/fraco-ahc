@@ -266,42 +266,18 @@
                                 </dl>
                             </section>
 
-                            <section class="dash-order-block dash-location-block" data-location-block data-label-edit="{{ data.dash.change_location }}" data-label-cancel="{{ data.dash.cancel }}">
+                            <section class="dash-order-block dash-location-block">
                                 <div class="dash-order-block-head">
                                     <h4 class="dash-order-block-title">{{ data.dash.delivery_location }}</h4>
-                                    <button class="btn-line dash-location-toggle" type="button" data-location-toggle>{{ data.dash.change_location }}</button>
                                 </div>
                                 <div data-location-view>
-                                    <dl class="dash-order-dl">
-                                        <div>
-                                            <dt>{{ data.dash.address }}</dt>
-                                            <dd data-location-display="address">{{ item.address or '—' }}</dd>
-                                        </div>
-                                        <div>
-                                            <dt>{{ data.dash.city }}</dt>
-                                            <dd data-location-display="city">{{ item.city or '—' }}</dd>
-                                        </div>
-                                        <div>
-                                            <dt>{{ data.dash.postal_code }}</dt>
-                                            <dd data-location-display="postal_code">{{ item.postal_code or '—' }}</dd>
-                                        </div>
-                                    </dl>
+                                    {% set addr_rows = item.address_rows %}
+                                    {% set addr_fallback = item.address %}
+                                    {% include 'address_display.html' %}
                                 </div>
-                                <div class="dash-order-fields dash-order-fields-location" data-location-edit hidden>
-                                    <div class="dash-order-field-full">
-                                        <label class="field-label" for="address_{{ item.pkey }}">{{ data.dash.address }}</label>
-                                        <textarea class="field" name="address" id="address_{{ item.pkey }}" rows="2" data-location-input="address" data-original="{{ item.address or '' }}">{{ item.address or '' }}</textarea>
-                                    </div>
-                                    <div>
-                                        <label class="field-label" for="city_{{ item.pkey }}">{{ data.dash.city }}</label>
-                                        <input class="field" type="text" name="city" id="city_{{ item.pkey }}" value="{{ item.city or '' }}" data-location-input="city" data-original="{{ item.city or '' }}">
-                                    </div>
-                                    <div>
-                                        <label class="field-label" for="postal_code_{{ item.pkey }}">{{ data.dash.postal_code }}</label>
-                                        <input class="field" type="text" name="postal_code" id="postal_code_{{ item.pkey }}" value="{{ item.postal_code or '' }}" data-location-input="postal_code" data-original="{{ item.postal_code or '' }}">
-                                    </div>
-                                    <p class="product-meta dash-location-hint">{{ data.dash.location_hint }}</p>
-                                </div>
+                                <p class="product-meta" style="margin-top:10px;">
+                                    <a class="section-link" href="/dashboard/orders/{{ item.pkey }}?tab=details">{{ data.dash.edit_on_detail }}</a>
+                                </p>
                             </section>
                         </div>
 

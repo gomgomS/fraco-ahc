@@ -93,8 +93,13 @@
         </section>
         <section class="shipping-preview-cell shipping-preview-wide">
             <p class="shipping-preview-label">Alamat penerima</p>
-            <p class="shipping-preview-value"><strong>{{ data.document.recipient_address }}</strong></p>
-            <p class="shipping-preview-value">{{ data.document.recipient_city }}{% if data.document.recipient_postal_code %} · {{ data.document.recipient_postal_code }}{% endif %}</p>
+            {% if data.document.recipient_street %}<p class="shipping-preview-value"><strong>{{ data.document.recipient_street }}</strong></p>{% endif %}
+            {% if data.document.recipient_address_detail %}<p class="shipping-preview-value">{{ data.document.recipient_address_detail }}</p>{% endif %}
+            {% if data.document.recipient_village or data.document.recipient_district %}
+            <p class="shipping-preview-value">{{ data.document.recipient_village }}{% if data.document.recipient_village and data.document.recipient_district %}, {% endif %}{{ data.document.recipient_district }}</p>
+            {% endif %}
+            <p class="shipping-preview-value">{{ data.document.recipient_city }}{% if data.document.recipient_province %}, {{ data.document.recipient_province }}{% endif %}{% if data.document.recipient_postal_code %} · {{ data.document.recipient_postal_code }}{% endif %}</p>
+            {% if not data.document.recipient_street %}<p class="shipping-preview-value"><strong>{{ data.document.recipient_address }}</strong></p>{% endif %}
         </section>
     </div>
     <table class="shipping-preview-items">

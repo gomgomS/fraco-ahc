@@ -1477,6 +1477,19 @@
   display: grid;
   gap: 22px;
 }
+.address-fields {
+  display: grid;
+  gap: 16px;
+}
+.address-grid {
+  display: grid;
+  gap: 14px;
+}
+@media (min-width: 720px) {
+  .address-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
 .news-card time, .news-card .by {
   font-family: var(--font-mono);
   font-size: 11px;

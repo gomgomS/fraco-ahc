@@ -22,6 +22,7 @@ from admin.admin_blueprint import admin_blueprint
 from updates.updates_blueprint import updates_blueprint
 from cart.cart_blueprint import cart_blueprint
 from support.support_blueprint import support_blueprint
+from address.address_blueprint import address_blueprint
 
 app.register_blueprint(home_blueprint, url_prefix="/")
 app.register_blueprint(about_blueprint, url_prefix="/")
@@ -34,6 +35,7 @@ app.register_blueprint(admin_blueprint, url_prefix="/")
 app.register_blueprint(updates_blueprint, url_prefix="/")
 app.register_blueprint(cart_blueprint, url_prefix="/")
 app.register_blueprint(support_blueprint, url_prefix="/")
+app.register_blueprint(address_blueprint, url_prefix="/")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5004, debug=True)

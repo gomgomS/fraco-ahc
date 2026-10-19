@@ -73,29 +73,20 @@
                         <section class="dash-order-block">
                             <h2 class="dash-order-block-title">{{ data.dash.delivery_location }}{% if data.order.shipping_handler != 'OFFICER' %} <span>{{ data.dash.editable }}</span>{% endif %}</h2>
                             {% if data.order.shipping_handler == 'OFFICER' %}
-                            <dl class="dash-order-dl">
-                                <div><dt>{{ data.dash.address }}</dt><dd>{{ data.order.address or '—' }}</dd></div>
-                                <div><dt>{{ data.dash.city }}</dt><dd>{{ data.order.city or '—' }}</dd></div>
-                                <div><dt>{{ data.dash.postal_code }}</dt><dd>{{ data.order.postal_code or '—' }}</dd></div>
-                            </dl>
+                            {% set addr_rows = data.address_rows %}
+                            {% set addr_fallback = data.order.address %}
+                            {% include 'address_display.html' %}
                             <p class="product-meta" style="margin-top:12px;">{{ data.dash.shipping_address_locked }}</p>
                             {% else %}
                             {% if data.form_ok %}<p class="product-meta" style="margin-bottom: 12px;">{{ data.dash.delivery_updated }}</p>{% endif %}
                             {% if data.form_error %}<p class="product-meta" style="color: #b00000; margin-bottom: 12px;">{{ data.form_error }}</p>{% endif %}
                             <form class="form-stack" method="post">
                                 <input type="hidden" name="action" value="delivery_location">
-                                <div>
-                                    <label class="field-label" for="address">{{ data.dash.address }}</label>
-                                    <textarea class="field" name="address" id="address" rows="3">{{ data.order.address or '' }}</textarea>
-                                </div>
-                                <div>
-                                    <label class="field-label" for="city">{{ data.dash.city }}</label>
-                                    <input class="field" name="city" id="city" value="{{ data.order.city or '' }}">
-                                </div>
-                                <div>
-                                    <label class="field-label" for="postal_code">{{ data.dash.postal_code }}</label>
-                                    <input class="field" name="postal_code" id="postal_code" value="{{ data.order.postal_code or '' }}">
-                                </div>
+                                <p class="product-meta">{{ data.dash.location_hint }}</p>
+                                {% set addr_prefix = '' %}
+                                {% set addr_rec = data.order %}
+                                {% set addr_required = True %}
+                                {% include 'address_fields.html' %}
                                 <button class="btn-line" type="submit">{{ data.dash.save_delivery }}</button>
                             </form>
                             {% endif %}
@@ -114,7 +105,9 @@
                                 <p class="product-meta">{{ data.dash.shipping_package_recipient }}</p>
                                 <p style="margin-top:6px;"><strong>{{ data.order.shipping_name or data.order.full_name or '—' }}</strong> · {{ data.order.shipping_phone or data.order.phone or '—' }}</p>
                                 <p class="product-meta" style="margin-top:12px;">{{ data.dash.shipping_package_address }}</p>
-                                <p style="margin-top:6px;">{{ data.order.shipping_address or data.order.address or '—' }}{% if data.order.shipping_city or data.order.city %}, {{ data.order.shipping_city or data.order.city }}{% endif %}{% if data.order.shipping_postal_code or data.order.postal_code %} {{ data.order.shipping_postal_code or data.order.postal_code }}{% endif %}</p>
+                                {% set addr_rows = data.shipping_address_rows or data.address_rows %}
+                                {% set addr_fallback = data.order.shipping_address or data.order.address %}
+                                {% include 'address_display.html' %}
                                 {% if data.order.shipping_package_note %}
                                 <p class="product-meta" style="margin-top:12px;">{{ data.dash.shipping_package_note }}</p>
                                 <p style="margin-top:6px;">{{ data.order.shipping_package_note }}</p>
@@ -168,7 +161,9 @@
                                     <p class="product-meta">{{ data.dash.shipping_package_recipient }}</p>
                                     <p style="margin-top:6px;"><strong>{{ data.order.full_name or '—' }}</strong> · {{ data.order.phone or '—' }}</p>
                                     <p class="product-meta" style="margin-top:10px;">{{ data.dash.shipping_package_address }}</p>
-                                    <p style="margin-top:6px;">{{ data.order.address or '—' }}{% if data.order.city %}, {{ data.order.city }}{% endif %}{% if data.order.postal_code %} {{ data.order.postal_code }}{% endif %}</p>
+                                    {% set addr_rows = data.address_rows %}
+                                    {% set addr_fallback = data.order.address %}
+                                    {% include 'address_display.html' %}
                                 </div>
                                 <div class="dash-order-fields" id="custom-recipient-fields">
                                     <div>
@@ -180,16 +175,10 @@
                                         <input class="field" name="shipping_phone" id="shipping_phone" value="{{ data.order.shipping_phone or data.order.phone or '' }}" data-buyer-value="{{ data.order.phone or '' }}">
                                     </div>
                                     <div class="dash-order-field-full">
-                                        <label class="field-label" for="shipping_address">{{ data.dash.shipping_package_address }}</label>
-                                        <textarea class="field" name="shipping_address" id="shipping_address" rows="3" data-buyer-value="{{ data.order.address or '' }}">{{ data.order.shipping_address or data.order.address or '' }}</textarea>
-                                    </div>
-                                    <div>
-                                        <label class="field-label" for="shipping_city">{{ data.dash.city }}</label>
-                                        <input class="field" name="shipping_city" id="shipping_city" value="{{ data.order.shipping_city or data.order.city or '' }}" data-buyer-value="{{ data.order.city or '' }}">
-                                    </div>
-                                    <div>
-                                        <label class="field-label" for="shipping_postal_code">{{ data.dash.postal_code }}</label>
-                                        <input class="field" name="shipping_postal_code" id="shipping_postal_code" value="{{ data.order.shipping_postal_code or data.order.postal_code or '' }}" data-buyer-value="{{ data.order.postal_code or '' }}">
+                                        {% set addr_prefix = 'shipping_' %}
+                                        {% set addr_rec = data.order %}
+                                        {% set addr_required = True %}
+                                        {% include 'address_fields.html' %}
                                     </div>
                                 </div>
                                 <div style="margin-top:14px;">
@@ -341,6 +330,7 @@
         </div>
     </div>
 </section>
+<script src="{{ url_for('static', filename='js/wilayah-address.js') }}"></script>
 <script>
 (function () {
     var handler = document.getElementById("shipping_handler");
@@ -350,17 +340,23 @@
     var customFields = document.getElementById("custom-recipient-fields");
     var confirmInfo = document.getElementById("shipping_confirm_info");
     var confirmProcess = document.getElementById("shipping_confirm_process");
-    var recipientFields = ["shipping_name", "shipping_phone", "shipping_address", "shipping_city", "shipping_postal_code"];
     if (!handler || !fields || !same) return;
+    function setDisabled(root, disabled) {
+        if (!root) return;
+        var nodes = root.querySelectorAll("input, select, textarea");
+        for (var i = 0; i < nodes.length; i += 1) {
+            nodes[i].disabled = disabled;
+        }
+    }
     function syncRecipient() {
-        recipientFields.forEach(function (id) {
-            var input = document.getElementById(id);
-            if (!input) return;
-            if (same.checked) input.value = input.getAttribute("data-buyer-value") || "";
-            input.disabled = same.checked;
-        });
-        if (sameSummary) sameSummary.style.display = same.checked ? "" : "none";
-        if (customFields) customFields.style.display = same.checked ? "none" : "";
+        var hideCustom = same.checked;
+        if (sameSummary) sameSummary.style.display = hideCustom ? "" : "none";
+        if (customFields) customFields.style.display = hideCustom ? "none" : "";
+        setDisabled(customFields, hideCustom);
+        var name = document.getElementById("shipping_name");
+        var phone = document.getElementById("shipping_phone");
+        if (name) name.disabled = hideCustom;
+        if (phone) phone.disabled = hideCustom;
     }
     function syncHandler() {
         var officer = handler.value === "OFFICER";
@@ -372,6 +368,11 @@
         if (confirmProcess) {
             confirmProcess.required = officer;
             confirmProcess.disabled = !officer;
+        }
+        if (!officer) setDisabled(fields, true);
+        else {
+            setDisabled(fields, false);
+            syncRecipient();
         }
     }
     same.addEventListener("change", syncRecipient);

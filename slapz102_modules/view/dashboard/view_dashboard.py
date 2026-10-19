@@ -174,10 +174,15 @@ def html_order_detail(order_ref):
             data["shipping_error"] = result.get("desc") or "Could not save shipping choice"
         else:
             data["form_error"] = result.get("desc") or "Could not update delivery location"
+            if action == "delivery_location":
+                order.update(proc.address.collect(params))
+            # end if
         # end if
     # end if
     data["order_tab"] = order_tab
     data["order"] = order
+    data["address_rows"] = proc.address.display_rows(order)
+    data["shipping_address_rows"] = proc.address.display_rows(order, "shipping_")
     data["form_ok"] = (request.args.get("ok") or "") == "1"
     data["complete_ok"] = (request.args.get("complete_ok") or "") == "1"
     data["shipping_ok"] = (request.args.get("shipping_ok") or "") == "1"

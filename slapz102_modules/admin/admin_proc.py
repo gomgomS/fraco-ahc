@@ -2551,15 +2551,25 @@ class admin_proc:
                 "options": " · ".join(item_options)
             })
         # end for
+        from address.address_proc import address_proc
+        ship = address_proc().from_record(order, "shipping_")
+        if (ship.get("address") or "").strip() == "":
+            ship = address_proc().from_record(order)
+        # end if
         return {
             "order_id": order.get("order_id") or order.get("pkey") or "",
             "sender_name": sender_name or "—",
             "sender_phone": sender_phone or "—",
             "recipient_name": order.get("shipping_name") or order.get("full_name") or "—",
             "recipient_phone": order.get("shipping_phone") or order.get("phone") or "—",
-            "recipient_address": order.get("shipping_address") or order.get("address") or "—",
-            "recipient_city": order.get("shipping_city") or order.get("city") or "",
-            "recipient_postal_code": order.get("shipping_postal_code") or order.get("postal_code") or "",
+            "recipient_address": ship.get("address") or "—",
+            "recipient_city": ship.get("city") or "",
+            "recipient_postal_code": ship.get("postal_code") or "",
+            "recipient_street": ship.get("street") or "",
+            "recipient_address_detail": ship.get("address_detail") or "",
+            "recipient_village": ship.get("village") or "",
+            "recipient_district": ship.get("district") or "",
+            "recipient_province": ship.get("province") or "",
             "package_note": order.get("shipping_package_note") or "",
             "items": items
         }

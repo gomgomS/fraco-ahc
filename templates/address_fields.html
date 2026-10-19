@@ -1,0 +1,48 @@
+{% set prefix = addr_prefix or '' %}
+{% set rec = addr_rec or {} %}
+{% set req = addr_required != False %}
+<div class="address-fields" data-address-root>
+    <div class="address-grid">
+        <div>
+            <label class="field-label" for="{{ prefix }}province_id">Provinsi</label>
+            <select class="field" name="{{ prefix }}province_id" id="{{ prefix }}province_id" data-wilayah="province" data-selected="{{ rec[prefix ~ 'province_id'] or '' }}"{% if req %} required{% endif %}>
+                <option value="">Memuat provinsi…</option>
+            </select>
+            <input type="hidden" name="{{ prefix }}province" data-wilayah-name="province" value="{{ rec[prefix ~ 'province'] or '' }}">
+        </div>
+        <div>
+            <label class="field-label" for="{{ prefix }}city_id">Kabupaten / Kota</label>
+            <select class="field" name="{{ prefix }}city_id" id="{{ prefix }}city_id" data-wilayah="city" data-selected="{{ rec[prefix ~ 'city_id'] or '' }}"{% if req %} required{% endif %} disabled>
+                <option value="">Pilih kabupaten / kota</option>
+            </select>
+            <input type="hidden" name="{{ prefix }}city" data-wilayah-name="city" value="{{ rec[prefix ~ 'city'] or '' }}">
+        </div>
+        <div>
+            <label class="field-label" for="{{ prefix }}district_id">Kecamatan</label>
+            <select class="field" name="{{ prefix }}district_id" id="{{ prefix }}district_id" data-wilayah="district" data-selected="{{ rec[prefix ~ 'district_id'] or '' }}"{% if req %} required{% endif %} disabled>
+                <option value="">Pilih kecamatan</option>
+            </select>
+            <input type="hidden" name="{{ prefix }}district" data-wilayah-name="district" value="{{ rec[prefix ~ 'district'] or '' }}">
+        </div>
+        <div>
+            <label class="field-label" for="{{ prefix }}village_id">Kelurahan / Desa</label>
+            <select class="field" name="{{ prefix }}village_id" id="{{ prefix }}village_id" data-wilayah="village" data-selected="{{ rec[prefix ~ 'village_id'] or '' }}"{% if req %} required{% endif %} disabled>
+                <option value="">Pilih kelurahan / desa</option>
+            </select>
+            <input type="hidden" name="{{ prefix }}village" data-wilayah-name="village" value="{{ rec[prefix ~ 'village'] or '' }}">
+        </div>
+    </div>
+    <div>
+        <label class="field-label" for="{{ prefix }}street">Nama jalan, gedung, no. rumah</label>
+        <input class="field" type="text" name="{{ prefix }}street" id="{{ prefix }}street" value="{{ rec[prefix ~ 'street'] or '' }}" placeholder="Jl. Melati No. 12, Gedung A"{% if req %} required{% endif %}>
+    </div>
+    <div>
+        <label class="field-label" for="{{ prefix }}address_detail">Detail lainnya <span class="product-meta">(opsional)</span></label>
+        <input class="field" type="text" name="{{ prefix }}address_detail" id="{{ prefix }}address_detail" value="{{ rec[prefix ~ 'address_detail'] or '' }}" placeholder="cth: Blok/unit No./patokan">
+    </div>
+    <div>
+        <label class="field-label" for="{{ prefix }}postal_code">Kode pos</label>
+        <input class="field" type="text" name="{{ prefix }}postal_code" id="{{ prefix }}postal_code" data-wilayah="postal" value="{{ rec[prefix ~ 'postal_code'] or '' }}" placeholder="Terisi otomatis dari kelurahan">
+        <p class="product-meta" style="margin-top:7px;">Kode pos terisi otomatis setelah kelurahan dipilih. Bisa dikoreksi jika perlu.</p>
+    </div>
+</div>

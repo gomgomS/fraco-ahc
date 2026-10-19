@@ -14,6 +14,7 @@ from slapz102_core import database
 from slapz102_core import config
 from ahc_site.ahc_site_proc import ahc_site_proc
 from merchandise.merchandise_proc import merchandise_proc
+from address.address_proc import address_proc
 
 class cart_proc:
 
@@ -23,6 +24,7 @@ class cart_proc:
         self.webapp = app
         self.site = ahc_site_proc(app)
         self.merch = merchandise_proc(app)
+        self.address = address_proc(app)
     # end def
 
     def format_rp(self, amount):
@@ -595,10 +597,14 @@ class cart_proc:
         full_name = (params.get("full_name") or "").strip()
         email = (params.get("email") or "").strip()
         phone = (params.get("phone") or "").strip()
-        address = (params.get("address") or "").strip()
-        city = (params.get("city") or "").strip()
-        if full_name == "" or email == "" or phone == "" or address == "" or city == "":
-            response["desc"] = "Name, email, phone, address, and city are required"
+        addr = self.address.collect(params)
+        addr_check = self.address.validate(addr)
+        if full_name == "" or email == "" or phone == "":
+            response["desc"] = "Name, email, and phone are required"
+            return response
+        # end if
+        if addr_check.get("status") != "SUCCESS":
+            response["desc"] = addr_check.get("desc") or "Alamat pengiriman belum lengkap"
             return response
         # end if
         referral_raw = (params.get("referral_code") or "").strip()
@@ -655,9 +661,18 @@ class cart_proc:
         rec.put("full_name", full_name)
         rec.put("email", email)
         rec.put("phone", phone)
-        rec.put("address", address)
-        rec.put("city", city)
-        rec.put("postal_code", (params.get("postal_code") or "").strip())
+        rec.put("address", addr.get("address") or "")
+        rec.put("street", addr.get("street") or "")
+        rec.put("address_detail", addr.get("address_detail") or "")
+        rec.put("province", addr.get("province") or "")
+        rec.put("province_id", addr.get("province_id") or "")
+        rec.put("city", addr.get("city") or "")
+        rec.put("city_id", addr.get("city_id") or "")
+        rec.put("district", addr.get("district") or "")
+        rec.put("district_id", addr.get("district_id") or "")
+        rec.put("village", addr.get("village") or "")
+        rec.put("village_id", addr.get("village_id") or "")
+        rec.put("postal_code", addr.get("postal_code") or "")
         rec.put("notes", (params.get("notes") or "").strip())
         rec.put("payment_status", "Pending")
         rec.put("order_status", order_status)

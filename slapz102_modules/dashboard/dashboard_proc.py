@@ -13,6 +13,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from slapz102_core import database
 from slapz102_core import config
 from ahc_site.ahc_site_proc import ahc_site_proc
+from address.address_proc import address_proc
 
 class dashboard_proc:
 
@@ -92,9 +93,15 @@ class dashboard_proc:
             "change_location": "Change location",
             "cancel": "Cancel",
             "address": "Address",
-            "city": "City",
+            "street": "Street, building, house no.",
+            "address_detail": "Other details",
+            "province": "Province",
+            "district": "District",
+            "village": "Village / kelurahan",
+            "city": "City / regency",
             "postal_code": "Postal code",
-            "location_hint": "Edit the fields, then click Save changes below.",
+            "location_hint": "Choose the Indonesian region, then save. Postal code fills automatically.",
+            "edit_on_detail": "Edit full address on the order page",
             "items_label": "Items",
             "status_per_size": "status per size",
             "line_status": "Line status",
@@ -291,9 +298,15 @@ class dashboard_proc:
             "change_location": "Ubah alamat",
             "cancel": "Batal",
             "address": "Alamat",
-            "city": "Kota",
+            "street": "Nama jalan, gedung, no. rumah",
+            "address_detail": "Detail lainnya",
+            "province": "Provinsi",
+            "district": "Kecamatan",
+            "village": "Kelurahan / desa",
+            "city": "Kabupaten / kota",
             "postal_code": "Kode pos",
-            "location_hint": "Isi dulu, terus klik Simpan di bawah.",
+            "location_hint": "Pilih wilayah Indonesia, lalu simpan. Kode pos terisi otomatis.",
+            "edit_on_detail": "Ubah alamat lengkap di halaman pesanan",
             "items_label": "Barang",
             "status_per_size": "status per ukuran",
             "line_status": "Status ukuran",
@@ -440,6 +453,7 @@ class dashboard_proc:
     def __init__(self, app=None):
         self.webapp = app
         self.site = ahc_site_proc(app)
+        self.address = address_proc(app)
     # end def
 
     def dash_copy(self):
@@ -1327,6 +1341,8 @@ class dashboard_proc:
             # end if
             row["net_profit_num"] = net_profit_num
             row["net_profit"] = net_profit
+            row["address_rows"] = self.address.display_rows(order)
+            row["shipping_address_rows"] = self.address.display_rows(order, "shipping_")
             shipping_status = (order.get("shipping_request_status") or "").strip().upper()
             shipping_label_key = {
                 "REQUESTED": "shipping_status_requested",
@@ -1496,26 +1512,23 @@ class dashboard_proc:
                 row["line_status"] = header_status
             # end for
         # end if
-        # Member may update delivery location only (contact is view-only)
-        address = (params.get("address") or "").strip()
-        city = (params.get("city") or "").strip()
-        postal_code = (params.get("postal_code") or "").strip()
-        if address == "":
-            address = (order.get("address") or "").strip()
-        # end if
-        if city == "":
-            city = (order.get("city") or "").strip()
+        updates = {
+            "items": items,
+            "order_status": order_status,
+            "payment_status": payment_status
+        }
+        if (params.get("action") or "") == "delivery_location":
+            addr = self.address.collect(params)
+            addr_check = self.address.validate(addr)
+            if addr_check.get("status") != "SUCCESS":
+                response["desc"] = addr_check.get("desc") or "Alamat pengiriman belum lengkap"
+                return response
+            # end if
+            updates.update(addr)
         # end if
         self.mgdDB.db_order.update_one(
             {"pkey": pkey},
-            {"$set": {
-                "items": items,
-                "order_status": order_status,
-                "payment_status": payment_status,
-                "address": address,
-                "city": city,
-                "postal_code": postal_code
-            }}
+            {"$set": updates}
         )
         self.sync_merch_total(part)
         response["status"] = "SUCCESS"
@@ -1582,36 +1595,36 @@ class dashboard_proc:
         if same_buyer:
             shipping_name = (order.get("full_name") or "").strip()
             shipping_phone = (order.get("phone") or "").strip()
-            shipping_address = (order.get("address") or "").strip()
-            shipping_city = (order.get("city") or "").strip()
-            shipping_postal = (order.get("postal_code") or "").strip()
+            ship_addr = self.address.from_record(order)
         else:
             shipping_name = (params.get("shipping_name") or "").strip()
             shipping_phone = (params.get("shipping_phone") or "").strip()
-            shipping_address = (params.get("shipping_address") or "").strip()
-            shipping_city = (params.get("shipping_city") or "").strip()
-            shipping_postal = (params.get("shipping_postal_code") or "").strip()
+            ship_addr = self.address.collect(params, "shipping_")
+            addr_check = self.address.validate(ship_addr)
+            if addr_check.get("status") != "SUCCESS":
+                response["desc"] = addr_check.get("desc") or copy.get("shipping_recipient_error")
+                return response
+            # end if
         # end if
-        if shipping_name == "" or shipping_phone == "" or shipping_address == "":
+        if shipping_name == "" or shipping_phone == "" or (ship_addr.get("address") or "") == "":
             response["desc"] = copy.get("shipping_recipient_error")
             return response
         # end if
         service_fee_num = self.configured_shipping_service_fee_num()
+        shipping_set = {
+            "shipping_handler": "OFFICER",
+            "shipping_recipient_same_buyer": same_buyer,
+            "shipping_name": shipping_name,
+            "shipping_phone": shipping_phone,
+            "shipping_package_note": (params.get("shipping_package_note") or "").strip(),
+            "shipping_request_status": "REQUESTED",
+            "shipping_service_fee": self.format_rp(service_fee_num),
+            "shipping_service_fee_num": service_fee_num
+        }
+        shipping_set.update(self.address.prefixed(ship_addr, "shipping_"))
         self.mgdDB.db_order.update_one(
             {"pkey": pkey},
-            {"$set": {
-                "shipping_handler": "OFFICER",
-                "shipping_recipient_same_buyer": same_buyer,
-                "shipping_name": shipping_name,
-                "shipping_phone": shipping_phone,
-                "shipping_address": shipping_address,
-                "shipping_city": shipping_city,
-                "shipping_postal_code": shipping_postal,
-                "shipping_package_note": (params.get("shipping_package_note") or "").strip(),
-                "shipping_request_status": "REQUESTED",
-                "shipping_service_fee": self.format_rp(service_fee_num),
-                "shipping_service_fee_num": service_fee_num
-            }}
+            {"$set": shipping_set}
         )
         response["status"] = "SUCCESS"
         return response

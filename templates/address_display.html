@@ -1,0 +1,14 @@
+{% if addr_rows %}
+<dl class="dash-order-dl address-display">
+    {% for row in addr_rows %}
+    <div>
+        <dt>{{ row.label }}</dt>
+        <dd>{{ row.value }}</dd>
+    </div>
+    {% endfor %}
+</dl>
+{% elif addr_fallback %}
+<p style="margin-top:8px; white-space:pre-line;">{{ addr_fallback }}</p>
+{% else %}
+<p class="product-meta" style="margin-top:8px;">—</p>
+{% endif %}

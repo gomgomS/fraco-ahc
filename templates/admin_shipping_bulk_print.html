@@ -146,8 +146,13 @@
                     </section>
                     <section class="bulk-label-block bulk-label-wide">
                         <p class="bulk-label-caption">Alamat penerima</p>
-                        <p class="bulk-label-value"><strong>{{ document.recipient_address }}</strong></p>
-                        <p class="bulk-label-value">{{ document.recipient_city }}{% if document.recipient_postal_code %} · {{ document.recipient_postal_code }}{% endif %}</p>
+                        {% if document.recipient_street %}<p class="bulk-label-value"><strong>{{ document.recipient_street }}</strong></p>{% endif %}
+                        {% if document.recipient_address_detail %}<p class="bulk-label-value">{{ document.recipient_address_detail }}</p>{% endif %}
+                        {% if document.recipient_village or document.recipient_district %}
+                        <p class="bulk-label-value">{{ document.recipient_village }}{% if document.recipient_village and document.recipient_district %}, {% endif %}{{ document.recipient_district }}</p>
+                        {% endif %}
+                        <p class="bulk-label-value">{{ document.recipient_city }}{% if document.recipient_province %}, {{ document.recipient_province }}{% endif %}{% if document.recipient_postal_code %} · {{ document.recipient_postal_code }}{% endif %}</p>
+                        {% if not document.recipient_street %}<p class="bulk-label-value"><strong>{{ document.recipient_address }}</strong></p>{% endif %}
                     </section>
                 </div>
                 <table class="bulk-label-items">

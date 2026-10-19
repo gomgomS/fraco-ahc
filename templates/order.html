@@ -32,8 +32,13 @@
             <p>{{ data.order.full_name }}</p>
             <p>{{ data.order.phone }}</p>
             <p>{{ data.order.email }}</p>
-            <p>{{ data.order.address }}</p>
-            <p>{{ data.order.city }} {{ data.order.postal_code }}</p>
+            {% if data.order.street %}<p>{{ data.order.street }}</p>{% endif %}
+            {% if data.order.address_detail %}<p>{{ data.order.address_detail }}</p>{% endif %}
+            {% if data.order.village or data.order.district %}
+            <p>{% if data.order.village %}{{ data.order.village }}{% endif %}{% if data.order.village and data.order.district %}, {% endif %}{% if data.order.district %}{{ data.order.district }}{% endif %}</p>
+            {% endif %}
+            <p>{{ data.order.city }}{% if data.order.province %}, {{ data.order.province }}{% endif %} {{ data.order.postal_code }}</p>
+            {% if not data.order.street and data.order.address %}<p style="white-space:pre-line;">{{ data.order.address }}</p>{% endif %}
             {% if data.order.notes %}<p class="product-meta" style="margin-top: 12px;">Notes: {{ data.order.notes }}</p>{% endif %}
         </div>
     </div>
