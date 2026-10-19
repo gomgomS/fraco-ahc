@@ -158,7 +158,7 @@
 {% if data.settings_tab == 'shipping' %}
 <section class="admin-block" id="shipping-expeditions">
     <h2 class="section-title" style="font-size:20px; margin:0 0 12px;">Officer shipping requirement</h2>
-    <p class="prose-fraco" style="margin:0 0 18px;">Set the minimum combined progress a member needs before requesting officer-handled shipping.</p>
+    <p class="prose-fraco" style="margin:0 0 18px;">Set the minimum <strong>combined progress</strong> a member needs before they can choose &ldquo;Handled by FRACO officer&rdquo; on their order. This is <strong>not</strong> the same as <strong>Available combined progress</strong> on an order (the member&rsquo;s remaining balance for shipping deductions). Setting minimum to <strong>0</strong> means no progress threshold — members can request officer shipping even when available is Rp&nbsp;0. Admins can still enter service fee and shipping budget on the order shipping tab.</p>
     {% if data.can_write %}
     <form class="form-stack" method="post" style="margin-bottom:32px; padding-bottom:28px; border-bottom:1px solid #ddd;">
         <input type="hidden" name="action" value="shipping_config_save">

@@ -105,6 +105,20 @@ class ahc_site_proc:
         return rec
     # end def
 
+    def shipping_minimum_num(self, site=None):
+        row = site if site != None else self.get_site()
+        row = row or {}
+        value = row.get("shipping_minimum_progress_num")
+        if value == None:
+            return 100000
+        # end if
+        minimum = int(value)
+        if minimum < 0:
+            minimum = 0
+        # end if
+        return minimum
+    # end def
+
     def apply_lang(self, site, lang="en"):
         data = dict(site or {})
         if lang == "id":

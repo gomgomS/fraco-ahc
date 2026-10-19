@@ -733,14 +733,18 @@ class dashboard_proc:
             available = 0
         # end if
         site = self.site.get_site() or {}
-        minimum_value = site.get("shipping_minimum_progress_num")
-        minimum = int(100000 if minimum_value == None else minimum_value)
-        if minimum < 0:
-            minimum = 0
-        # end if
+        minimum = self.site.shipping_minimum_num(site)
         return {
             "minimum_num": minimum,
             "minimum": self.format_rp(minimum),
+            "merch_num": merch,
+            "merch": self.format_rp(merch),
+            "proposal_num": proposal,
+            "proposal": self.format_rp(proposal),
+            "self_contribution_num": own,
+            "self_contribution": self.format_rp(own),
+            "spent_num": spent,
+            "spent": self.format_rp(spent),
             "available_num": available,
             "available": self.format_rp(available),
             "service_fee_num": self.configured_shipping_service_fee_num(),

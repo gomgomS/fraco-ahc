@@ -345,8 +345,13 @@ def html_order(pkey):
         return redirect("/admin/orders/" + pkey)
     # end if
     shipping_eligibility = proc.order_shipping_eligibility(rec)
-    rec["shipping_service_fee_num"] = shipping_eligibility.get("service_fee_num") or 0
-    rec["shipping_service_fee"] = shipping_eligibility.get("service_fee") or "Rp 0"
+    if (rec.get("shipping_handler") or "").strip().upper() != "OFFICER":
+        rec["shipping_service_fee_num"] = shipping_eligibility.get("service_fee_num") or 0
+        rec["shipping_service_fee"] = shipping_eligibility.get("service_fee") or "Rp 0"
+    elif rec.get("shipping_service_fee") in [None, ""]:
+        fee_num = int(rec.get("shipping_service_fee_num") or 0)
+        rec["shipping_service_fee"] = proc.format_rp(fee_num) if fee_num > 0 else ""
+    # end if
     rec["shipping_total_expense_num"] = (
         int(rec.get("shipping_budget_num") or 0) +
         int(rec.get("shipping_service_fee_num") or 0)
@@ -1956,13 +1961,20 @@ def html_settings():
                 service_fee = 0
             # end if
             site = proc.site.get_site() or {}
-            proc.mgdDB.db_site.update_one(
-                {"pkey": site.get("pkey")},
+            query = {"is_deleted": False}
+            if (site.get("pkey") or "").strip() != "":
+                query = {"pkey": site.get("pkey")}
+            # end if
+            result = proc.mgdDB.db_site.update_one(
+                query,
                 {"$set": {
                     "shipping_minimum_progress_num": minimum,
                     "shipping_service_fee_num": service_fee
                 }}
             )
+            if result.matched_count < 1:
+                return redirect("/admin/settings?tab=shipping&error=" + quote("Could not save shipping settings (site record not found)"))
+            # end if
             return redirect("/admin/settings?tab=shipping&ok=" + quote("Shipping settings saved"))
         # end if
         if action == "merchandise_category_delete":
@@ -2077,10 +2089,7 @@ def html_settings():
         settings_tab = "website"
     # end if
     site = proc.site.get_site() or {}
-    shipping_minimum = site.get("shipping_minimum_progress_num")
-    if shipping_minimum == None:
-        shipping_minimum = 100000
-    # end if
+    shipping_minimum = proc.site.shipping_minimum_num(site)
     shipping_service_fee = site.get("shipping_service_fee_num")
     if shipping_service_fee == None:
         shipping_service_fee = 10000

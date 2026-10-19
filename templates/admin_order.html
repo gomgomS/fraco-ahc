@@ -37,7 +37,17 @@
     <h2 class="section-title" style="font-size: 20px; margin-bottom: 12px;">Shipping information</h2>
     {% if data.form_ok %}<p class="prose-fraco" style="margin-bottom:12px;">{{ data.form_ok }}</p>{% endif %}
     {% if data.form_error %}<p class="prose-fraco" style="color:#b00000; margin-bottom:12px;">{{ data.form_error }}</p>{% endif %}
-    <p class="product-meta" style="margin-bottom:16px;">Available combined member progress: <strong>{{ data.shipping_eligibility.available }}</strong>. The shipping expense is deducted when its status reaches PROCESSING.</p>
+    <p class="product-meta" style="margin-bottom:8px;">Officer shipping minimum (Settings): <strong>{{ data.shipping_eligibility.minimum }}</strong>{% if data.shipping_eligibility.minimum_num == 0 %} — no progress required before members request officer shipping{% endif %}.</p>
+    <p class="product-meta" style="margin-bottom:8px;">Available combined member progress: <strong>{{ data.shipping_eligibility.available }}</strong> (remaining balance for deductions). The shipping expense is deducted when its status reaches PROCESSING.</p>
+    <ul class="product-meta" style="margin:0 0 16px 18px; line-height:1.55;">
+        <li>Paid merchandise profit (referral orders): {{ data.shipping_eligibility.merch or 'Rp 0' }}</li>
+        <li>Support Us received (referral pledges): {{ data.shipping_eligibility.proposal or 'Rp 0' }}</li>
+        <li>Member self contribution (received): {{ data.shipping_eligibility.self_contribution or 'Rp 0' }}</li>
+        <li>Minus other officer shipping (PROCESSING+): −{{ data.shipping_eligibility.spent or 'Rp 0' }}</li>
+    </ul>
+    {% if data.shipping_eligibility.available_num == 0 %}
+    <p class="product-meta" style="margin-bottom:16px;">When available is Rp 0, the member pool has no remaining progress to cover new shipping. You can still enter the <strong>actual</strong> service fee and shipping budget below — admin saves are allowed; the deduction is recorded in Finance and the member dashboard.</p>
+    {% endif %}
     {% if data.row.shipping_request_status in ['PROCESSING', 'SHIPPED', 'COMPLETED'] and data.row.shipping_total_expense_num %}
     <div class="pay-box" style="padding:16px; margin-bottom:18px;">
         <p class="field-label">Total shipping deduction</p>
@@ -97,13 +107,14 @@
             </div>
             <div style="margin-top:12px;">
                 <label class="field-label" for="shipping_service_fee_num">Wrapping, packing, and shipping arrangement service fee</label>
-                <input class="field" type="number" min="0" max="{{ data.shipping_eligibility.available_num }}" step="1000" name="shipping_service_fee_num" id="shipping_service_fee_num" value="{{ data.row.shipping_service_fee_num or 0 }}" data-available="{{ data.shipping_eligibility.available_num }}">
-                <p class="product-meta" style="margin-top:7px;">Custom for this order. The default from Shipping Settings is {{ data.shipping_eligibility.service_fee }}.</p>
+                <input class="field" type="number" min="0" step="1000" name="shipping_service_fee_num" id="shipping_service_fee_num" value="{{ data.row.shipping_service_fee_num or 0 }}" data-available="{{ data.shipping_eligibility.available_num }}">
+                <p class="product-meta" style="margin-top:7px;">Custom for this order. The default from Shipping Settings is {{ data.shipping_eligibility.service_fee }}.{% if data.shipping_eligibility.available_num > 0 %} Suggested max for this member pool: {{ data.shipping_eligibility.available }}.{% endif %}</p>
             </div>
             <div style="margin-top:12px;">
                 <label class="field-label" for="shipping_budget_num">Shipping budget / expense</label>
-                <input class="field" type="number" min="0" max="{{ data.shipping_eligibility.shipping_budget_max_num }}" name="shipping_budget_num" id="shipping_budget_num" value="{{ data.row.shipping_budget_num or 0 }}">
-                <p class="product-meta" style="margin-top:7px;">Service fee plus shipping budget cannot exceed the available combined progress of {{ data.shipping_eligibility.available }}.</p>
+                <input class="field" type="number" min="0" step="1000" name="shipping_budget_num" id="shipping_budget_num" value="{{ data.row.shipping_budget_num or 0 }}">
+                <p class="product-meta" style="margin-top:7px;">Actual courier / expedition cost for this shipment.{% if data.shipping_eligibility.available_num > 0 %} Service fee + budget should ideally fit within {{ data.shipping_eligibility.available }} combined progress.{% endif %}</p>
+                <p class="product-meta" id="shipping-expense-hint" style="margin-top:7px; display:none; color:#b00000;"></p>
             </div>
             <div style="margin-top:12px;"><label class="field-label" for="shipping_tracking_code">Expedition tracking code</label><input class="field" name="shipping_tracking_code" id="shipping_tracking_code" value="{{ data.row.shipping_tracking_code or '' }}"></div>
             <div style="margin-top:12px;"><label class="field-label" for="shipping_tracking_url">Tracking link</label><input class="field" type="url" name="shipping_tracking_url" id="shipping_tracking_url" value="{{ data.row.shipping_tracking_url or '' }}" placeholder="https://..."></div>
@@ -166,12 +177,20 @@
     function syncExpenseLimits() {
         var serviceFee = document.getElementById("shipping_service_fee_num");
         var shippingBudget = document.getElementById("shipping_budget_num");
+        var hint = document.getElementById("shipping-expense-hint");
         if (!serviceFee || !shippingBudget) return;
         var available = parseInt(serviceFee.dataset.available || "0", 10);
         var feeValue = Math.max(0, parseInt(serviceFee.value || "0", 10));
         var budgetValue = Math.max(0, parseInt(shippingBudget.value || "0", 10));
-        serviceFee.max = String(Math.max(0, available - budgetValue));
-        shippingBudget.max = String(Math.max(0, available - feeValue));
+        if (hint) {
+            if (available > 0 && feeValue + budgetValue > available) {
+                hint.style.display = "";
+                hint.textContent = "Note: service fee + budget (Rp " + (feeValue + budgetValue).toLocaleString("id-ID") + ") exceeds available combined progress (Rp " + available.toLocaleString("id-ID") + "). Admin can still save; the full amount is recorded as a deduction.";
+            } else {
+                hint.style.display = "none";
+                hint.textContent = "";
+            }
+        }
     }
     handler.addEventListener("change", syncShippingType);
     var serviceFee = document.getElementById("shipping_service_fee_num");

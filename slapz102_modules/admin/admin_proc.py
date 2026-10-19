@@ -2720,12 +2720,6 @@ class admin_proc:
                 service_fee_num = self.order_shipping_service_fee_num(order)
             # end if
         # end if
-        if budget_num + service_fee_num > int(eligibility.get("available_num") or 0):
-            return {
-                "status": "FAILED",
-                "desc": "Shipping and service fees exceed available combined progress of " + eligibility.get("available")
-            }
-        # end if
         shipping_updates = {
             "shipping_handler": "OFFICER",
             "shipping_request_status": shipping_status,
@@ -2784,12 +2778,19 @@ class admin_proc:
         referrer = self.find_order_referrer(order)
         if referrer == None:
             site = self.site.get_site() or {}
-            minimum_value = site.get("shipping_minimum_progress_num")
-            minimum = int(100000 if minimum_value == None else minimum_value)
+            minimum = self.site.shipping_minimum_num(site)
             service_fee_num = self.configured_shipping_service_fee_num()
             return {
                 "available_num": 0,
                 "available": "Rp 0",
+                "merch_num": 0,
+                "merch": "Rp 0",
+                "proposal_num": 0,
+                "proposal": "Rp 0",
+                "self_contribution_num": 0,
+                "self_contribution": "Rp 0",
+                "spent_num": 0,
+                "spent": "Rp 0",
                 "minimum_num": minimum,
                 "minimum": self.format_rp(minimum),
                 "service_fee_num": service_fee_num,

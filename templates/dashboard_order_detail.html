@@ -135,7 +135,11 @@
                         <div class="pay-box" style="padding:14px; margin-bottom:16px;">
                             <p>
                                 {{ data.dash.shipping_available }}: <strong>{{ data.shipping_eligibility.available }}</strong>.
+                                {% if data.shipping_eligibility.minimum_num > 0 %}
                                 {{ data.dash.shipping_minimum_copy|replace('{minimum}', data.shipping_eligibility.minimum) }}
+                                {% else %}
+                                No minimum combined progress is required to request officer shipping.
+                                {% endif %}
                                 <strong>{{ data.dash.shipping_notice_title }}</strong>
                                 {{ data.dash.shipping_notice }}
                             </p>
