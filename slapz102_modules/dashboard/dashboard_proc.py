@@ -181,6 +181,7 @@ class dashboard_proc:
             "shipping_per_order": "per order",
             "shipping_cost_deduction": "Shipping cost deduction",
             "shipping_cost_deducted": "This cost has been deducted from your earnings and combined target progress.",
+            "shipping_cost_scheduled": "These amounts are saved on this order. They fully count against your combined progress once officer shipping status is Processing or later.",
             "shipping_deducted_copy": "Officer shipping expense deducted from combined progress",
             "shipping_tracking_code": "Tracking code",
             "shipping_track": "Track shipment →",
@@ -379,6 +380,7 @@ class dashboard_proc:
             "shipping_per_order": "per pesanan",
             "shipping_cost_deduction": "Potongan biaya pengiriman",
             "shipping_cost_deducted": "Biaya ini sudah dipotong dari penghasilan dan progress target gabunganmu.",
+            "shipping_cost_scheduled": "Nominal ini sudah tercatat di pesanan. Akan dipotong penuh dari progress gabungan setelah status pengiriman officer Processing atau setelahnya.",
             "shipping_deducted_copy": "Biaya pengiriman oleh tim FRACO yang dipotong dari progress gabungan",
             "shipping_tracking_code": "Nomor resi",
             "shipping_track": "Lacak paket →",
@@ -700,6 +702,32 @@ class dashboard_proc:
             int((order or {}).get("shipping_budget_num") or 0) +
             self.order_shipping_service_fee_num(order)
         )
+    # end def
+
+    def order_officer_shipping_deduction_display(self, order):
+        handler = (order.get("shipping_handler") or "").strip().upper()
+        if handler != "OFFICER":
+            return 0, 0, 0, False
+        # end if
+        status = (order.get("shipping_request_status") or "").strip().upper()
+        if status in ["SELF_ARRANGED", "NOT_REQUESTED", ""]:
+            return 0, 0, 0, False
+        # end if
+        delivery = int(order.get("shipping_budget_num") or 0)
+        fee = 0
+        if order != None and "shipping_service_fee_num" in order:
+            fee = max(0, int(order.get("shipping_service_fee_num") or 0))
+        # end if
+        if status in ["PROCESSING", "SHIPPED", "COMPLETED"]:
+            fee = self.order_shipping_service_fee_num(order)
+            total = delivery + fee
+            return delivery, fee, total, True
+        # end if
+        if delivery > 0 or fee > 0:
+            total = delivery + fee
+            return delivery, fee, total, False
+        # end if
+        return 0, 0, 0, False
     # end def
 
     def shipping_expense_num(self, part, exclude_order_pkey=""):
@@ -1275,24 +1303,16 @@ class dashboard_proc:
             row["bahan_baku_num"] = bahan_num
             row["profit"] = self.format_rp(profit_num)
             row["profit_num"] = profit_num
-            shipping_status = (order.get("shipping_request_status") or "").strip().upper()
-            shipping_deduction_num = 0
-            shipping_delivery_num = 0
-            shipping_service_fee_num = 0
-            if (
-                order.get("shipping_handler") == "OFFICER" and
-                shipping_status in ["PROCESSING", "SHIPPED", "COMPLETED"]
-            ):
-                shipping_delivery_num = int(order.get("shipping_budget_num") or 0)
-                shipping_service_fee_num = self.order_shipping_service_fee_num(order)
-                shipping_deduction_num = shipping_delivery_num + shipping_service_fee_num
-            # end if
+            shipping_delivery_num, shipping_service_fee_num, shipping_deduction_num, shipping_deduction_locked = (
+                self.order_officer_shipping_deduction_display(order)
+            )
             net_profit_num = profit_num - shipping_deduction_num
             net_profit = self.format_rp(abs(net_profit_num))
             if net_profit_num < 0:
                 net_profit = "−" + net_profit
             # end if
             row["shipping_deduction_active"] = shipping_deduction_num > 0
+            row["shipping_deduction_locked"] = shipping_deduction_locked
             row["shipping_deduction_num"] = shipping_deduction_num
             row["shipping_deduction"] = self.format_rp(shipping_deduction_num)
             row["shipping_delivery_num"] = shipping_delivery_num
@@ -1307,6 +1327,7 @@ class dashboard_proc:
             # end if
             row["net_profit_num"] = net_profit_num
             row["net_profit"] = net_profit
+            shipping_status = (order.get("shipping_request_status") or "").strip().upper()
             shipping_label_key = {
                 "REQUESTED": "shipping_status_requested",
                 "PROCESSING": "shipping_status_processing",

@@ -52,6 +52,8 @@
                 <td data-label="{{ table.columns[loop.index0] }}"{% if cell.wrap %} class="admin-cell-wrap"{% endif %}>
                     {% if cell.kind == 'link' %}
                     <a class="section-link" href="{{ cell.href }}">{{ cell.text }}</a>
+                    {% elif cell.kind == 'html_block' %}
+                    {{ cell.html|safe }}
                     {% elif cell.kind == 'order_print_select' %}
                     <input class="js-officer-order-select" type="checkbox" value="{{ cell.pkey }}" aria-label="Pilih pesanan untuk dicetak">
                     {% elif cell.kind == 'status' %}

@@ -1,8 +1,98 @@
 {% extends 'admin_base.html' %}
 {% block title %}{{ data.row.order_id }} | Admin{% endblock %}
 {% block content %}
+<style>
+.admin-order-econ {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+}
+.admin-order-econ article {
+    border: 1px solid #ddd;
+    padding: 14px 16px;
+    background: #fafafa;
+}
+.admin-order-econ article.is-highlight {
+    border-color: #111;
+    background: #fff;
+}
+.admin-order-econ .field-label { margin: 0 0 6px; }
+.admin-order-econ strong {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 17px;
+}
+.admin-order-econ .is-cut { color: #666; }
+.admin-order-econ .is-profit { color: #111; }
+.admin-order-stack {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+.admin-order-pill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+.admin-order-pill {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    background: #fff;
+}
+.admin-order-pill.is-on { border-color: #111; background: #111; color: #fff; }
+.admin-econ-cell strong { font-family: "IBM Plex Mono", monospace; }
+</style>
 <p class="product-meta"><a class="section-link" href="/admin/orders">Orders</a></p>
-<h1 class="section-title" style="margin: 8px 0 24px;">{{ data.row.order_id }}</h1>
+<h1 class="section-title" style="margin: 8px 0 16px;">{{ data.row.order_id }}</h1>
+
+<div class="admin-order-econ" aria-label="Seller economics summary">
+    <article>
+        <p class="field-label">Sale (subtotal)</p>
+        <strong>{{ data.seller_economics.sale }}</strong>
+    </article>
+    <article>
+        <p class="field-label">Bahan baku</p>
+        <strong class="is-cut">−{{ data.seller_economics.bahan }}</strong>
+    </article>
+    {% if data.seller_economics.discount_num > 0 %}
+    <article>
+        <p class="field-label">Referral discount</p>
+        <strong class="is-cut">−{{ data.seller_economics.discount }}</strong>
+        <p class="product-meta" style="margin-top:6px;">From profit only</p>
+    </article>
+    {% endif %}
+    <article>
+        <p class="field-label">Gross profit</p>
+        <strong>{{ data.seller_economics.profit }}</strong>
+    </article>
+    {% if data.seller_economics.shipping_show %}
+    <article>
+        <p class="field-label">Shipping (courier)</p>
+        <strong class="is-cut">−{{ data.seller_economics.shipping_delivery }}</strong>
+    </article>
+    <article>
+        <p class="field-label">Packing / arrangement</p>
+        <strong class="is-cut">−{{ data.seller_economics.shipping_service_fee }}</strong>
+    </article>
+    {% endif %}
+    <article class="is-highlight">
+        <p class="field-label">Seller net profit</p>
+        <strong class="is-profit">{{ data.seller_economics.net_seller }}</strong>
+        <p class="product-meta" style="margin-top:6px;">After bahan{% if data.seller_economics.shipping_show %} + ship + pack{% endif %}</p>
+    </article>
+    <article>
+        <p class="field-label">Total cuts</p>
+        <strong class="is-cut">−{{ data.seller_economics.cuts }}</strong>
+        <p class="product-meta" style="margin-top:6px;">Bahan{% if data.seller_economics.shipping_show %} · ship · pack{% endif %}</p>
+    </article>
+</div>
+
 <div class="filter-row" style="margin-bottom:24px;">
     <a class="filter-chip{% if data.order_tab == 'details' %} active{% endif %}" href="/admin/orders/{{ data.row.pkey }}?tab=details">Order details</a>
     <a class="filter-chip{% if data.order_tab == 'shipping' %} active{% endif %}" href="/admin/orders/{{ data.row.pkey }}?tab=shipping">Shipping</a>
@@ -11,123 +101,168 @@
 {% if data.order_tab == 'details' %}
 {% if data.form_ok %}<p class="prose-fraco" style="margin-bottom:12px;">{{ data.form_ok }}</p>{% endif %}
 {% if data.form_error %}<p class="prose-fraco" style="color:#b00000; margin-bottom:12px;">{{ data.form_error }}</p>{% endif %}
-<p>{{ data.row.full_name }} · {{ data.row.email }} · {{ data.row.phone }}</p>
-<p>{{ data.row.address }} {{ data.row.city }} {{ data.row.postal_code }}</p>
-<p class="product-meta" style="margin-top: 12px;">
-    In charge (referral):
-    {% if data.referrer and data.referrer.pkey %}
-    <a class="section-link" href="/admin/participants/{{ data.referrer.pkey }}">{{ data.referrer_label }}</a>
-    {% else %}
-    {{ data.referrer_label }}
-    {% endif %}
-</p>
-{% if data.row.discount_total_num and data.row.discount_total_num > 0 %}
-<p class="product-meta">Discount {{ data.row.discount_total }}{% if data.row.referral_code %} · code {{ data.row.referral_code }}{% endif %}</p>
-{% endif %}
-<h2 class="section-title" style="font-size: 20px; margin: 28px 0 12px;">Items</h2>
+
+<div class="admin-order-stack">
+    <section class="pay-box" style="padding:18px;">
+        <p class="field-label">Customer</p>
+        <p style="margin-top:8px;"><strong>{{ data.row.full_name }}</strong></p>
+        <p class="product-meta" style="margin-top:6px;">{{ data.row.email }} · {{ data.row.phone }}</p>
+        <p style="margin-top:10px;">{{ data.row.address }}</p>
+        <p class="product-meta">{{ data.row.city }} {{ data.row.postal_code }}</p>
+    </section>
+    <section class="pay-box" style="padding:18px;">
+        <p class="field-label">Referral in charge</p>
+        <p style="margin-top:8px;">
+            {% if data.referrer and data.referrer.pkey %}
+            <a class="section-link" href="/admin/participants/{{ data.referrer.pkey }}">{{ data.referrer_label }}</a>
+            {% else %}
+            {{ data.referrer_label }}
+            {% endif %}
+        </p>
+        <div class="admin-order-pill-row">
+            <span class="admin-order-pill{% if data.row.payment_status == 'Paid' %} is-on{% endif %}">Pay: {{ data.row.payment_status or '—' }}</span>
+            <span class="admin-order-pill{% if data.row.order_status %} is-on{% endif %}">Order: {{ data.row.order_status or '—' }}</span>
+            <span class="admin-order-pill">Buyer total: {{ data.row.total }}</span>
+        </div>
+    </section>
+</div>
+
+<h2 class="section-title" style="font-size: 20px; margin: 0 0 12px;">Items</h2>
 {% with table=data.item_table %}{% include 'admin_table.html' %}{% endwith %}
-<p class="product-meta" style="margin-top: 16px;">Subtotal {{ data.row.subtotal }} · Bahan baku {{ data.row.bahan_baku_total or 'Rp 0' }} · Profit {{ data.row.profit_total or 'Rp 0' }} · Total {{ data.row.total }}</p>
-{% if data.row.discount_total_num and data.row.discount_total_num > 0 %}
-<p class="product-meta">Referral discount is taken from profit only — bahan baku stays full cost.</p>
-{% endif %}
+
+<section class="pay-box" style="padding:18px; margin-top:20px;">
+    <p class="field-label">Checkout totals</p>
+    <dl class="dash-order-dl" style="margin-top:12px;">
+        <div><dt>Subtotal</dt><dd>{{ data.row.subtotal }}</dd></div>
+        <div><dt>Bahan baku</dt><dd>−{{ data.seller_economics.bahan }}</dd></div>
+        {% if data.seller_economics.discount_num > 0 %}
+        <div><dt>Referral discount</dt><dd>−{{ data.seller_economics.discount }}{% if data.row.referral_code %} ({{ data.row.referral_code }}){% endif %}</dd></div>
+        {% endif %}
+        <div><dt>Gross profit (referral credit)</dt><dd>{{ data.seller_economics.profit }}</dd></div>
+        {% if data.seller_economics.shipping_show %}
+        <div><dt>Shipping expense</dt><dd>−{{ data.seller_economics.shipping_delivery }}</dd></div>
+        <div><dt>Packing service</dt><dd>−{{ data.seller_economics.shipping_service_fee }}</dd></div>
+        {% endif %}
+        <div><dt><strong>Seller net</strong></dt><dd><strong>{{ data.seller_economics.net_seller }}</strong></dd></div>
+        <div><dt>Buyer paid (total)</dt><dd>{{ data.row.total }}</dd></div>
+    </dl>
+    {% if data.seller_economics.discount_num > 0 %}
+    <p class="product-meta" style="margin-top:10px;">Referral discount is taken from profit only — bahan baku stays full cost.</p>
+    {% endif %}
+    {% if data.seller_economics.shipping_show and not data.seller_economics.shipping_locked %}
+    <p class="product-meta" style="margin-top:10px;">Shipping cuts are saved on this order; they fully hit combined progress when officer status is Processing or later.</p>
+    {% endif %}
+</section>
 {% endif %}
 
 {% if data.order_tab == 'shipping' %}
-<section class="admin-block" style="margin-top: 28px;">
-    <h2 class="section-title" style="font-size: 20px; margin-bottom: 12px;">Shipping information</h2>
+<section class="admin-block" style="margin-top: 0;">
     {% if data.form_ok %}<p class="prose-fraco" style="margin-bottom:12px;">{{ data.form_ok }}</p>{% endif %}
     {% if data.form_error %}<p class="prose-fraco" style="color:#b00000; margin-bottom:12px;">{{ data.form_error }}</p>{% endif %}
-    <p class="product-meta" style="margin-bottom:8px;">Officer shipping minimum (Settings): <strong>{{ data.shipping_eligibility.minimum }}</strong>{% if data.shipping_eligibility.minimum_num == 0 %} — no progress required before members request officer shipping{% endif %}.</p>
-    <p class="product-meta" style="margin-bottom:8px;">Available combined member progress: <strong>{{ data.shipping_eligibility.available }}</strong> (remaining balance for deductions). The shipping expense is deducted when its status reaches PROCESSING.</p>
-    <ul class="product-meta" style="margin:0 0 16px 18px; line-height:1.55;">
-        <li>Paid merchandise profit (referral orders): {{ data.shipping_eligibility.merch or 'Rp 0' }}</li>
-        <li>Support Us received (referral pledges): {{ data.shipping_eligibility.proposal or 'Rp 0' }}</li>
-        <li>Member self contribution (received): {{ data.shipping_eligibility.self_contribution or 'Rp 0' }}</li>
-        <li>Minus other officer shipping (PROCESSING+): −{{ data.shipping_eligibility.spent or 'Rp 0' }}</li>
-    </ul>
-    {% if data.shipping_eligibility.available_num == 0 %}
-    <p class="product-meta" style="margin-bottom:16px;">When available is Rp 0, the member pool has no remaining progress to cover new shipping. You can still enter the <strong>actual</strong> service fee and shipping budget below — admin saves are allowed; the deduction is recorded in Finance and the member dashboard.</p>
-    {% endif %}
-    {% if data.row.shipping_request_status in ['PROCESSING', 'SHIPPED', 'COMPLETED'] and data.row.shipping_total_expense_num %}
-    <div class="pay-box" style="padding:16px; margin-bottom:18px;">
-        <p class="field-label">Total shipping deduction</p>
-        <p class="product-meta" style="margin-top:7px;">Shipping cost: −{{ data.row.shipping_budget or 'Rp 0' }}</p>
-        <p class="product-meta" style="margin-top:5px;">Wrapping, packing, and arrangement service: −{{ data.row.shipping_service_fee }}</p>
-        <p style="margin-top:8px;"><strong>−{{ data.row.shipping_total_expense }}</strong></p>
-        <p class="product-meta" style="margin-top:7px;">The accumulated total is deducted from the member's earnings and combined target progress, then recorded as a Shipping expense in Finance.</p>
+
+    <div class="admin-order-stack">
+        <section class="pay-box" style="padding:18px;">
+            <p class="field-label">Member combined progress</p>
+            <p style="margin-top:8px; font-size:22px;"><strong>{{ data.shipping_eligibility.available }}</strong></p>
+            <p class="product-meta" style="margin-top:6px;">Available for shipping deductions</p>
+            <dl class="dash-order-dl" style="margin-top:14px; font-size:14px;">
+                <div><dt>Merch profit (Paid)</dt><dd>{{ data.shipping_eligibility.merch or 'Rp 0' }}</dd></div>
+                <div><dt>Support received</dt><dd>{{ data.shipping_eligibility.proposal or 'Rp 0' }}</dd></div>
+                <div><dt>Self contribution</dt><dd>{{ data.shipping_eligibility.self_contribution or 'Rp 0' }}</dd></div>
+                <div><dt>Other officer shipping</dt><dd>−{{ data.shipping_eligibility.spent or 'Rp 0' }}</dd></div>
+            </dl>
+        </section>
+        <section class="pay-box" style="padding:18px;">
+            <p class="field-label">Officer shipping rules (Settings)</p>
+            <p style="margin-top:8px;">Minimum progress: <strong>{{ data.shipping_eligibility.minimum }}</strong></p>
+            <p class="product-meta" style="margin-top:6px;">Default packing fee: {{ data.shipping_eligibility.service_fee }}</p>
+            {% if data.shipping_eligibility.minimum_num == 0 %}
+            <p class="product-meta" style="margin-top:10px;">Minimum is Rp 0 — members may request officer shipping without a progress threshold.</p>
+            {% endif %}
+            {% if data.seller_economics.shipping_show %}
+            <p class="product-meta" style="margin-top:10px;">This order: ship −{{ data.seller_economics.shipping_delivery }} · pack −{{ data.seller_economics.shipping_service_fee }}</p>
+            {% endif %}
+        </section>
     </div>
-    {% endif %}
+
     {% if data.row.shipping_handler == 'OFFICER' %}
-    <div class="pay-box" style="padding:16px; margin-bottom:18px;">
-        <p class="field-label">Package recipient supplied by member</p>
-        <p style="margin-top:8px;"><strong>{{ data.row.shipping_name or data.row.full_name }}</strong> · {{ data.row.shipping_phone or data.row.phone }}</p>
-        <p style="margin-top:5px;">{{ data.row.shipping_address or data.row.address }} · {{ data.row.shipping_city or data.row.city }} {{ data.row.shipping_postal_code or data.row.postal_code }}</p>
-        {% if data.row.shipping_package_note %}<p class="product-meta" style="margin-top:8px;">Package note: {{ data.row.shipping_package_note }}</p>{% endif %}
-    </div>
-    <div class="pay-box" style="padding:16px; margin-bottom:18px;">
-        <p class="field-label">Dokumen pengiriman</p>
-        <p class="product-meta" style="margin:7px 0 12px;">Berisi data member sebagai pengirim, kontak dan alamat penerima, daftar barang, serta catatan paket.</p>
-        <div class="filter-row">
-            <a class="btn-line" href="/admin/orders/{{ data.row.pkey }}/shipping-document" target="_blank" rel="noopener">Pratinjau</a>
-            <a class="btn-black" href="/admin/orders/{{ data.row.pkey }}/shipping-document.pdf">Unduh PDF</a>
-        </div>
+    <div class="admin-order-stack">
+        <section class="pay-box" style="padding:18px;">
+            <p class="field-label">Package recipient (from member)</p>
+            <p style="margin-top:8px;"><strong>{{ data.row.shipping_name or data.row.full_name }}</strong></p>
+            <p class="product-meta" style="margin-top:6px;">{{ data.row.shipping_phone or data.row.phone }}</p>
+            <p style="margin-top:10px;">{{ data.row.shipping_address or data.row.address }}</p>
+            <p class="product-meta">{{ data.row.shipping_city or data.row.city }} {{ data.row.shipping_postal_code or data.row.postal_code }}</p>
+            {% if data.row.shipping_package_note %}<p class="product-meta" style="margin-top:10px;">Note: {{ data.row.shipping_package_note }}</p>{% endif %}
+        </section>
+        <section class="pay-box" style="padding:18px;">
+            <p class="field-label">Dokumen pengiriman</p>
+            <p class="product-meta" style="margin:8px 0 14px;">Pengirim (member), penerima, barang, catatan paket.</p>
+            <div class="filter-row">
+                <a class="btn-line" href="/admin/orders/{{ data.row.pkey }}/shipping-document" target="_blank" rel="noopener">Pratinjau</a>
+                <a class="btn-black" href="/admin/orders/{{ data.row.pkey }}/shipping-document.pdf">Unduh PDF</a>
+            </div>
+        </section>
     </div>
     {% endif %}
-    <form class="form-stack" method="post" id="admin-shipping-form">
-        <input type="hidden" name="action" value="shipping_update">
-        <div>
-            <label class="field-label" for="shipping_handler">Shipping type</label>
-            <select class="field" name="shipping_handler" id="shipping_handler" required>
-                <option value="">Not selected</option>
-                <option value="OFFICER"{% if data.row.shipping_handler == 'OFFICER' %} selected{% endif %}>Handled by FRACO officer</option>
-                <option value="SELF"{% if data.row.shipping_handler == 'SELF' %} selected{% endif %}>Self-arranged by member</option>
-            </select>
-        </div>
-        <div id="admin-officer-shipping">
+
+    <section class="pay-box" style="padding:18px; margin-bottom:20px;">
+        <p class="field-label">Update shipping</p>
+        <form class="form-stack" method="post" id="admin-shipping-form" style="margin-top:14px;">
+            <input type="hidden" name="action" value="shipping_update">
             <div>
-                <label class="field-label" for="shipping_request_status">Officer shipping status</label>
-                <select class="field" name="shipping_request_status" id="shipping_request_status">
-                    {% for status in data.shipping_statuses %}
-                    <option value="{{ status.value }}"{% if data.row.shipping_request_status == status.value %} selected{% endif %}>{{ status.label }}</option>
-                    {% endfor %}
+                <label class="field-label" for="shipping_handler">Shipping type</label>
+                <select class="field" name="shipping_handler" id="shipping_handler" required>
+                    <option value="">Not selected</option>
+                    <option value="OFFICER"{% if data.row.shipping_handler == 'OFFICER' %} selected{% endif %}>Handled by FRACO officer</option>
+                    <option value="SELF"{% if data.row.shipping_handler == 'SELF' %} selected{% endif %}>Self-arranged by member</option>
                 </select>
             </div>
-            <div style="margin-top:12px;">
-                <label class="field-label" for="shipping_expedition">Expedition</label>
-                <select class="field" name="shipping_expedition" id="shipping_expedition">
-                    <option value="">Select expedition</option>
-                    {% if data.row.shipping_expedition and data.row.shipping_expedition not in data.shipping_expeditions %}
-                    <option value="{{ data.row.shipping_expedition }}" selected>{{ data.row.shipping_expedition }}</option>
-                    {% endif %}
-                    {% for expedition in data.shipping_expeditions %}
-                    <option value="{{ expedition }}"{% if data.row.shipping_expedition == expedition %} selected{% endif %}>{{ expedition }}</option>
-                    {% endfor %}
-                </select>
-                <p class="product-meta" style="margin-top:7px;">Manage expedition options in <a class="section-link" href="/admin/settings?tab=shipping">Settings → Shipping</a>.</p>
+            <div id="admin-officer-shipping">
+                <div style="margin-top:12px;">
+                    <label class="field-label" for="shipping_request_status">Officer shipping status</label>
+                    <select class="field" name="shipping_request_status" id="shipping_request_status">
+                        {% for status in data.shipping_statuses %}
+                        <option value="{{ status.value }}"{% if data.row.shipping_request_status == status.value %} selected{% endif %}>{{ status.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div style="margin-top:12px;">
+                    <label class="field-label" for="shipping_expedition">Expedition</label>
+                    <select class="field" name="shipping_expedition" id="shipping_expedition">
+                        <option value="">Select expedition</option>
+                        {% if data.row.shipping_expedition and data.row.shipping_expedition not in data.shipping_expeditions %}
+                        <option value="{{ data.row.shipping_expedition }}" selected>{{ data.row.shipping_expedition }}</option>
+                        {% endif %}
+                        {% for expedition in data.shipping_expeditions %}
+                        <option value="{{ expedition }}"{% if data.row.shipping_expedition == expedition %} selected{% endif %}>{{ expedition }}</option>
+                        {% endfor %}
+                    </select>
+                    <p class="product-meta" style="margin-top:7px;"><a class="section-link" href="/admin/settings?tab=shipping">Settings → Shipping</a> expeditions</p>
+                </div>
+                <div class="admin-order-stack" style="margin-top:14px;">
+                    <div>
+                        <label class="field-label" for="shipping_service_fee_num">Packing / arrangement fee</label>
+                        <input class="field" type="number" min="0" step="1000" name="shipping_service_fee_num" id="shipping_service_fee_num" value="{{ data.row.shipping_service_fee_num or 0 }}" data-available="{{ data.shipping_eligibility.available_num }}">
+                    </div>
+                    <div>
+                        <label class="field-label" for="shipping_budget_num">Courier / shipping budget</label>
+                        <input class="field" type="number" min="0" step="1000" name="shipping_budget_num" id="shipping_budget_num" value="{{ data.row.shipping_budget_num or 0 }}">
+                    </div>
+                </div>
+                <p class="product-meta" id="shipping-expense-hint" style="margin-top:10px; display:none; color:#b00000;"></p>
+                <div style="margin-top:12px;"><label class="field-label" for="shipping_tracking_code">Tracking code</label><input class="field" name="shipping_tracking_code" id="shipping_tracking_code" value="{{ data.row.shipping_tracking_code or '' }}"></div>
+                <div style="margin-top:12px;"><label class="field-label" for="shipping_tracking_url">Tracking URL</label><input class="field" type="url" name="shipping_tracking_url" id="shipping_tracking_url" value="{{ data.row.shipping_tracking_url or '' }}" placeholder="https://..."></div>
             </div>
-            <div style="margin-top:12px;">
-                <label class="field-label" for="shipping_service_fee_num">Wrapping, packing, and shipping arrangement service fee</label>
-                <input class="field" type="number" min="0" step="1000" name="shipping_service_fee_num" id="shipping_service_fee_num" value="{{ data.row.shipping_service_fee_num or 0 }}" data-available="{{ data.shipping_eligibility.available_num }}">
-                <p class="product-meta" style="margin-top:7px;">Custom for this order. The default from Shipping Settings is {{ data.shipping_eligibility.service_fee }}.{% if data.shipping_eligibility.available_num > 0 %} Suggested max for this member pool: {{ data.shipping_eligibility.available }}.{% endif %}</p>
-            </div>
-            <div style="margin-top:12px;">
-                <label class="field-label" for="shipping_budget_num">Shipping budget / expense</label>
-                <input class="field" type="number" min="0" step="1000" name="shipping_budget_num" id="shipping_budget_num" value="{{ data.row.shipping_budget_num or 0 }}">
-                <p class="product-meta" style="margin-top:7px;">Actual courier / expedition cost for this shipment.{% if data.shipping_eligibility.available_num > 0 %} Service fee + budget should ideally fit within {{ data.shipping_eligibility.available }} combined progress.{% endif %}</p>
-                <p class="product-meta" id="shipping-expense-hint" style="margin-top:7px; display:none; color:#b00000;"></p>
-            </div>
-            <div style="margin-top:12px;"><label class="field-label" for="shipping_tracking_code">Expedition tracking code</label><input class="field" name="shipping_tracking_code" id="shipping_tracking_code" value="{{ data.row.shipping_tracking_code or '' }}"></div>
-            <div style="margin-top:12px;"><label class="field-label" for="shipping_tracking_url">Tracking link</label><input class="field" type="url" name="shipping_tracking_url" id="shipping_tracking_url" value="{{ data.row.shipping_tracking_url or '' }}" placeholder="https://..."></div>
-        </div>
-        {% if data.can_write %}<button class="btn-black" type="submit">Save shipping information</button>{% endif %}
-    </form>
-    {% if data.can_write and data.row.shipping_handler %}
-    <form method="post" style="margin-top:16px;" onsubmit="return confirm('Reset this shipping choice? Recipient, expedition, budget, and tracking information will be cleared. The member can choose again.');">
-        <input type="hidden" name="action" value="shipping_reset">
-        <button class="btn-line" type="submit">Reset shipping choice</button>
-        <p class="product-meta" style="margin-top:8px;">Clears the officer/self decision and all related shipping information so the member can decide again.</p>
-    </form>
-    {% endif %}
+            {% if data.can_write %}<button class="btn-black" type="submit" style="margin-top:16px;">Save shipping information</button>{% endif %}
+        </form>
+        {% if data.can_write and data.row.shipping_handler %}
+        <form method="post" style="margin-top:16px;" onsubmit="return confirm('Reset this shipping choice? Recipient, expedition, budget, and tracking information will be cleared. The member can choose again.');">
+            <input type="hidden" name="action" value="shipping_reset">
+            <button class="btn-line" type="submit">Reset shipping choice</button>
+        </form>
+        {% endif %}
+    </section>
 </section>
 {% endif %}
 
@@ -140,7 +275,7 @@
             <option value="{{ item }}"{% if data.row.order_status == item %} selected{% endif %}>{{ item }}</option>
             {% endfor %}
         </select>
-        <p class="product-meta" style="margin-top: 8px;">Typical flow: Preorder → Ready (after stock arrives) → Processing → Shipped → Completed. Members can also update statuses on their dashboard.</p>
+        <p class="product-meta" style="margin-top: 8px;">Typical flow: Preorder → Ready → Processing → Shipped → Completed.</p>
     </div>
     <div>
         <label class="field-label" for="payment_status">Payment status</label>

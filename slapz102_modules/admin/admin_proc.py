@@ -980,12 +980,26 @@ class admin_proc:
         rows = []
         for rec in recs:
             pay_val = rec.get("payment_status") or ""
+            econ = self.order_seller_economics(rec)
+            cuts_html = (
+                '<div class="admin-econ-cell"><strong>−' + econ.get("cuts", "Rp 0") + '</strong>'
+                '<p class="product-meta" style="margin:4px 0 0">Bahan −' + econ.get("bahan", "Rp 0") + '</p>'
+            )
+            if econ.get("shipping_show"):
+                cuts_html = cuts_html + (
+                    '<p class="product-meta" style="margin:2px 0 0">Ship −' + econ.get("shipping_delivery", "Rp 0") +
+                    ' · Pack −' + econ.get("shipping_service_fee", "Rp 0") + '</p>'
+                )
+            # end if
+            cuts_html = cuts_html + '</div>'
             cells = [
                 self.cell(rec.get("order_id"), "link", "/admin/orders/" + rec.get("pkey", "")),
                 self.cell(rec.get("full_name")),
                 self.cell(self.order_referrer_label(rec), wrap=True),
                 self.cell(self.display_date(rec)),
                 self.cell(rec.get("total")),
+                self.cell("", "html_block", html=cuts_html, wrap=True),
+                self.cell(econ.get("net_seller", "Rp 0"), wrap=True),
                 self.cell(
                     pay_val,
                     "order_pay",
@@ -1087,7 +1101,10 @@ class admin_proc:
         if q != "":
             empty_msg = "No orders found for order ID or customer name \"" + q + "\"."
         # end if
-        columns = ["Order ID", "Customer", "In charge (referral)", "Date", "Total", "Payment", "Shipping", "Status", ""]
+        columns = [
+            "Order ID", "Customer", "In charge (referral)", "Date", "Total",
+            "Total cuts", "Seller net", "Payment", "Shipping", "Status", ""
+        ]
         if shipping == "OFFICER":
             columns.insert(0, "Select")
         # end if
@@ -3157,6 +3174,49 @@ class admin_proc:
             return total
         # end if
         return int(order.get("subtotal_num") or 0)
+    # end def
+
+    def format_signed_rp(self, amount):
+        n = int(amount or 0)
+        text = self.format_rp(abs(n))
+        if n < 0:
+            return "−" + text
+        # end if
+        return text
+    # end def
+
+    def order_seller_economics(self, order):
+        from dashboard.dashboard_proc import dashboard_proc
+        dash = dashboard_proc()
+        sale_num = int(order.get("subtotal_num") or 0)
+        bahan_num = dash.order_bahan_num(order)
+        profit_num = self.order_profit_num(order)
+        ship_delivery, ship_fee, ship_total, ship_locked = dash.order_officer_shipping_deduction_display(order)
+        discount_num = int(order.get("discount_total_num") or 0)
+        cuts_num = bahan_num + ship_total
+        net_num = profit_num - ship_total
+        return {
+            "sale_num": sale_num,
+            "sale": self.format_rp(sale_num),
+            "bahan_num": bahan_num,
+            "bahan": self.format_rp(bahan_num),
+            "discount_num": discount_num,
+            "discount": self.format_rp(discount_num) if discount_num > 0 else "",
+            "profit_num": profit_num,
+            "profit": self.format_rp(profit_num),
+            "shipping_delivery_num": ship_delivery,
+            "shipping_delivery": self.format_rp(ship_delivery),
+            "shipping_service_fee_num": ship_fee,
+            "shipping_service_fee": self.format_rp(ship_fee),
+            "shipping_total_num": ship_total,
+            "shipping_total": self.format_rp(ship_total),
+            "shipping_locked": ship_locked,
+            "shipping_show": ship_total > 0,
+            "cuts_num": cuts_num,
+            "cuts": self.format_rp(cuts_num),
+            "net_seller_num": net_num,
+            "net_seller": self.format_signed_rp(net_num)
+        }
     # end def
 
     def delete_order(self, pkey):

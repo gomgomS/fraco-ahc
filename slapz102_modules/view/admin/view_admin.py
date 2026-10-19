@@ -357,9 +357,11 @@ def html_order(pkey):
         int(rec.get("shipping_service_fee_num") or 0)
     )
     rec["shipping_total_expense"] = proc.format_rp(rec.get("shipping_total_expense_num"))
+    seller_economics = proc.order_seller_economics(rec)
     data = proc.page("orders", {
         "order_tab": order_tab,
         "row": rec,
+        "seller_economics": seller_economics,
         "statuses": proc.ORDER_STATUSES,
         "pay_statuses": proc.order_pay_options(rec.get("payment_status") or ""),
         "item_table": proc.table_order_items(rec),

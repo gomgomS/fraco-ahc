@@ -303,7 +303,7 @@
                             <div><dt>{{ data.dash.shipping_service_fee }}</dt><dd>−{{ data.order.shipping_service_fee_deduction }}</dd></div>
                             <div><dt><strong>{{ data.dash.shipping_total_deduction }}</strong></dt><dd><strong>−{{ data.order.shipping_deduction }}</strong></dd></div>
                         </dl>
-                        <p class="product-meta" style="margin-top:8px;">{{ data.dash.shipping_cost_deducted }}</p>
+                        <p class="product-meta" style="margin-top:8px;">{% if data.order.shipping_deduction_locked %}{{ data.dash.shipping_cost_deducted }}{% else %}{{ data.dash.shipping_cost_scheduled }}{% endif %}</p>
                     </section>
                     {% endif %}
 
