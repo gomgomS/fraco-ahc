@@ -1,64 +1,114 @@
 {% extends 'base.html' %}
+{% import 'admin_orders_macros.html' as aom %}
 {% block title %}{{ data.order.order_id }} | {{ data.dash.referral_orders }}{% endblock %}
 
 {% block content %}
+{% include 'admin_orders_ui.html' %}
+<style>
+.ao-member { max-width: none; }
+.ao-detail-badges { display: flex; flex-wrap: wrap; gap: 8px; }
+.ao-kpi.is-cut strong { color: #b45309; }
+.ao-pagetabs { display: flex; gap: 4px; border-bottom: 1px solid var(--ao-line); margin: 4px 0 20px; }
+.ao-pagetab { padding: 10px 14px; margin-bottom: -1px; border-bottom: 2px solid transparent; font-size: 15px; font-weight: 600; color: var(--ao-muted); }
+.ao-pagetab:hover { color: var(--ao-text); }
+.ao-pagetab.is-active { color: var(--ao-text); border-bottom-color: #18181b; }
+
+/* Restyle the existing order sections as cards */
+.ao-member .dash-order-form { display: grid; gap: 16px; }
+.ao-member .dash-order-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.ao-member .dash-order-block { margin: 0; padding: 20px; background: #fff; border: 1px solid var(--ao-line); border-radius: var(--ao-radius); }
+.ao-member .dash-order-block-title { margin: 0 0 12px; font-family: var(--font-display); font-size: 16px; font-weight: 700; letter-spacing: 0; text-transform: none; }
+.ao-member .dash-order-block-title span { font-size: 12px; font-weight: 600; color: var(--ao-muted); }
+.ao-member .pay-box { border: 1px solid var(--ao-line); border-radius: 10px; background: var(--ao-soft); }
+.ao-member .product-meta { font-family: var(--font-display); font-size: 13px; letter-spacing: 0; text-transform: none; color: var(--ao-muted); }
+.ao-member .dash-mono { font-family: var(--font-display); font-weight: 600; }
+.ao-member .dash-order-dl { gap: 0; }
+.ao-member .dash-order-dl > div { display: flex; justify-content: space-between; gap: 16px; padding: 9px 0; border-bottom: 1px solid #f0f0f2; }
+.ao-member .dash-order-dl > div:last-child { border-bottom: 0; }
+.ao-member .dash-order-dl dt { font-size: 14px; letter-spacing: 0; text-transform: none; color: var(--ao-muted); }
+.ao-member .dash-order-dl dd { font-size: 14px; font-weight: 600; text-align: right; }
+.ao-member .address-display > div { display: grid; gap: 2px; padding: 6px 0; border-bottom: 0; }
+.ao-member .address-display dd { text-align: left; font-weight: 500; }
+.ao-member .dash-line-row { display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid #f0f0f2; }
+.ao-member .dash-line-row:last-child { border-bottom: 0; }
+.ao-member .dash-order-pill { display: inline-block; padding: 3px 10px; border-radius: 999px; background: #f1f1f3; font-size: 13px; font-weight: 600; }
+.ao-member .field-label { font-family: var(--font-display); font-size: 14px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--ao-text); margin-bottom: 6px; }
+.ao-member .field {
+    min-height: 42px; padding: 9px 12px; border: 1px solid #d4d4d8; border-radius: 10px; background: #fff;
+    font-family: var(--font-display); font-size: 15px;
+}
+.ao-member select.field {
+    appearance: none; padding-right: 36px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6b76' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center;
+}
+.ao-member textarea.field { min-height: 80px; }
+.ao-member .field:focus { border-color: #18181b; box-shadow: 0 0 0 3px rgba(24, 24, 27, .08); outline: none; }
+.ao-member .btn-black, .ao-member .btn-line {
+    min-height: 42px; padding: 9px 18px; border-radius: 10px; font-family: var(--font-display);
+    font-size: 14px; font-weight: 600; letter-spacing: 0; text-transform: none;
+}
+.ao-member .btn-black[disabled] { opacity: .4; cursor: not-allowed; }
+.ao-member .form-stack label > input[type="checkbox"] { width: 18px; height: 18px; margin-top: 2px; flex: 0 0 auto; accent-color: #18181b; }
+.ao-member .form-stack label > span.product-meta { font-size: 14px; color: var(--ao-text); line-height: 1.5; }
+@media (max-width: 720px) {
+    .ao-member .dash-line-row { flex-direction: column; }
+    .ao-member .dash-line-row > div[style] { text-align: left !important; }
+}
+</style>
+{% set o = data.order %}
 <section class="section">
     <div class="dash-layout">
         {% include 'dashboard_nav.html' %}
-        <div>
-            <p class="product-meta"><a class="section-link" href="/dashboard/orders">← {{ data.dash.referral_orders }}</a></p>
-            <div class="filter-row" style="margin-top:16px;">
-                <a class="filter-chip{% if data.order_tab == 'details' %} active{% endif %}" href="/dashboard/orders/{{ data.order.pkey }}?tab=details">{{ data.dash.tab_order_details }}</a>
-                <a class="filter-chip{% if data.order_tab == 'shipping' %} active{% endif %}" href="/dashboard/orders/{{ data.order.pkey }}?tab=shipping">{{ data.dash.tab_shipping }}</a>
+        <div class="ao ao-member">
+            <a class="ao-back" href="/dashboard/orders">← {{ data.dash.referral_orders }}</a>
+
+            <header class="ao-head" style="margin-top: 10px;">
+                <div>
+                    <h1 class="ao-title">{{ o.full_name or '—' }}</h1>
+                    <div class="ao-meta-line">
+                        <span class="ao-strong" style="color: var(--ao-text);">{{ o.order_id }}</span>
+                        {% if o.rec_timestamp_str %}<span>{{ o.rec_timestamp_str[0:16] }}</span>{% endif %}
+                        {% if o.has_preorder %}<span class="ao-badge" data-tone="violet">Preorder</span>{% endif %}
+                        {% if o.counts_for_target %}<span class="ao-badge" data-tone="green">{{ data.dash.counts_target }}</span>{% elif o.is_unpaid_lead %}<span class="ao-badge" data-tone="amber">{{ data.dash.not_counted }}</span>{% endif %}
+                    </div>
+                </div>
+                <div class="ao-detail-badges" aria-label="{{ data.dash.order_status }}">
+                    {% if o.order_status != 'Pending Payment' %}{{ aom.status_badge_label(o.order_status, o.order_status_label) }}{% endif %}
+                    {{ aom.pay_badge_label(o.payment_status, o.payment_status_label) }}
+                    {{ aom.ship_status_badge(o.shipping_request_status, data.dash.tab_shipping ~ ': ' ~ o.shipping_status_label) }}
+                </div>
+            </header>
+
+            <div class="ao-kpis" aria-label="{{ data.dash.your_profit }}">
+                <div class="ao-kpi">
+                    <span>{{ data.dash.sale }}</span>
+                    <strong>{{ o.sale }}</strong>
+                </div>
+                <div class="ao-kpi is-cut">
+                    <span>{{ data.dash.bahan_baku }}</span>
+                    <strong>−{{ o.bahan_baku }}</strong>
+                </div>
+                {% if o.shipping_deduction_active %}
+                <div class="ao-kpi is-cut">
+                    <span>{{ data.dash.shipping_total_deduction }}</span>
+                    <strong>−{{ o.shipping_deduction }}</strong>
+                    <small>{{ data.dash.shipping_expense }} {{ o.shipping_delivery }} · {{ o.shipping_service_fee_deduction }}</small>
+                </div>
+                {% endif %}
+                <div class="ao-kpi is-highlight">
+                    <span>{{ data.dash.your_profit }}</span>
+                    <strong>{% if o.shipping_deduction_active %}{{ o.net_profit }}{% else %}{{ o.profit }}{% endif %}</strong>
+                    {% if o.shipping_deduction_active %}<small>{{ data.dash.after_shipping_costs }}</small>{% endif %}
+                </div>
             </div>
-            <div class="dash-order-card" style="margin-top: 18px;">
-                <div class="dash-order-top">
-                    <div>
-                        <p class="dash-order-meta">
-                            <span class="dash-mono">{{ data.order.order_id }}</span>
-                            {% if data.order.has_preorder %}<span class="badge-preorder-inline">Preorder</span>{% endif %}
-                            {% if data.order.counts_for_target %}
-                            <span class="dash-order-pill dash-order-pill-ok">{{ data.dash.counts_target }}</span>
-                            {% endif %}
-                        </p>
-                        <h1 class="section-title" style="font-size: 30px; margin-top: 10px;">{{ data.order.full_name or '—' }}</h1>
-                        <p class="product-meta" style="margin-top: 7px;">{{ data.order.rec_timestamp_str or '' }}</p>
-                    </div>
-                    <div class="dash-order-money">
-                        {% if data.order.shipping_deduction_active %}
-                        <div><p class="product-meta">{{ data.dash.sale }}</p><p class="dash-mono">{{ data.order.sale }}</p></div>
-                        <div><p class="product-meta">{{ data.dash.bahan_baku }}</p><p class="dash-mono dash-muted">−{{ data.order.bahan_baku }}</p></div>
-                        <div><p class="product-meta">{{ data.dash.shipping_expense }}</p><p class="dash-mono dash-muted">−{{ data.order.shipping_delivery }}</p></div>
-                        <div><p class="product-meta">{{ data.dash.shipping_service_fee }}</p><p class="dash-mono dash-muted">−{{ data.order.shipping_service_fee_deduction }}</p></div>
-                        <div><p class="product-meta">{{ data.dash.your_profit }}</p><p class="dash-profit">{{ data.order.net_profit }}</p></div>
-                        {% else %}
-                        <div><p class="product-meta">{{ data.dash.sale }}</p><p class="dash-mono">{{ data.order.sale }}</p></div>
-                        <div><p class="product-meta">{{ data.dash.bahan_baku }}</p><p class="dash-mono dash-muted">{{ data.order.bahan_baku }}</p></div>
-                        <div><p class="product-meta">{{ data.dash.your_profit }}</p><p class="dash-profit">{{ data.order.profit }}</p></div>
-                        {% endif %}
-                    </div>
-                </div>
 
-                <div class="dash-status-grid">
-                    <article class="dash-status-card" data-state="{{ data.order.order_status }}">
-                        <p class="product-meta">{{ data.dash.order_status }}</p>
-                        <h3>{{ data.order.order_status_label }}</h3>
-                    </article>
-                    <article class="dash-status-card" data-state="{{ data.order.payment_status }}">
-                        <p class="product-meta">{{ data.dash.payment_status }}</p>
-                        <h3>{{ data.order.payment_status_label }}</h3>
-                    </article>
-                    <article class="dash-status-card" data-state="{{ data.order.shipping_request_status or data.order.shipping_handler }}">
-                        <p class="product-meta">{{ data.dash.tab_shipping }}</p>
-                        <h3>{{ data.order.shipping_status_label }}</h3>
-                        <p class="product-meta" style="margin-top:6px;">
-                            {% if data.order.shipping_handler == 'OFFICER' %}{{ data.dash.shipping_by_officer }}
-                            {% elif data.order.shipping_handler == 'SELF' %}{{ data.dash.shipping_by_self }}
-                            {% else %}{{ data.dash.shipping_status_empty }}{% endif %}
-                        </p>
-                    </article>
-                </div>
+            <nav class="ao-pagetabs" aria-label="{{ data.dash.referral_orders }}">
+                <a class="ao-pagetab{% if data.order_tab == 'details' %} is-active{% endif %}" href="/dashboard/orders/{{ o.pkey }}?tab=details">{{ data.dash.tab_order_details }}</a>
+                <a class="ao-pagetab{% if data.order_tab == 'shipping' %} is-active{% endif %}" href="/dashboard/orders/{{ o.pkey }}?tab=shipping">{{ data.dash.tab_shipping }}</a>
+            </nav>
 
+            <div>
                 <div class="dash-order-form">
                     {% if data.order_tab == 'details' %}
                     <div class="dash-order-grid">
@@ -78,8 +128,8 @@
                             {% include 'address_display.html' %}
                             <p class="product-meta" style="margin-top:12px;">{{ data.dash.shipping_address_locked }}</p>
                             {% else %}
-                            {% if data.form_ok %}<p class="product-meta" style="margin-bottom: 12px;">{{ data.dash.delivery_updated }}</p>{% endif %}
-                            {% if data.form_error %}<p class="product-meta" style="color: #b00000; margin-bottom: 12px;">{{ data.form_error }}</p>{% endif %}
+                            {% if data.form_ok %}<div class="ao-alert ao-alert-ok" role="status">✓ {{ data.dash.delivery_updated }}</div>{% endif %}
+                            {% if data.form_error %}<div class="ao-alert ao-alert-error" role="alert">{{ data.form_error }}</div>{% endif %}
                             <form class="form-stack" method="post">
                                 <input type="hidden" name="action" value="delivery_location">
                                 <p class="product-meta">{{ data.dash.location_hint }}</p>
@@ -97,8 +147,8 @@
                     {% if data.order_tab == 'shipping' %}
                     <section class="dash-order-block">
                         <h2 class="dash-order-block-title">{{ data.dash.shipping_arrangement }}</h2>
-                        {% if data.shipping_ok %}<p class="product-meta" style="margin-bottom: 12px;">{{ data.dash.shipping_saved }}</p>{% endif %}
-                        {% if data.shipping_error %}<p class="product-meta" style="color:#b00000; margin-bottom:12px;">{{ data.shipping_error }}</p>{% endif %}
+                        {% if data.shipping_ok %}<div class="ao-alert ao-alert-ok" role="status">✓ {{ data.dash.shipping_saved }}</div>{% endif %}
+                        {% if data.shipping_error %}<div class="ao-alert ao-alert-error" role="alert">{{ data.shipping_error }}</div>{% endif %}
                         {% if data.order.shipping_handler == 'OFFICER' %}
                         <div class="dash-order-grid">
                             <div class="pay-box" style="padding:16px;">
@@ -125,76 +175,29 @@
                             </div>
                         </div>
                         {% else %}
+                        {% if not data.shipping_eligibility.eligible %}
                         <div class="pay-box" style="padding:14px; margin-bottom:16px;">
-                            <p>
-                                {{ data.dash.shipping_available }}: <strong>{{ data.shipping_eligibility.available }}</strong>.
-                                {% if data.shipping_eligibility.minimum_num > 0 %}
-                                {{ data.dash.shipping_minimum_copy|replace('{minimum}', data.shipping_eligibility.minimum) }}
-                                {% else %}
-                                No minimum combined progress is required to request officer shipping.
-                                {% endif %}
-                                <strong>{{ data.dash.shipping_notice_title }}</strong>
-                                {{ data.dash.shipping_notice }}
-                            </p>
-                            <p class="product-meta" style="margin-top:8px;">{{ data.dash.shipping_service_fee }}: <strong>{{ data.shipping_eligibility.service_fee }}</strong> {{ data.dash.shipping_per_order }}.</p>
-                            {% if not data.shipping_eligibility.eligible and data.order.shipping_handler != 'OFFICER' %}
+                            <p>{{ data.dash.shipping_minimum_error|replace('{minimum}', data.shipping_eligibility.minimum) }}</p>
                             <p style="margin-top:8px;"><a class="section-link" href="/dashboard/proposal">{{ data.dash.shipping_contribute_first }}</a></p>
-                            {% endif %}
                         </div>
+                        {% endif %}
                         <form class="form-stack" method="post" id="shipping-request-form">
                             <input type="hidden" name="action" value="shipping_request">
+                            <input type="hidden" name="shipping_handler" value="OFFICER">
+                            <input type="hidden" name="shipping_recipient_same_buyer" value="YES">
                             <div>
-                                <label class="field-label" for="shipping_handler">{{ data.dash.shipping_handler_label }}</label>
-                                <select class="field" name="shipping_handler" id="shipping_handler" required>
-                                    <option value="">{{ data.dash.shipping_select_type }}</option>
-                                    <option value="OFFICER"{% if data.order.shipping_handler == 'OFFICER' %} selected{% endif %}{% if not data.shipping_eligibility.eligible and data.order.shipping_handler != 'OFFICER' %} disabled{% endif %}>{{ data.dash.shipping_by_officer }}</option>
-                                    <option value="SELF"{% if data.order.shipping_handler == 'SELF' %} selected{% endif %}{% if data.order.shipping_handler == 'OFFICER' %} disabled{% endif %}>{{ data.dash.shipping_by_self }}</option>
-                                </select>
+                                <label class="field-label" for="shipping_package_note">{{ data.dash.shipping_package_note }}</label>
+                                <textarea class="field" name="shipping_package_note" id="shipping_package_note" rows="2">{{ data.order.shipping_package_note or '' }}</textarea>
                             </div>
-
-                            <div id="officer-shipping-fields">
-                                <label style="display:flex; align-items:flex-start; gap:10px; margin-bottom:14px;">
-                                    <input type="checkbox" name="shipping_recipient_same_buyer" id="shipping_recipient_same_buyer" value="YES"{% if data.order.shipping_recipient_same_buyer is not sameas false %} checked{% endif %}>
-                                    <span>{{ data.dash.shipping_same_buyer }}</span>
-                                </label>
-                                <div class="pay-box" id="same-buyer-summary" style="padding:16px; margin-bottom:14px;">
-                                    <p class="product-meta">{{ data.dash.shipping_package_recipient }}</p>
-                                    <p style="margin-top:6px;"><strong>{{ data.order.full_name or '—' }}</strong> · {{ data.order.phone or '—' }}</p>
-                                    <p class="product-meta" style="margin-top:10px;">{{ data.dash.shipping_package_address }}</p>
-                                    {% set addr_rows = data.address_rows %}
-                                    {% set addr_fallback = data.order.address %}
-                                    {% include 'address_display.html' %}
-                                </div>
-                                <div class="dash-order-fields" id="custom-recipient-fields">
-                                    <div>
-                                        <label class="field-label" for="shipping_name">{{ data.dash.shipping_recipient_name }}</label>
-                                        <input class="field" name="shipping_name" id="shipping_name" value="{{ data.order.shipping_name or data.order.full_name or '' }}" data-buyer-value="{{ data.order.full_name or '' }}">
-                                    </div>
-                                    <div>
-                                        <label class="field-label" for="shipping_phone">{{ data.dash.shipping_recipient_phone }}</label>
-                                        <input class="field" name="shipping_phone" id="shipping_phone" value="{{ data.order.shipping_phone or data.order.phone or '' }}" data-buyer-value="{{ data.order.phone or '' }}">
-                                    </div>
-                                    <div class="dash-order-field-full">
-                                        {% set addr_prefix = 'shipping_' %}
-                                        {% set addr_rec = data.order %}
-                                        {% set addr_required = True %}
-                                        {% include 'address_fields.html' %}
-                                    </div>
-                                </div>
-                                <div style="margin-top:14px;">
-                                    <label class="field-label" for="shipping_package_note">{{ data.dash.shipping_package_note }}</label>
-                                    <textarea class="field" name="shipping_package_note" id="shipping_package_note" rows="2">{{ data.order.shipping_package_note or '' }}</textarea>
-                                </div>
-                                <label style="display:flex; align-items:flex-start; gap:10px; margin-top:14px;">
-                                    <input type="checkbox" name="shipping_confirm_info" id="shipping_confirm_info" value="YES">
-                                    <span class="product-meta">{{ data.dash.shipping_confirm_info }}</span>
-                                </label>
-                                <label style="display:flex; align-items:flex-start; gap:10px; margin-top:12px;">
-                                    <input type="checkbox" name="shipping_confirm_process" id="shipping_confirm_process" value="YES">
-                                    <span class="product-meta"><strong>{{ data.dash.shipping_confirm_process }}</strong></span>
-                                </label>
-                            </div>
-                            <button class="btn-line" type="submit">{{ data.dash.shipping_save }}</button>
+                            <label style="display:flex; align-items:flex-start; gap:10px;">
+                                <input class="js-shipping-confirm" type="checkbox" name="shipping_confirm_info" id="shipping_confirm_info" value="YES" required>
+                                <span class="product-meta">{{ data.dash.shipping_confirm_info }}</span>
+                            </label>
+                            <label style="display:flex; align-items:flex-start; gap:10px;">
+                                <input class="js-shipping-confirm" type="checkbox" name="shipping_confirm_process" id="shipping_confirm_process" value="YES" required>
+                                <span class="product-meta"><strong>{{ data.dash.shipping_confirm_process }}</strong></span>
+                            </label>
+                            <button class="btn-black" type="submit" id="shipping-request-submit" disabled>{{ data.dash.shipping_save }}</button>
                         </form>
                         {% endif %}
                     </section>
@@ -202,8 +205,8 @@
 
                     {% if data.order_tab == 'details' %}
                     {% if data.order.shipping_handler == 'OFFICER' %}
-                    {% if data.complete_ok %}<p class="product-meta" style="margin-bottom:12px;">{{ data.dash.shipping_completed }}</p>{% endif %}
-                    {% if data.form_error %}<p class="product-meta" style="color:#b00000; margin-bottom:12px;">{{ data.form_error }}</p>{% endif %}
+                    {% if data.complete_ok %}<div class="ao-alert ao-alert-ok" role="status">✓ {{ data.dash.shipping_completed }}</div>{% endif %}
+                    {% if data.form_error %}<div class="ao-alert ao-alert-error" role="alert">{{ data.form_error }}</div>{% endif %}
                     <section class="dash-order-block">
                         <h2 class="dash-order-block-title">{{ data.dash.items_label }}</h2>
                         <div class="dash-line-list">
@@ -333,52 +336,20 @@
 <script src="{{ url_for('static', filename='js/wilayah-address.js') }}"></script>
 <script>
 (function () {
-    var handler = document.getElementById("shipping_handler");
-    var fields = document.getElementById("officer-shipping-fields");
-    var same = document.getElementById("shipping_recipient_same_buyer");
-    var sameSummary = document.getElementById("same-buyer-summary");
-    var customFields = document.getElementById("custom-recipient-fields");
-    var confirmInfo = document.getElementById("shipping_confirm_info");
-    var confirmProcess = document.getElementById("shipping_confirm_process");
-    if (!handler || !fields || !same) return;
-    function setDisabled(root, disabled) {
-        if (!root) return;
-        var nodes = root.querySelectorAll("input, select, textarea");
-        for (var i = 0; i < nodes.length; i += 1) {
-            nodes[i].disabled = disabled;
+    var submit = document.getElementById("shipping-request-submit");
+    var checks = document.querySelectorAll(".js-shipping-confirm");
+    if (!submit || !checks.length) return;
+    function sync() {
+        var all = true;
+        for (var i = 0; i < checks.length; i += 1) {
+            if (!checks[i].checked) all = false;
         }
+        submit.disabled = !all;
     }
-    function syncRecipient() {
-        var hideCustom = same.checked;
-        if (sameSummary) sameSummary.style.display = hideCustom ? "" : "none";
-        if (customFields) customFields.style.display = hideCustom ? "none" : "";
-        setDisabled(customFields, hideCustom);
-        var name = document.getElementById("shipping_name");
-        var phone = document.getElementById("shipping_phone");
-        if (name) name.disabled = hideCustom;
-        if (phone) phone.disabled = hideCustom;
+    for (var i = 0; i < checks.length; i += 1) {
+        checks[i].addEventListener("change", sync);
     }
-    function syncHandler() {
-        var officer = handler.value === "OFFICER";
-        fields.style.display = officer ? "" : "none";
-        if (confirmInfo) {
-            confirmInfo.required = officer;
-            confirmInfo.disabled = !officer;
-        }
-        if (confirmProcess) {
-            confirmProcess.required = officer;
-            confirmProcess.disabled = !officer;
-        }
-        if (!officer) setDisabled(fields, true);
-        else {
-            setDisabled(fields, false);
-            syncRecipient();
-        }
-    }
-    same.addEventListener("change", syncRecipient);
-    handler.addEventListener("change", syncHandler);
-    syncRecipient();
-    syncHandler();
+    sync();
 })();
 (function () {
     var setAll = document.getElementById("detail_order_status");

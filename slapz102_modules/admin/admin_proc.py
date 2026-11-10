@@ -1,3 +1,4 @@
+import copy
 import html as html_lib
 import hashlib
 import os
@@ -5,6 +6,7 @@ import re
 import sys
 import urllib.error
 import urllib.request
+import zipfile
 
 sys.path.append("slapz102_core")
 sys.path.append("slapz102_modules")
@@ -29,6 +31,7 @@ class admin_proc:
     mgdDB = database.get_db_conn(config.mainDB)
     ALLOWED_EXT = ["pdf", "doc", "docx", "jpg", "jpeg", "png", "webp"]
     IMAGE_EXT = ["jpg", "jpeg", "png", "webp", "gif"]
+    PRODUCT_ASSETS_MAX_BYTES = 200 * 1024 * 1024
     PAGE_SIZE = 20
     DEFAULT_MERCHANDISE_CATEGORIES = ["Apparel", "Accessories", "Member Kit", "Other"]
     DEFAULT_SHIPPING_EXPEDITIONS = ["JNE", "J&T Express", "SiCepat", "AnterAja", "POS Indonesia", "GoSend", "GrabExpress", "Other"]
@@ -91,14 +94,16 @@ class admin_proc:
             "gallery": "write",
             "team": "write",
             "donations": "write",
-            "settings": "write"
+            "settings": "write",
+            "tutorials": "write"
         },
         "FINANCE": {
             "overview": "read",
             "participants": "read",
             "orders": "write",
             "payments": "write",
-            "donations": "write"
+            "donations": "write",
+            "tutorials": "read"
         },
         "OFFICER": {
             "overview": "read",
@@ -107,32 +112,38 @@ class admin_proc:
             "events": "write",
             "content": "write",
             "gallery": "write",
-            "team": "write"
+            "team": "write",
+            "tutorials": "read"
         },
         "MERCHANDISE_ADMIN": {
             "overview": "read",
             "products": "write",
-            "orders": "write"
+            "orders": "write",
+            "tutorials": "read"
         },
         "PROGRAM_ADMIN": {
             "overview": "read",
             "programs": "write",
             "events": "write",
-            "universities": "write"
+            "universities": "write",
+            "tutorials": "read"
         },
         "SPONSORSHIP_ADMIN": {
             "overview": "read",
-            "sponsors": "write"
+            "sponsors": "write",
+            "tutorials": "read"
         },
         "VENDOR_ADMIN": {
             "overview": "read",
-            "vendors": "write"
+            "vendors": "write",
+            "tutorials": "read"
         },
         "CONTENT_ADMIN": {
             "overview": "read",
             "content": "write",
             "gallery": "write",
-            "team": "write"
+            "team": "write",
+            "tutorials": "write"
         }
     }
     PAY_ROLES = ["SUPER_ADMIN", "ADMIN", "FINANCE"]
@@ -148,6 +159,7 @@ class admin_proc:
         "team": ["SUPER_ADMIN", "ADMIN", "CONTENT_ADMIN"],
         "donations": ["SUPER_ADMIN", "ADMIN", "FINANCE"],
         "vendors": ["SUPER_ADMIN", "ADMIN", "VENDOR_ADMIN"],
+        "tutorials": ["SUPER_ADMIN", "ADMIN", "CONTENT_ADMIN"],
         "users": ["SUPER_ADMIN"]
     }
     NAV = [
@@ -164,6 +176,7 @@ class admin_proc:
         ("content", "/admin/content", "Content"),
         ("gallery", "/admin/gallery", "Gallery"),
         ("team", "/admin/team", "Team"),
+        ("tutorials", "/admin/tutorials", "Tutorials"),
         ("users", "/admin/users", "Users"),
         ("settings", "/admin/settings", "Settings")
     ]
@@ -385,7 +398,13 @@ class admin_proc:
             response["desc"] = "This account is not staff"
             return response
         # end if
-        if not check_password_hash(user.get("password") or "", raw_password):
+        try:
+            password_ok = check_password_hash(user.get("password") or "", raw_password)
+        except ValueError:
+            response["desc"] = "This account's password was saved in a format this server cannot read. Ask a super admin to reset it."
+            return response
+        # end try
+        if not password_ok:
             response["desc"] = "Email or password is not right"
             return response
         # end if
@@ -978,9 +997,66 @@ class admin_proc:
         # end if
         recs, pager = self.fetch_page("db_order", "/admin/orders", extra, extra_qs=extra_qs)
         rows = []
+        order_rows = []
+        page_pkeys = []
+        for rec in recs:
+            for pk in self.order_product_pkeys(rec):
+                if pk not in page_pkeys:
+                    page_pkeys.append(pk)
+                # end if
+            # end for
+        # end for
+        asset_products = {}
+        for pk, product in self.products_with_assets(page_pkeys).items():
+            if self.product_assets_path(product.get("assets_zip")) != None:
+                asset_products[pk] = product
+            # end if
+        # end for
         for rec in recs:
             pay_val = rec.get("payment_status") or ""
             econ = self.order_seller_economics(rec)
+            items = rec.get("items") or []
+            qty_total = 0
+            for line in items:
+                try:
+                    qty_total = qty_total + int(line.get("qty") or 0)
+                except Exception:
+                    pass
+                # end try
+            # end for
+            items_summary = ""
+            if items != []:
+                items_summary = items[0].get("name") or "Item"
+                if len(items) > 1:
+                    items_summary = items_summary + " +" + str(len(items) - 1) + " more"
+                # end if
+            # end if
+            cuts_hint = "Bahan baku −" + econ.get("bahan", "Rp 0")
+            if econ.get("shipping_show"):
+                cuts_hint = cuts_hint + ", shipping −" + econ.get("shipping_delivery", "Rp 0") + ", packing −" + econ.get("shipping_service_fee", "Rp 0")
+            # end if
+            date_text = self.display_date(rec)
+            handler = rec.get("shipping_handler") or ""
+            order_rows.append({
+                "pkey": rec.get("pkey", ""),
+                "order_id": rec.get("order_id") or "—",
+                "href": "/admin/orders/" + rec.get("pkey", ""),
+                "customer": rec.get("full_name") or "—",
+                "referrer": self.order_referrer_label(rec),
+                "date": date_text[0:10] if len(date_text) >= 10 else date_text,
+                "time": date_text[11:16] if len(date_text) >= 16 else "",
+                "items_summary": items_summary,
+                "qty_total": qty_total,
+                "total": rec.get("total") or "Rp 0",
+                "net_seller": econ.get("net_seller", "Rp 0"),
+                "net_seller_num": econ.get("net_seller_num", 0),
+                "cuts_hint": cuts_hint,
+                "payment_status": pay_val or "Pending",
+                "shipping_handler": handler or "NOT_SELECTED",
+                "shipping_label": "Officer" if handler == "OFFICER" else ("Self-arranged" if handler == "SELF" else "Not chosen"),
+                "order_status": rec.get("order_status") or "—",
+                "assets_count": len([pk for pk in self.order_product_pkeys(rec) if pk in asset_products])
+            })
             cuts_html = (
                 '<div class="admin-econ-cell"><strong>−' + econ.get("cuts", "Rp 0") + '</strong>'
                 '<p class="product-meta" style="margin:4px 0 0">Bahan −' + econ.get("bahan", "Rp 0") + '</p>'
@@ -1142,7 +1218,38 @@ class admin_proc:
         # end if
         table["table_class"] = "admin-orders-list-table"
         table["column_classes"] = col_classes
+        counts = self.order_status_counts()
+        for item in filters:
+            if item.get("label") == "All":
+                item["count"] = counts.get("__all__", 0)
+            else:
+                item["count"] = counts.get(item.get("label"), 0)
+            # end if
+        # end for
+        table["orders"] = order_rows
+        table["status_counts"] = counts
+        table["active_filter_count"] = len([v for v in [pay, shipping, q] if v != ""])
         return table
+    # end def
+
+    def order_status_counts(self):
+        counts = {"__all__": 0, "__pay_pending__": 0}
+        rows = self.mgdDB.db_order.aggregate([
+            {"$match": {"is_deleted": False}},
+            {"$group": {"_id": {"status": "$order_status", "pay": "$payment_status"}, "n": {"$sum": 1}}}
+        ])
+        for row in rows:
+            key = row.get("_id") or {}
+            status = key.get("status") or ""
+            n = int(row.get("n") or 0)
+            counts[status] = counts.get(status, 0) + n
+            counts["__all__"] = counts["__all__"] + n
+            if (key.get("pay") or "Pending") != "Paid" and status != "Cancelled":
+                counts["__pay_pending__"] = counts["__pay_pending__"] + n
+            # end if
+        # end for
+        counts["__to_ship__"] = counts.get("Paid", 0) + counts.get("Ready", 0) + counts.get("Processing", 0)
+        return counts
     # end def
 
     def table_products(self):
@@ -1222,11 +1329,12 @@ class admin_proc:
                 self.cell(rec.get("reserved")),
                 self.cell(rec.get("sold")),
                 self.cell(rec.get("status"), "status"),
+                self.cell("Duplicate", "duplicate", pkey=rec.get("pkey", "")),
                 self.cell("Delete", "delete", pkey=rec.get("pkey", ""))
             ]})
         # end for
         return self.make_table(
-            ["Product", "SKU", "Category", "Price", "Bahan baku", "Profit", "Stock state", "Stock", "Reserved", "Sold", "Status", ""],
+            ["Product", "SKU", "Category", "Price", "Bahan baku", "Profit", "Stock state", "Stock", "Reserved", "Sold", "Status", "", ""],
             rows,
             pager,
             "No products."
@@ -2929,7 +3037,7 @@ class admin_proc:
                 "email": email,
                 "name": name,
                 "phone": phone,
-                "password": generate_password_hash(raw_password),
+                "password": generate_password_hash(raw_password, method="pbkdf2:sha256"),
                 "role": role,
                 "status": status
             })
@@ -2966,7 +3074,7 @@ class admin_proc:
                 response["desc"] = "Password must be at least 6 characters"
                 return response
             # end if
-            fields["password"] = generate_password_hash(raw_password)
+            fields["password"] = generate_password_hash(raw_password, method="pbkdf2:sha256")
         # end if
         result = self.save_row("db_user", pkey, fields)
         return result
@@ -3052,6 +3160,210 @@ class admin_proc:
             {"$set": {"is_deleted": True}}
         )
         return {"status": "SUCCESS"}
+    # end def
+
+    def unique_product_slug(self, base):
+        base = self.slugify(base) or "product"
+        slug = base
+        counter = 2
+        while self.mgdDB.db_product.find_one({"slug": slug, "is_deleted": False}, {"_id": 0, "pkey": 1}) != None:
+            slug = base + "-" + str(counter)
+            counter = counter + 1
+        # end while
+        return slug
+    # end def
+
+    def duplicate_product(self, pkey):
+        response = {"status": "FAILED", "desc": "", "pkey": ""}
+        source = self.get_row("db_product", pkey)
+        if source == None:
+            response["desc"] = "Product not found"
+            return response
+        # end if
+        fields = {}
+        for key in self.schema_keys("db_product"):
+            if key in source:
+                fields[key] = copy.deepcopy(source[key])
+            # end if
+        # end for
+        fields["name"] = ((source.get("name") or "").strip() + " (Copy)").strip()
+        fields["slug"] = self.unique_product_slug((source.get("slug") or source.get("name") or "") + "-copy")
+        sku = (source.get("sku") or "").strip()
+        fields["sku"] = sku + "-COPY" if sku != "" else ""
+        by_size = source.get("stock_by_size") or {}
+        if not isinstance(by_size, dict):
+            by_size = {}
+        # end if
+        fields["stock_by_size"] = {}
+        for size in by_size:
+            fields["stock_by_size"][size] = 0
+        # end for
+        fields["stock"] = 0
+        fields["reserved"] = 0
+        fields["sold"] = 0
+        allow = source.get("allow_preorder") == True or source.get("is_preorder") == True
+        fields["availability"] = "Preorder" if allow else "Out of Stock"
+        fields["status"] = "DRAFT"
+        rec = database.new(self.mgdDB, "db_product")
+        for key in fields:
+            rec.put(key, fields[key])
+        # end for
+        rec.insert()
+        response["pkey"] = rec.get().get("pkey", "")
+        response["status"] = "SUCCESS"
+        return response
+    # end def
+
+    def product_image_in_use(self, url, exclude_pkey=""):
+        url = (url or "").strip()
+        if url == "":
+            return False
+        # end if
+        query = {
+            "is_deleted": False,
+            "pkey": {"$ne": exclude_pkey},
+            "$or": [{"image": url}, {"images": url}]
+        }
+        return self.mgdDB.db_product.find_one(query, {"_id": 0, "pkey": 1}) != None
+    # end def
+
+    def product_assets_dir(self):
+        # Outside /static so the zip is only reachable through the admin download route.
+        return os.path.join(config.G_HOME_PATH, "storage_private", "product_assets")
+    # end def
+
+    def product_assets_path(self, stored):
+        stored = os.path.basename(str(stored or "").strip())
+        if stored == "":
+            return None
+        # end if
+        full = os.path.join(self.product_assets_dir(), stored)
+        if not os.path.isfile(full):
+            return None
+        # end if
+        return full
+    # end def
+
+    def save_product_assets(self, file_obj):
+        response = {"status": "FAILED", "desc": "", "stored": "", "name": "", "size": 0}
+        if file_obj == None or file_obj.filename == "":
+            response["status"] = "EMPTY"
+            return response
+        # end if
+        name = secure_filename(file_obj.filename)
+        ext = name.rsplit(".", 1)[-1].lower() if "." in name else ""
+        if ext != "zip":
+            response["desc"] = "Assets must be a .zip file"
+            return response
+        # end if
+        dest_dir = self.product_assets_dir()
+        if not os.path.isdir(dest_dir):
+            os.makedirs(dest_dir)
+        # end if
+        stem = name.rsplit(".", 1)[0] or "assets"
+        stored = stem + "-" + idgen._get_api_call_id() + ".zip"
+        full = os.path.join(dest_dir, stored)
+        file_obj.save(full)
+        size = os.path.getsize(full)
+        if size > self.PRODUCT_ASSETS_MAX_BYTES:
+            os.remove(full)
+            response["desc"] = "Assets zip is larger than " + str(self.PRODUCT_ASSETS_MAX_BYTES // (1024 * 1024)) + " MB"
+            return response
+        # end if
+        if not zipfile.is_zipfile(full):
+            os.remove(full)
+            response["desc"] = "That file is not a valid zip archive"
+            return response
+        # end if
+        response["status"] = "SUCCESS"
+        response["stored"] = stored
+        response["name"] = name
+        response["size"] = size
+        return response
+    # end def
+
+    def order_product_pkeys(self, order):
+        pkeys = []
+        for line in (order or {}).get("items") or []:
+            pk = (line.get("product_pkey") or "").strip()
+            if pk != "" and pk not in pkeys:
+                pkeys.append(pk)
+            # end if
+        # end for
+        return pkeys
+    # end def
+
+    def products_with_assets(self, pkeys):
+        if pkeys == []:
+            return {}
+        # end if
+        # Deleted products are included on purpose: old orders still need their artwork.
+        rows = self.mgdDB.db_product.find(
+            {"pkey": {"$in": pkeys}, "assets_zip": {"$nin": ["", None]}},
+            {"_id": 0, "pkey": 1, "slug": 1, "name": 1, "assets_zip": 1, "assets_zip_name": 1}
+        )
+        found = {}
+        for row in rows:
+            found[row.get("pkey")] = row
+        # end for
+        return found
+    # end def
+
+    def order_asset_files(self, order):
+        files = []
+        used_names = []
+        products = self.products_with_assets(self.order_product_pkeys(order))
+        for pk in self.order_product_pkeys(order):
+            product = products.get(pk)
+            if product == None:
+                continue
+            # end if
+            path = self.product_assets_path(product.get("assets_zip"))
+            if path == None:
+                continue
+            # end if
+            base = secure_filename(product.get("assets_zip_name") or "") or "assets.zip"
+            slug = self.slugify(product.get("slug") or product.get("name") or "product") or "product"
+            name = slug + "-" + base if not base.startswith(slug) else base
+            stem = name[:-4] if name.lower().endswith(".zip") else name
+            counter = 2
+            while name in used_names:
+                name = stem + "-" + str(counter) + ".zip"
+                counter = counter + 1
+            # end while
+            used_names.append(name)
+            files.append({
+                "product_pkey": pk,
+                "product_name": product.get("name") or "",
+                "path": path,
+                "download_name": name
+            })
+        # end for
+        return files
+    # end def
+
+    def delete_product_assets(self, stored, exclude_pkey=""):
+        stored = os.path.basename(str(stored or "").strip())
+        if stored == "":
+            return False
+        # end if
+        in_use = self.mgdDB.db_product.find_one(
+            {"is_deleted": False, "pkey": {"$ne": exclude_pkey}, "assets_zip": stored},
+            {"_id": 0, "pkey": 1}
+        )
+        if in_use != None:
+            return False
+        # end if
+        full = self.product_assets_path(stored)
+        if full == None:
+            return False
+        # end if
+        try:
+            os.remove(full)
+            return True
+        except OSError:
+            return False
+        # end try
     # end def
 
     def release_product_stock(self, pkey, stock_num):
@@ -4048,7 +4360,8 @@ class admin_proc:
         # end if
         login = self.get_participant_login(part)
         user = login.get("user")
-        hashed = generate_password_hash(password)
+        # Werkzeug 3 defaults to scrypt, which Werkzeug 2.x (production Python 3.8) cannot verify.
+        hashed = generate_password_hash(password, method="pbkdf2:sha256")
         if user == None:
             email = (part.get("email") or "").lower()
             if email == "":

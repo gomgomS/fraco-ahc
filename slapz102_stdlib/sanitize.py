@@ -5,9 +5,10 @@ from urllib.parse import urlparse
 RICH_TAGS = [
     "p", "br", "h1", "h2", "h3", "h4", "h5", "h6",
     "strong", "b", "em", "i", "u", "span",
-    "ul", "ol", "li", "blockquote", "a", "img"
+    "ul", "ol", "li", "blockquote", "a", "img",
+    "figure", "figcaption", "hr", "pre", "code"
 ]
-RICH_VOID_TAGS = ["br", "img"]
+RICH_VOID_TAGS = ["br", "img", "hr"]
 
 def _safe_rich_url(value, image=False):
     clean = (value or "").strip()

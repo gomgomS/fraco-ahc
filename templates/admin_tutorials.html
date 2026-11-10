@@ -1,0 +1,88 @@
+{% extends 'admin_base.html' %}
+{% block title %}Tutorials | Admin{% endblock %}
+{% block content %}
+<style>
+.tut { max-width: 760px; color: #242424; font-family: var(--font-display); }
+.tut-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 28px; }
+.tut-head h1 { margin: 0; font-size: 34px; font-weight: 800; letter-spacing: -0.02em; }
+.tut-btn {
+    display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 999px;
+    background: #1a8917; color: #fff; font-size: 14px; font-weight: 600; border: 1px solid #1a8917; cursor: pointer;
+}
+.tut-btn:hover { background: #156d12; border-color: #156d12; }
+.tut-tabs { display: flex; gap: 28px; border-bottom: 1px solid #f2f2f2; margin-bottom: 8px; }
+.tut-tab { padding: 0 0 14px; margin-bottom: -1px; border-bottom: 1px solid transparent; font-size: 14px; color: #6b6b6b; }
+.tut-tab:hover { color: #242424; }
+.tut-tab.is-active { color: #242424; border-bottom-color: #242424; }
+.tut-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 20px; padding: 24px 0; border-bottom: 1px solid #f2f2f2; }
+.tut-item h2 { margin: 0; font-size: 20px; font-weight: 700; line-height: 1.3; letter-spacing: -0.01em; }
+.tut-item h2 a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.tut-excerpt { margin: 6px 0 0; font-family: Charter, "Bitstream Charter", "Sitka Text", Cambria, Georgia, serif; font-size: 16px; line-height: 1.5; color: #6b6b6b; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.tut-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin-top: 12px; font-size: 13px; color: #6b6b6b; }
+.tut-meta a, .tut-meta button { color: #6b6b6b; font-size: 13px; background: none; border: 0; padding: 0; cursor: pointer; }
+.tut-meta a:hover { color: #242424; }
+.tut-meta button:hover { color: #c94a4a; }
+.tut-meta form { display: inline; }
+.tut-dot { color: #c4c4c4; }
+.tut-thumb { width: 112px; height: 112px; object-fit: cover; border-radius: 4px; background: #f2f2f2; }
+.tut-empty { padding: 56px 0; text-align: center; color: #6b6b6b; }
+.tut-empty p { margin: 0 0 18px; font-size: 16px; }
+@media (max-width: 640px) {
+    .tut-head h1 { font-size: 28px; }
+    .tut-thumb { width: 72px; height: 72px; }
+}
+</style>
+
+<div class="tut">
+    <div class="tut-head">
+        <h1>Tutorials</h1>
+        {% if data.can_write %}<a class="tut-btn" href="/admin/tutorials/new">Write a tutorial</a>{% endif %}
+    </div>
+
+    <nav class="tut-tabs" aria-label="Tutorial status">
+        <a class="tut-tab{% if data.tab == 'drafts' %} is-active{% endif %}" href="/admin/tutorials?tab=drafts">Drafts {{ data.counts.DRAFT }}</a>
+        <a class="tut-tab{% if data.tab == 'published' %} is-active{% endif %}" href="/admin/tutorials?tab=published">Published {{ data.counts.PUBLISHED }}</a>
+    </nav>
+
+    {% for t in data.tutorials %}
+    <article class="tut-item">
+        <div>
+            <h2><a href="/admin/tutorials/{{ t.pkey }}">{{ t.title or 'Untitled' }}</a></h2>
+            {% if t.excerpt %}<p class="tut-excerpt">{{ t.excerpt }}</p>{% endif %}
+            <div class="tut-meta">
+                {% if data.tab == 'published' and t.published_ago %}
+                <span>Published {{ t.published_ago }}</span>
+                {% else %}
+                <span>Edited {{ t.edited_ago }}</span>
+                {% endif %}
+                <span class="tut-dot">·</span>
+                <span>{{ t.read_minutes or 1 }} min read</span>
+                {% if t.author_name %}<span class="tut-dot">·</span><span>{{ t.author_name }}</span>{% endif %}
+                {% if data.can_write %}
+                <span class="tut-dot">·</span>
+                <a href="/admin/tutorials/{{ t.pkey }}">Edit</a>
+                {% endif %}
+                {% if data.can_delete %}
+                <form method="post" onsubmit='return confirm({{ ("Delete “" ~ (t.title or "Untitled") ~ "”? This cannot be undone.")|tojson }});'>
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="pkey" value="{{ t.pkey }}">
+                    <input type="hidden" name="tab" value="{{ data.tab }}">
+                    <button type="submit">Delete</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        {% if t.cover_image %}<a href="/admin/tutorials/{{ t.pkey }}"><img class="tut-thumb" src="{{ t.cover_image }}" alt=""></a>{% endif %}
+    </article>
+    {% else %}
+    <div class="tut-empty">
+        {% if data.tab == 'published' %}
+        <p>No published tutorials yet.</p>
+        {% else %}
+        <p>No drafts yet.</p>
+        {% endif %}
+        {% if data.can_write %}<a class="tut-btn" href="/admin/tutorials/new">Write a tutorial</a>{% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

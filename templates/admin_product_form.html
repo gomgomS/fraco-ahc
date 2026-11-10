@@ -143,6 +143,24 @@
         </div>
     </div>
     {% endif %}
+    <div class="pay-box" style="padding: 16px;">
+        <label class="field-label" for="assets_file" style="margin: 0;">Assets zip (admin only)</label>
+        <p class="product-meta" style="margin-top: 8px;">Design files, mockups, or print-ready artwork for this product. Stored privately — customers never see it. One .zip per product, max 200 MB; uploading a new one replaces the old one.</p>
+        {% if data.row.assets_zip %}
+        <p class="prose-fraco" style="margin-top: 12px;">
+            Current: <a class="section-link" href="/admin/products/{{ data.row.pkey }}/assets">{{ data.row.assets_zip_name or 'assets.zip' }}</a>
+            {% if data.row.assets_zip_size_label %}<span class="product-meta">· {{ data.row.assets_zip_size_label }}</span>{% endif %}
+        </p>
+        {% if data.can_write %}
+        <label class="field-label" style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+            <input type="checkbox" name="remove_assets" value="1"> Remove current assets zip
+        </label>
+        {% endif %}
+        {% endif %}
+        {% if data.can_write %}
+        <input class="field" type="file" name="assets_file" id="assets_file" accept=".zip,application/zip" style="margin-top: 12px;">
+        {% endif %}
+    </div>
     <div>
         <label class="field-label" for="status">Status</label>
         <select class="field" name="status" id="status">
@@ -163,6 +181,15 @@
     <p class="product-meta" style="margin-top: 8px;">Raises stock and advances orders still in <strong>Preorder</strong> for this product to <strong>Ready</strong>, so members can pack / ship.</p>
     <div style="margin-top: 14px;"><label class="field-label" for="arrived_stock">New stock quantity</label><input class="field" name="arrived_stock" id="arrived_stock" type="number" min="1" value="{{ data.row.stock if data.row.stock and data.row.stock > 0 else 1 }}" required></div>
     <button class="btn-line" type="submit" style="margin-top: 12px;">Stock arrived — update &amp; release preorders</button>
+</form>
+{% endif %}
+
+{% if data.row.pkey and data.can_write %}
+<form method="post" style="margin-top: 28px; padding-top: 24px; border-top: 1px solid #ddd;" onsubmit="return confirm('Duplicate this product as a new Draft? Unsaved changes on this page are not copied.');">
+    <input type="hidden" name="action" value="duplicate">
+    <p class="field-label" style="margin: 0;">Duplicate product</p>
+    <p class="product-meta" style="margin-top: 8px;">Creates a Draft copy with the same details, sizes, and images. Stock, reserved, and sold start at 0.</p>
+    <button class="btn-line" type="submit" style="margin-top: 12px;">Duplicate product</button>
 </form>
 {% endif %}
 

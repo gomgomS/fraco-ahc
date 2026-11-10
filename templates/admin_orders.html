@@ -1,208 +1,268 @@
 {% extends 'admin_base.html' %}
+{% import 'admin_orders_macros.html' as aom %}
 {% block title %}Orders | Admin{% endblock %}
 {% block content %}
+{% include 'admin_orders_ui.html' %}
 <style>
-.admin-orders-page .admin-orders-list-table { table-layout: fixed; min-width: 1120px; }
-.admin-orders-page .admin-orders-list-table .col-select { width: 52px; }
-.admin-orders-page .admin-orders-list-table .col-order-id { width: 118px; }
-.admin-orders-page .admin-orders-list-table .col-customer { width: 120px; }
-.admin-orders-page .admin-orders-list-table .col-referral { width: 140px; }
-.admin-orders-page .admin-orders-list-table .col-date { width: 108px; }
-.admin-orders-page .admin-orders-list-table .col-buyer-total { width: 96px; }
-.admin-orders-page .admin-orders-list-table .col-total-cuts {
-    width: 172px;
-    min-width: 172px;
-    max-width: 172px;
+/* Status tabs */
+.ao-tabs { display: flex; gap: 4px; overflow-x: auto; padding: 4px; margin-bottom: 14px; background: #ececef; border-radius: 12px; scrollbar-width: thin; }
+.ao-tab {
+    flex: 0 0 auto; display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 14px; border-radius: 9px; font-size: 14px; font-weight: 600; color: var(--ao-muted);
 }
-.admin-orders-page .admin-orders-list-table .col-seller-net {
-    width: 108px;
-    min-width: 108px;
-    white-space: nowrap;
+.ao-tab:hover { color: var(--ao-text); background: rgba(255, 255, 255, .6); }
+.ao-tab.is-active { background: #fff; color: var(--ao-text); box-shadow: 0 1px 2px rgba(0, 0, 0, .08); }
+.ao-tab-count { min-width: 22px; padding: 0 7px; border-radius: 999px; background: rgba(0, 0, 0, .06); font-size: 12px; text-align: center; font-variant-numeric: tabular-nums; }
+.ao-tab.is-active .ao-tab-count { background: #18181b; color: #fff; }
+.ao-tab.is-empty { opacity: .55; }
+
+/* Toolbar */
+.ao-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 16px; }
+.ao-search { position: relative; flex: 1 1 280px; }
+.ao-search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--ao-faint); pointer-events: none; }
+.ao-search .ao-input { padding-left: 38px; }
+.ao-toolbar .ao-select { flex: 0 1 190px; width: auto; }
+
+/* Table */
+.ao-table-card { background: #fff; border: 1px solid var(--ao-line); border-radius: var(--ao-radius); overflow: hidden; }
+.ao-table { width: 100%; border-collapse: collapse; }
+.ao-table th {
+    text-align: left; padding: 12px 16px; background: #fafafa; border-bottom: 1px solid var(--ao-line);
+    font-size: 13px; font-weight: 600; color: var(--ao-muted); white-space: nowrap;
 }
-.admin-orders-page .admin-orders-list-table .col-payment {
-    width: 220px;
-    min-width: 220px;
-    max-width: 220px;
+.ao-table td { padding: 14px 16px; border-bottom: 1px solid #f0f0f2; vertical-align: middle; font-size: 14px; }
+.ao-table tbody tr:last-child td { border-bottom: 0; }
+.ao-row[data-href] { cursor: pointer; transition: background .12s; }
+.ao-row[data-href]:hover { background: #fafafb; }
+.ao-right { text-align: right !important; }
+.ao-id { font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; }
+.ao-row:hover .ao-id { text-decoration: underline; text-underline-offset: 3px; }
+.ao-strong { font-weight: 600; }
+.ao-c-order, .ao-c-total { white-space: nowrap; }
+.ao-c-items { min-width: 150px; }
+.ao-pay-cell { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ao-open { color: var(--ao-faint); font-size: 18px; line-height: 1; }
+.ao-row:hover .ao-open { color: var(--ao-text); }
+.ao-col-check { width: 44px; }
+.ao-check { width: 18px; height: 18px; accent-color: #18181b; cursor: pointer; }
+.ao-empty { padding: 48px 20px; text-align: center; color: var(--ao-muted); }
+.ao-empty strong { display: block; color: var(--ao-text); font-size: 16px; margin-bottom: 4px; }
+
+/* Officer print bar */
+.ao-printbar {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; padding: 12px 16px; margin-bottom: 16px;
+    background: #fff; border: 1px solid var(--ao-line); border-radius: var(--ao-radius);
 }
-.admin-orders-page .admin-orders-list-table .col-shipping { width: 108px; }
-.admin-orders-page .admin-orders-list-table .col-order-status { width: 100px; }
-.admin-orders-page .admin-orders-list-table .col-actions { width: 88px; }
-.admin-orders-page .admin-orders-list-table td.col-total-cuts.admin-cell-wrap {
-    max-width: 172px;
-    font-size: 13px;
-    line-height: 1.45;
-}
-.admin-orders-page .admin-econ-cell strong {
-    display: block;
-    font-size: 13px;
-}
-.admin-orders-page .admin-econ-cell .product-meta {
-    font-size: 11px;
-    line-height: 1.35;
-}
-.admin-orders-page .admin-orders-list-table td.col-payment .admin-inline-form {
-    align-items: flex-start;
-}
-.admin-orders-page .admin-orders-list-table td.col-payment .field {
-    min-width: 0;
-    width: 100%;
-}
+.ao-printbar label { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.ao-printbar .ao-btn { margin-left: auto; }
+
+.ao .admin-pager { margin-top: 16px; }
+.ao .admin-pager a, .ao .admin-pager span { border-radius: 8px; background: #fff; }
+.ao .admin-pager span.current { background: #18181b; }
+.ao .admin-pager .admin-pager-summary { background: transparent; color: var(--ao-muted); font-size: 14px; }
+
 @media (max-width: 899px) {
-    html, body {
-        max-width: 100%;
-        overflow-x: hidden;
-    }
-    .admin-shell {
-        grid-template-columns: minmax(0, 1fr);
-        width: 100%;
-        min-width: 0;
-        overflow-x: hidden;
-    }
-    .admin-side {
-        box-sizing: border-box;
-        width: 100%;
-        min-width: 0;
-        padding: 16px;
-        border-right: 0;
-        border-bottom: 1px solid #ddd;
-        overflow: hidden;
-    }
+    html, body { max-width: 100%; overflow-x: hidden; }
+    .admin-shell { grid-template-columns: minmax(0, 1fr); width: 100%; min-width: 0; overflow-x: hidden; }
+    .admin-side { box-sizing: border-box; width: 100%; min-width: 0; padding: 16px; border-right: 0; border-bottom: 1px solid #ddd; overflow: hidden; background: #fff; }
     .admin-side .logo { font-size: 24px; }
     .admin-side > .product-meta { margin: 4px 0 10px; }
-    .admin-side .dash-nav {
-        display: flex;
-        gap: 8px;
-        margin: 0 -16px;
-        padding: 0 16px 8px;
-        overflow-x: auto;
-        scrollbar-width: thin;
+    .admin-side .dash-nav { display: flex; gap: 8px; margin: 0 -16px; padding: 0 16px 8px; overflow-x: auto; scrollbar-width: thin; }
+    .admin-side .dash-nav a { flex: 0 0 auto; width: auto; padding: 9px 12px; border: 1px solid #ddd; white-space: nowrap; }
+    .admin-side .dash-nav a.active { border-color: #111; background: #111; color: #fff; }
+    .admin-side > p:last-child { display: flex; gap: 16px; margin: 8px 0 0 !important; }
+    .admin-main { box-sizing: border-box; width: 100%; min-width: 0; padding: 20px 14px 48px; }
+
+    .ao-title { font-size: 26px; }
+    .ao-toolbar .ao-select { flex: 1 1 140px; }
+    .ao-table-card { background: transparent; border: 0; border-radius: 0; overflow: visible; }
+    .ao-table, .ao-table tbody, .ao-table tr, .ao-table td { display: block; width: 100%; }
+    .ao-table thead { display: none; }
+    .ao-table tr.ao-row {
+        display: grid; grid-template-columns: 1fr auto; gap: 6px 12px;
+        margin-bottom: 12px; padding: 14px 16px; background: #fff; border: 1px solid var(--ao-line); border-radius: var(--ao-radius);
     }
-    .admin-side .dash-nav a {
-        flex: 0 0 auto;
-        width: auto;
-        padding: 9px 12px;
-        border: 1px solid #ddd;
-        white-space: nowrap;
-    }
-    .admin-side .dash-nav a.active {
-        border-color: #111;
-        background: #111;
-        color: #fff;
-    }
-    .admin-side > p:last-child {
-        display: flex;
-        gap: 16px;
-        margin: 8px 0 0 !important;
-    }
-    .admin-main {
-        box-sizing: border-box;
-        width: 100%;
-        min-width: 0;
-        padding: 22px 14px 48px;
-    }
-    .admin-orders-page {
-        width: 100%;
-        min-width: 0;
-    }
-    .admin-orders-page .section-title { font-size: 30px; }
-    .admin-orders-intro { display: none; }
-    .admin-orders-page .form-stack { max-width: none !important; }
-    .admin-orders-page .hero-actions {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
-        width: 100%;
-    }
-    .admin-orders-page .hero-actions .field { min-width: 0; }
-    .admin-orders-page .filter-row {
-        flex-wrap: nowrap;
-        margin: 0 -14px 14px;
-        padding: 0 14px 5px;
-        overflow-x: auto;
-        scrollbar-width: thin;
-    }
-    .admin-orders-page .filter-chip { flex: 0 0 auto; }
-    .admin-orders-page .orders-print-actions {
-        flex-wrap: wrap;
-        margin: 0 0 16px;
-        padding: 12px;
-        border: 1px solid #ddd;
-        overflow: visible;
-    }
-    .admin-orders-page .orders-print-actions .btn-black {
-        width: 100%;
-        padding: 11px 14px;
-    }
-    .admin-orders-page .admin-orders-list-table { table-layout: auto; min-width: 0; }
-    .admin-orders-page .admin-table-wrap {
-        overflow: visible;
-        border: 0;
-    }
-    .admin-orders-page .admin-table,
-    .admin-orders-page .admin-table tbody,
-    .admin-orders-page .admin-table tr,
-    .admin-orders-page .admin-table td {
-        display: block;
-        width: 100%;
-    }
-    .admin-orders-page .admin-table thead { display: none; }
-    .admin-orders-page .admin-table tr {
-        box-sizing: border-box;
-        margin-bottom: 14px;
-        border: 1px solid #ccc;
-        background: #fff;
-    }
-    .admin-orders-page .admin-table td {
-        box-sizing: border-box;
-        display: grid;
-        grid-template-columns: minmax(92px, 35%) minmax(0, 1fr);
-        gap: 12px;
-        align-items: center;
-        padding: 10px 12px;
-        border: 0;
-        border-bottom: 1px solid #eee;
-        overflow-wrap: anywhere;
-    }
-    .admin-orders-page .admin-table td:last-child { border-bottom: 0; }
-    .admin-orders-page .admin-table td::before {
-        content: attr(data-label);
-        color: #666;
-        font-family: "IBM Plex Mono", monospace;
-        font-size: 10px;
-        letter-spacing: .06em;
-        text-transform: uppercase;
-    }
-    .admin-orders-page .admin-inline-form {
-        min-width: 0;
-        flex-wrap: wrap;
-    }
-    .admin-orders-page .admin-inline-form .field {
-        flex: 1 1 100px;
-        min-width: 0;
-    }
-    .admin-orders-page .admin-inline-form .btn-line {
-        padding: 8px 12px;
-    }
-    .admin-orders-page .js-officer-order-select {
-        width: 22px;
-        height: 22px;
-    }
-    .admin-orders-page .admin-pager { justify-content: center; }
+    .ao-table td { padding: 0; border: 0; }
+    .ao-table td.ao-c-order { grid-column: 1; }
+    .ao-table td.ao-c-total { grid-column: 2; grid-row: 1; text-align: right; }
+    .ao-table td.ao-c-customer, .ao-table td.ao-c-items { grid-column: 1 / -1; }
+    .ao-table td.ao-c-badges { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; padding-top: 6px; }
+    .ao-table td.ao-c-open { display: none; }
+    .ao-table td.ao-c-check { grid-column: 2; grid-row: 2; text-align: right; }
+    .ao-table td[data-label]::before { content: none; }
+    .ao-printbar .ao-btn { margin-left: 0; width: 100%; }
+}
+@media (min-width: 900px) {
+    .ao-table td.ao-c-badges { display: none; }
+}
+@media (max-width: 899px) {
+    .ao-table td.ao-c-ship, .ao-table td.ao-c-status { display: none; }
+    .ao-table td.ao-c-pay { grid-column: 1 / -1; order: 10; }
+    .ao-table td.ao-c-pay .ao-badge { display: none; }
+    .ao-table td.ao-c-pay .ao-btn { width: 100%; min-height: 40px; }
+    .ao-table td.ao-c-pay form { flex: 1; }
+    .ao-table td.ao-c-assets { grid-column: 1 / -1; order: 11; }
+    .ao-table td.ao-c-assets .ao-btn { width: 100%; min-height: 40px; }
+    .ao-table td.ao-c-assets .ao-assets-none { display: none; }
 }
 </style>
-<div class="admin-orders-page">
-<h1 class="section-title" style="margin-bottom: 12px;">Orders</h1>
-<p class="product-meta admin-orders-intro" style="margin: 0 0 20px; max-width: 60ch;">Orders: manage shop checkouts — customer, referral in charge, payment, and fulfillment status. Use this after someone places a merchandise order.</p>
-{% if data.show_officer_print %}
-<div class="filter-row orders-print-actions" style="margin-bottom:20px; align-items:center;">
-    <label class="product-meta" style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-        <input id="officer-select-all" type="checkbox">
-        Pilih semua
-    </label>
-    <button class="btn-black" id="officer-print-selected" type="button" data-print-href="{{ data.officer_print_href }}" disabled>Cetak pilihan — 4 per A4</button>
-    <span class="product-meta" id="officer-selected-count">0 dipilih</span>
+
+{% set table = data.list_table %}
+{% set counts = table.status_counts or {} %}
+<div class="ao">
+    <header class="ao-head">
+        <div>
+            <h1 class="ao-title">Orders</h1>
+            <p class="ao-sub">Every merchandise checkout. Click an order to update its status, confirm payment, or arrange shipping.</p>
+        </div>
+    </header>
+
+    {% if counts.__pay_pending__ and table.search_pay != 'Pending' %}
+    <div class="ao-alert ao-alert-warn" role="status">
+        <span aria-hidden="true">●</span>
+        <span><strong>{{ counts.__pay_pending__ }} order{% if counts.__pay_pending__ != 1 %}s are{% else %} is{% endif %} waiting for payment.</strong> Check the transfer, then mark it as paid. <a href="/admin/orders?pay=Pending">Show {% if counts.__pay_pending__ != 1 %}them{% else %}it{% endif %}</a></span>
+    </div>
+    {% endif %}
+
+    <nav class="ao-tabs" aria-label="Filter by order status">
+        {% for item in table.filters %}
+        <a class="ao-tab{% if item.active %} is-active{% endif %}{% if not item.count and not item.active %} is-empty{% endif %}" href="{{ item.href }}"{% if item.active %} aria-current="page"{% endif %}>
+            {{ 'All orders' if item.label == 'All' else item.label }}
+            <span class="ao-tab-count">{{ item.count or 0 }}</span>
+        </a>
+        {% endfor %}
+    </nav>
+
+    <form class="ao-toolbar" method="get" action="/admin/orders" role="search">
+        {% if table.search_status %}<input type="hidden" name="status" value="{{ table.search_status }}">{% endif %}
+        <div class="ao-search">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+            <input class="ao-input" type="search" name="q" value="{{ table.search_q or '' }}" placeholder="Search order ID or customer name" aria-label="Search order ID or customer name">
+        </div>
+        <select class="ao-select js-ao-autosubmit" name="pay" aria-label="Payment">
+            <option value="">Any payment</option>
+            <option value="Pending"{% if table.search_pay == 'Pending' %} selected{% endif %}>Not paid yet</option>
+            <option value="Paid"{% if table.search_pay == 'Paid' %} selected{% endif %}>Paid</option>
+        </select>
+        <select class="ao-select js-ao-autosubmit" name="shipping" aria-label="Shipping">
+            <option value="">Any shipping</option>
+            <option value="OFFICER"{% if table.search_shipping == 'OFFICER' %} selected{% endif %}>Officer ships it</option>
+            <option value="SELF"{% if table.search_shipping == 'SELF' %} selected{% endif %}>Self-arranged</option>
+            <option value="NOT_SELECTED"{% if table.search_shipping == 'NOT_SELECTED' %} selected{% endif %}>Not chosen yet</option>
+        </select>
+        <button class="ao-btn" type="submit">Search</button>
+        {% if table.active_filter_count %}
+        <a class="ao-btn" href="/admin/orders{% if table.search_status %}?status={{ table.search_status|urlencode }}{% endif %}">Clear filters</a>
+        {% endif %}
+    </form>
+
+    {% if data.show_officer_print %}
+    <div class="ao-printbar">
+        <label><input class="ao-check" id="officer-select-all" type="checkbox"> Select all on this page</label>
+        <span class="ao-muted" id="officer-selected-count">0 selected</span>
+        <button class="ao-btn ao-btn-primary" id="officer-print-selected" type="button" data-print-href="{{ data.officer_print_href }}" disabled>Print shipping labels (4 per A4)</button>
+    </div>
+    {% endif %}
+
+    <div class="ao-table-card">
+        <table class="ao-table">
+            <thead>
+                <tr>
+                    {% if data.show_officer_print %}<th class="ao-col-check"><span class="sr-only">Select</span></th>{% endif %}
+                    <th>Order</th>
+                    <th>Customer</th>
+                    <th>Items</th>
+                    <th class="ao-right">Total</th>
+                    <th>Payment</th>
+                    <th>Shipping</th>
+                    <th>Status</th>
+                    <th>Assets</th>
+                    <th><span class="sr-only">Open</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for o in table.orders %}
+                <tr class="ao-row" data-href="{{ o.href }}">
+                    {% if data.show_officer_print %}
+                    <td class="ao-c-check"><input class="ao-check js-officer-order-select" type="checkbox" value="{{ o.pkey }}" aria-label="Select order {{ o.order_id }} for printing"></td>
+                    {% endif %}
+                    <td class="ao-c-order">
+                        <a class="ao-id" href="{{ o.href }}">{{ o.order_id }}</a>
+                        <div class="ao-muted">{{ o.date }}{% if o.time %} · {{ o.time }}{% endif %}</div>
+                    </td>
+                    <td class="ao-c-customer">
+                        <div class="ao-strong">{{ o.customer }}</div>
+                        {% if o.referrer and o.referrer != '—' %}<div class="ao-muted">Referral: {{ o.referrer }}</div>{% endif %}
+                    </td>
+                    <td class="ao-c-items">
+                        <div>{{ o.items_summary or '—' }}</div>
+                        {% if o.qty_total %}<div class="ao-muted">{{ o.qty_total }} pc{% if o.qty_total != 1 %}s{% endif %}</div>{% endif %}
+                    </td>
+                    <td class="ao-c-total ao-right">
+                        <div class="ao-strong num">{{ o.total }}</div>
+                        <div class="ao-muted num" title="Seller net after {{ o.cuts_hint }}">Net {{ o.net_seller }}</div>
+                    </td>
+                    <td class="ao-c-pay">
+                        <div class="ao-pay-cell">
+                            {{ aom.pay_badge(o.payment_status) }}
+                            {% if data.can_write and o.payment_status != 'Paid' %}
+                            <form method="post" action="/admin/orders" onsubmit="return confirm('Mark order {{ o.order_id }} as paid? Only do this after you have checked the transfer.');">
+                                <input type="hidden" name="action" value="order_pay">
+                                <input type="hidden" name="pkey" value="{{ o.pkey }}">
+                                <input type="hidden" name="payment_status" value="Paid">
+                                <input type="hidden" name="next" value="{{ request.full_path }}">
+                                <button class="ao-btn ao-btn-sm ao-btn-success" type="submit">Mark paid</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="ao-c-ship">{{ aom.ship_badge(o.shipping_handler, o.shipping_label) }}</td>
+                    <td class="ao-c-status">{{ aom.status_badge(o.order_status) }}</td>
+                    <td class="ao-c-assets">
+                        {% if o.assets_count %}
+                        <a class="ao-btn ao-btn-sm" href="{{ o.href }}/assets" download title="Download the product asset zip{% if o.assets_count > 1 %}s ({{ o.assets_count }} products, bundled){% endif %}">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"></path><path d="M7 10l5 5 5-5"></path><path d="M5 21h14"></path></svg>
+                            Download{% if o.assets_count > 1 %} ({{ o.assets_count }}){% endif %}
+                        </a>
+                        {% else %}
+                        <span class="ao-muted ao-assets-none">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="ao-c-badges">
+                        {{ aom.status_badge(o.order_status) }}
+                        {{ aom.pay_badge(o.payment_status) }}
+                        {{ aom.ship_badge(o.shipping_handler, o.shipping_label) }}
+                    </td>
+                    <td class="ao-c-open ao-right"><span class="ao-open" aria-hidden="true">›</span></td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="10" class="ao-empty">
+                        <strong>No orders here</strong>
+                        {{ table.empty }}{% if table.active_filter_count or table.search_status %} Try another status tab or <a class="ao-link" href="/admin/orders">clear all filters</a>.{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include 'admin_pager.html' %}
 </div>
-{% endif %}
-{% with table=data.list_table %}{% include 'admin_table.html' %}{% endwith %}
+
+<script>
+(function () {
+    Array.prototype.forEach.call(document.querySelectorAll(".js-ao-autosubmit"), function (select) {
+        select.addEventListener("change", function () { select.form.submit(); });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll(".ao-row[data-href]"), function (row) {
+        row.addEventListener("click", function (event) {
+            if (event.target.closest("a, button, input, select, label, form")) return;
+            if (window.getSelection && String(window.getSelection())) return;
+            window.location.href = row.getAttribute("data-href");
+        });
+    });
+})();
+</script>
 {% if data.show_officer_print %}
 <script>
 (function () {
@@ -218,7 +278,7 @@
 
     function syncSelection() {
         var chosen = selected();
-        countLabel.textContent = chosen.length + " dipilih";
+        countLabel.textContent = chosen.length + " selected";
         printButton.disabled = chosen.length === 0;
         selectAll.checked = checkboxes.length > 0 && chosen.length === checkboxes.length;
         selectAll.indeterminate = chosen.length > 0 && chosen.length < checkboxes.length;
@@ -244,5 +304,4 @@
 })();
 </script>
 {% endif %}
-</div>
 {% endblock %}

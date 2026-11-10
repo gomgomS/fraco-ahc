@@ -60,6 +60,10 @@ class dashboard_proc:
             "orders_title": "My Merchandise Orders",
             "orders_intro": "Referral checkouts you fulfill with your code. Update location and status as you pack.",
             "referral_code": "Referral code",
+            "copy_code": "Copy",
+            "copied": "Copied",
+            "after_shipping_costs": "After shipping costs",
+            "open_order": "Open",
             "shared_target": "Shared member target",
             "raised_total": "Raised total",
             "left_to_target": "Left to target",
@@ -265,6 +269,10 @@ class dashboard_proc:
             "orders_title": "Pesanan Merch",
             "orders_intro": "Ini daftar orang yang checkout pakai kode kamu. Update lokasi & status pas lagi packing ya.",
             "referral_code": "Kode referral",
+            "copy_code": "Salin",
+            "copied": "Tersalin",
+            "after_shipping_costs": "Setelah potongan pengiriman",
+            "open_order": "Buka",
             "shared_target": "Target bareng kelas",
             "raised_total": "Sudah terkumpul",
             "left_to_target": "Masih kurang",
@@ -534,7 +542,13 @@ class dashboard_proc:
                 response["desc"] = "This is a staff account. Use the admin login."
                 return response
             # end if
-            if check_password_hash(user.get("password") or "", raw_password):
+            try:
+                password_ok = check_password_hash(user.get("password") or "", raw_password)
+            except ValueError:
+                response["desc"] = "Your password was saved in a format this server cannot read. Ask an admin to reset it on your participant page."
+                return response
+            # end try
+            if password_ok:
                 self.login_user(user.get("pkey", ""))
                 response["status"] = "SUCCESS"
                 return response
@@ -562,7 +576,7 @@ class dashboard_proc:
         rec = database.new(self.mgdDB, "db_user")
         rec.put("fk_user_id", "")
         rec.put("username", email)
-        rec.put("password", generate_password_hash(raw_password))
+        rec.put("password", generate_password_hash(raw_password, method="pbkdf2:sha256"))
         rec.put("role", "PARTICIPANT")
         rec.put("name", part.get("full_name") or "")
         rec.put("phone", phone)

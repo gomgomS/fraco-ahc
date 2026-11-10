@@ -129,6 +129,9 @@ db = {
         "discount_enabled": False,
         "reserved": 0,
         "sold": 0,
+        "assets_zip": "",
+        "assets_zip_name": "",
+        "assets_zip_size": 0,
         "status": "ACTIVE"
     },
 
@@ -160,6 +163,20 @@ db = {
         "author": "",
         "fk_program_slug": "",
         "status": "PUBLISHED"
+    },
+
+    "db_tutorial": {
+        "title": "",
+        "slug": "",
+        "content": "",
+        "excerpt": "",
+        "cover_image": "",
+        "read_minutes": 1,
+        "author_name": "",
+        "fk_author_id": "",
+        "updated_str": "",
+        "published_str": "",
+        "status": "DRAFT"
     },
 
     "db_gallery": {

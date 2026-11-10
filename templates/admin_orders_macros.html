@@ -1,0 +1,37 @@
+{% macro status_badge(status) -%}
+{%- set tones = {
+    'Pending Payment': 'amber', 'Preorder': 'violet', 'Paid': 'blue', 'Ready': 'teal',
+    'Processing': 'indigo', 'Shipped': 'sky', 'Completed': 'green', 'Cancelled': 'red'
+} -%}
+<span class="ao-badge" data-tone="{{ tones.get(status, '') }}">{{ status or '—' }}</span>
+{%- endmacro %}
+
+{% macro pay_badge(status) -%}
+{%- set label = status or 'Pending' -%}
+<span class="ao-badge" data-tone="{{ 'green' if label == 'Paid' else 'amber' }}">{{ 'Paid' if label == 'Paid' else 'Not paid yet' }}</span>
+{%- endmacro %}
+
+{% macro status_badge_label(status, label) -%}
+{%- set tones = {
+    'Pending Payment': 'amber', 'Pending': 'amber', 'Preorder': 'violet', 'Paid': 'blue', 'Ready': 'teal',
+    'Processing': 'indigo', 'Shipped': 'sky', 'Completed': 'green', 'Cancelled': 'red',
+    'Failed': 'red', 'Refunded': 'red'
+} -%}
+<span class="ao-badge" data-tone="{{ tones.get(status, '') }}">{{ label or status or '—' }}</span>
+{%- endmacro %}
+
+{% macro pay_badge_label(status, label) -%}
+<span class="ao-badge" data-tone="{{ 'green' if status == 'Paid' else ('red' if status in ['Failed', 'Refunded', 'Cancelled'] else 'amber') }}">{{ label or status or '—' }}</span>
+{%- endmacro %}
+
+{% macro ship_status_badge(request_status, label) -%}
+{%- set tones = {
+    'REQUESTED': 'amber', 'PROCESSING': 'indigo', 'SHIPPED': 'sky', 'COMPLETED': 'green', 'SELF_ARRANGED': ''
+} -%}
+<span class="ao-badge" data-tone="{{ tones.get((request_status or '')|upper, 'ghost') }}">{{ label }}</span>
+{%- endmacro %}
+
+{% macro ship_badge(handler, label) -%}
+{%- set tones = {'OFFICER': 'dark', 'SELF': '', 'NOT_SELECTED': 'ghost'} -%}
+<span class="ao-badge" data-tone="{{ tones.get(handler, 'ghost') }}">{{ label }}</span>
+{%- endmacro %}

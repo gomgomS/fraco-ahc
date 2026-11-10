@@ -530,7 +530,7 @@ class ahc_site_seed:
         rec = database.new(self.mgdDB, "db_user")
         rec.put("fk_user_id", "")
         rec.put("username", email)
-        rec.put("password", generate_password_hash(password))
+        rec.put("password", generate_password_hash(password, method="pbkdf2:sha256"))
         rec.put("role", role)
         rec.put("name", name)
         rec.put("phone", "")

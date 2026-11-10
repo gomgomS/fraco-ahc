@@ -78,11 +78,7 @@
                 {% endif %}
             </a>
             {% if item.can_buy %}
-            <form method="post" action="/cart/add" style="margin-top: 12px;">
-                <input type="hidden" name="slug" value="{{ item.slug }}">
-                {% if item.sizes %}<input type="hidden" name="size" value="{{ item.sizes[0] }}">{% endif %}
-                <button class="btn-line" type="submit">{% if item.is_preorder %}Preorder{% else %}Add to Cart{% endif %}</button>
-            </form>
+            <a class="btn-line" href="/merchandise/{{ item.slug }}" style="margin-top: 12px; align-self: flex-start;">{% if item.is_preorder %}Preorder{% else %}Add to Cart{% endif %}</a>
             {% else %}
             <p class="product-meta" style="margin-top: 12px;">See product</p>
             {% endif %}

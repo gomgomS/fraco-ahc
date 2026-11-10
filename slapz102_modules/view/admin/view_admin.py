@@ -5,9 +5,13 @@ sys.path.append("slapz102_settings")
 sys.path.append("slapz102_stdlib")
 sys.path.append("slapz102_storage")
 
-from flask import render_template, request, redirect, Response
+from flask import render_template, request, redirect, Response, send_file, jsonify
 from io import BytesIO
+import html as html_lib
+import inspect
 import re
+import tempfile
+import zipfile
 from urllib.parse import quote
 from xml.sax.saxutils import escape
 from reportlab.lib import colors
@@ -16,8 +20,10 @@ from reportlab.lib.pagesizes import A5
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import mm
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+import idgen
 import sanitize
 from admin.admin_proc import admin_proc
+from tutorial.tutorial_proc import tutorial_proc
 
 def _safe_next():
     nxt = (request.args.get("next") or request.form.get("next") or "/admin").strip()
@@ -243,7 +249,11 @@ def html_orders():
                 # end if
             # end if
         # end if
-        return redirect("/admin/orders")
+        back = (request.form.get("next") or "").strip()
+        if back.find("/admin/orders") != 0 or ".." in back or back.find("//") >= 0:
+            back = "/admin/orders"
+        # end if
+        return redirect(back)
     # end if
     shipping_filter = (request.args.get("shipping") or "").strip().upper()
     print_params = []
@@ -342,7 +352,7 @@ def html_order(pkey):
             "payment_status": pay,
             "notes": params.get("notes") or ""
         })
-        return redirect("/admin/orders/" + pkey)
+        return redirect("/admin/orders/" + pkey + "?tab=details&ok=" + quote("Order changes saved"))
     # end if
     shipping_eligibility = proc.order_shipping_eligibility(rec)
     if (rec.get("shipping_handler") or "").strip().upper() != "OFFICER":
@@ -358,6 +368,22 @@ def html_order(pkey):
     )
     rec["shipping_total_expense"] = proc.format_rp(rec.get("shipping_total_expense_num"))
     seller_economics = proc.order_seller_economics(rec)
+    item_rows = []
+    for index, line in enumerate(rec.get("items") or []):
+        line_status = (line.get("line_status") or rec.get("order_status") or "Pending Payment").strip()
+        item_rows.append({
+            "index": index,
+            "line": line,
+            "status": line_status,
+            "options": proc.order_status_options(line_status)
+        })
+    # end for
+    shipping_status_label = ""
+    for option in proc.shipping_status_options():
+        if option.get("value") == rec.get("shipping_request_status"):
+            shipping_status_label = option.get("label")
+        # end if
+    # end for
     from address.address_proc import address_proc
     addr = address_proc()
     data = proc.page("orders", {
@@ -374,8 +400,10 @@ def html_order(pkey):
         "shipping_expeditions": proc.shipping_expeditions(),
         "shipping_statuses": proc.shipping_status_options(),
         "shipping_eligibility": shipping_eligibility,
-        "form_ok": (request.args.get("ok") or "").strip(),
-        "form_error": (request.args.get("error") or "").strip()
+        "item_rows": item_rows,
+        "shipping_status_label": shipping_status_label,
+        "flash_ok": (request.args.get("ok") or "").strip(),
+        "flash_error": (request.args.get("error") or "").strip()
     })
     return render_template("admin_order.html", data=data)
 # end def
@@ -623,7 +651,31 @@ def _decorate_product_form(proc, rec):
     # end for
     rec["size_stock_rows"] = rows
     rec["stock_by_size"] = by_size
+    rec["assets_zip_size_label"] = _format_bytes(rec.get("assets_zip_size"))
     return rec
+# end def
+
+def _format_bytes(size):
+    try:
+        size = int(size or 0)
+    except Exception:
+        size = 0
+    # end try
+    if size <= 0:
+        return ""
+    # end if
+    if size < 1024 * 1024:
+        return str(max(1, size // 1024)) + " KB"
+    # end if
+    return str(round(size / (1024.0 * 1024.0), 1)) + " MB"
+# end def
+
+def _keep_product_assets(fields, rec):
+    # Re-rendering after a failed save must show the zip that is still stored, not the attempted change.
+    fields["assets_zip"] = (rec or {}).get("assets_zip") or ""
+    fields["assets_zip_name"] = (rec or {}).get("assets_zip_name") or ""
+    fields["assets_zip_size"] = (rec or {}).get("assets_zip_size") or 0
+    return fields
 # end def
 
 def _product_category_options(proc, rec=None):
@@ -739,6 +791,8 @@ def _product_fields(proc, params):
     }
 # end def
 
+_DUPLICATE_OK_MSG = "Product duplicated as a Draft with stock reset to 0. Review the name, slug, and stock, then set the status to Active."
+
 def html_products():
     gate = _gate("products")
     if gate != None:
@@ -755,6 +809,12 @@ def html_products():
         pkey = params.get("pkey") or ""
         if action == "delete" and pkey != "":
             proc.soft_delete("db_product", pkey)
+        # end if
+        if action == "duplicate" and pkey != "":
+            result = proc.duplicate_product(pkey)
+            if result.get("status") == "SUCCESS":
+                return redirect("/admin/products/" + result.get("pkey") + "?ok=" + quote(_DUPLICATE_OK_MSG))
+            # end if
         # end if
         return redirect("/admin/products")
     # end if
@@ -819,6 +879,13 @@ def html_product_form(pkey=""):
             proc.soft_delete("db_product", pkey)
             return redirect("/admin/products")
         # end if
+        if action == "duplicate" and pkey != "":
+            result = proc.duplicate_product(pkey)
+            if result.get("status") == "SUCCESS":
+                return redirect("/admin/products/" + result.get("pkey") + "?ok=" + quote(_DUPLICATE_OK_MSG))
+            # end if
+            return redirect("/admin/products/" + pkey)
+        # end if
         if action == "stock_arrived" and pkey != "":
             result = proc.release_product_stock(pkey, params.get("arrived_stock"))
             if result.get("status") == "SUCCESS":
@@ -850,7 +917,7 @@ def html_product_form(pkey=""):
         ]
         kept_existing = [item for item in existing_gallery if item != old_image]
         if len(upload_files) + len(kept_existing) > 12:
-            fields = _decorate_product_form(proc, _product_fields(proc, params))
+            fields = _decorate_product_form(proc, _keep_product_assets(_product_fields(proc, params), rec))
             fields["image"] = image or old_image
             fields["images"] = existing_gallery
             data = proc.page("products", {
@@ -877,7 +944,7 @@ def html_product_form(pkey=""):
             for uploaded_image in uploaded_images:
                 proc.delete_local_upload(uploaded_image)
             # end for
-            fields = _decorate_product_form(proc, _product_fields(proc, params))
+            fields = _decorate_product_form(proc, _keep_product_assets(_product_fields(proc, params), rec))
             fields["image"] = image or old_image
             fields["images"] = existing_gallery
             data = proc.page("products", {
@@ -910,10 +977,38 @@ def html_product_form(pkey=""):
         else:
             fields["images"] = []
         # end if
+        old_assets = rec.get("assets_zip") or ""
+        assets_result = proc.save_product_assets(request.files.get("assets_file"))
+        if assets_result.get("status") == "FAILED":
+            for uploaded_image in uploaded_images:
+                proc.delete_local_upload(uploaded_image)
+            # end for
+            fields["image"] = old_image
+            fields["images"] = existing_gallery
+            data = proc.page("products", {
+                "row": _decorate_product_form(proc, _keep_product_assets(fields, rec)),
+                "form_error": assets_result.get("desc", "Could not upload assets zip"),
+                "statuses": proc.PRODUCT_STATUSES,
+                "categories": _product_category_options(proc, fields)
+            })
+            return render_template("admin_product_form.html", data=data)
+        # end if
+        if assets_result.get("status") == "SUCCESS":
+            fields["assets_zip"] = assets_result.get("stored")
+            fields["assets_zip_name"] = assets_result.get("name")
+            fields["assets_zip_size"] = assets_result.get("size")
+        elif (params.get("remove_assets") or "") == "1":
+            fields["assets_zip"] = ""
+            fields["assets_zip_name"] = ""
+            fields["assets_zip_size"] = 0
+        # end if
         result = proc.save_row("db_product", pkey, fields)
         if result.get("status") == "SUCCESS":
-            if uploaded_images != [] and old_image != "" and old_image != image:
+            if uploaded_images != [] and old_image != "" and old_image != image and not proc.product_image_in_use(old_image, pkey):
                 proc.delete_local_upload(old_image)
+            # end if
+            if old_assets != "" and "assets_zip" in fields and fields.get("assets_zip") != old_assets:
+                proc.delete_product_assets(old_assets, pkey)
             # end if
             return redirect("/admin/products")
         # end if
@@ -924,6 +1019,10 @@ def html_product_form(pkey=""):
             fields["image"] = old_image
             fields["images"] = existing_gallery
         # end if
+        if assets_result.get("status") == "SUCCESS":
+            proc.delete_product_assets(assets_result.get("stored"), pkey)
+        # end if
+        fields = _keep_product_assets(fields, rec)
         data = proc.page("products", {
             "row": _decorate_product_form(proc, fields),
             "form_error": result.get("desc", ""),
@@ -940,6 +1039,159 @@ def html_product_form(pkey=""):
         "form_ok": form_ok
     })
     return render_template("admin_product_form.html", data=data)
+# end def
+
+def download_product_assets(pkey):
+    gate = _gate("products")
+    if gate != None:
+        return gate
+    # end if
+    proc = admin_proc()
+    rec = proc.get_row("db_product", pkey)
+    if rec == None:
+        return "Not found", 404
+    # end if
+    path = proc.product_assets_path(rec.get("assets_zip"))
+    if path == None:
+        return "Not found", 404
+    # end if
+    download_name = rec.get("assets_zip_name") or ((rec.get("slug") or "product") + "-assets.zip")
+    return _send_zip(path, download_name)
+# end def
+
+def _send_zip(path_or_file, download_name):
+    send_kwargs = {
+        "mimetype": "application/zip",
+        "as_attachment": True
+    }
+    # Flask < 2.0 only accepts attachment_filename.
+    if "download_name" in inspect.signature(send_file).parameters:
+        send_kwargs["download_name"] = download_name
+    else:
+        send_kwargs["attachment_filename"] = download_name
+    # end if
+    return send_file(path_or_file, **send_kwargs)
+# end def
+
+def download_order_assets(pkey):
+    gate = _gate("orders")
+    if gate != None:
+        return gate
+    # end if
+    proc = admin_proc()
+    rec = proc.get_row("db_order", pkey)
+    if rec == None:
+        return "Not found", 404
+    # end if
+    files = proc.order_asset_files(rec)
+    if files == []:
+        return "No product assets for this order", 404
+    # end if
+    if len(files) == 1:
+        return _send_zip(files[0].get("path"), files[0].get("download_name"))
+    # end if
+    bundle = tempfile.SpooledTemporaryFile(max_size=32 * 1024 * 1024)
+    with zipfile.ZipFile(bundle, "w", zipfile.ZIP_STORED) as archive:
+        for item in files:
+            archive.write(item.get("path"), arcname=item.get("download_name"))
+        # end for
+    # end with
+    bundle.seek(0)
+    order_id = re.sub(r"[^A-Za-z0-9_-]", "", rec.get("order_id") or "order") or "order"
+    return _send_zip(bundle, order_id + "-assets.zip")
+# end def
+
+def html_tutorials():
+    gate = _gate("tutorials")
+    if gate != None:
+        return gate
+    # end if
+    proc = admin_proc()
+    tut = tutorial_proc()
+    if request.method == "POST":
+        params = sanitize.clean_html_dic(request.form.to_dict())
+        denied = _deny_post("tutorials", params)
+        if denied != None:
+            return denied
+        # end if
+        tab = params.get("tab") or "drafts"
+        if (params.get("action") or "") == "delete" and (params.get("pkey") or "") != "":
+            tut.delete_tutorial(params.get("pkey"))
+        # end if
+        return redirect("/admin/tutorials?tab=" + quote(tab))
+    # end if
+    tab = (request.args.get("tab") or "").strip().lower()
+    counts = tut.counts()
+    if tab not in ["drafts", "published"]:
+        tab = "published" if counts.get("DRAFT") == 0 and counts.get("PUBLISHED") > 0 else "drafts"
+    # end if
+    data = proc.page("tutorials", {
+        "tab": tab,
+        "counts": counts,
+        "tutorials": tut.list_tutorials("PUBLISHED" if tab == "published" else "DRAFT")
+    })
+    return render_template("admin_tutorials.html", data=data)
+# end def
+
+def html_tutorial_form(pkey=""):
+    gate = _gate("tutorials")
+    if gate != None:
+        return gate
+    # end if
+    proc = admin_proc()
+    tut = tutorial_proc()
+    rec = {}
+    if pkey != "":
+        rec = tut.get_tutorial(pkey)
+        if rec == None:
+            return "Not found", 404
+        # end if
+    # end if
+    form_error = ""
+    if request.method == "POST":
+        params = sanitize.clean_html_dic(request.form.to_dict())
+        denied = _deny_post("tutorials", params)
+        if denied != None:
+            return denied
+        # end if
+        if (params.get("action") or "") == "delete" and pkey != "":
+            tut.delete_tutorial(pkey)
+            return redirect("/admin/tutorials?tab=" + ("published" if rec.get("status") == "PUBLISHED" else "drafts"))
+        # end if
+        title = html_lib.unescape(params.get("title") or "")
+        content = sanitize.clean_rich_html(request.form.get("content") or "")
+        status = (params.get("status") or "DRAFT").strip().upper()
+        result = tut.save_tutorial(pkey, title, content, status, proc.current_admin())
+        if result.get("status") == "SUCCESS":
+            return redirect("/admin/tutorials/" + result.get("pkey") + "?saved=" + ("published" if status == "PUBLISHED" else "draft"))
+        # end if
+        form_error = result.get("desc") or "Could not save"
+        rec = dict(rec)
+        rec["title"] = title
+        rec["content"] = content
+    # end if
+    data = proc.page("tutorials", {
+        "row": rec,
+        "editor_error": form_error,
+        "saved": (request.args.get("saved") or "").strip()
+    })
+    return render_template("admin_tutorial_editor.html", data=data)
+# end def
+
+def tutorial_image_upload():
+    gate = _gate("tutorials", write=True)
+    if gate != None:
+        return gate
+    # end if
+    result = tutorial_proc().save_image(request.files.get("image"))
+    ok = result.get("status") == "SUCCESS"
+    payload = {
+        "message_id": idgen._get_api_call_id(),
+        "message_action": "TUTORIAL_IMAGE_UPLOAD_" + ("SUCCESS" if ok else "FAILED"),
+        "message_desc": result.get("desc") or ("Uploaded" if ok else "Upload failed"),
+        "message_data": {"url": result.get("url") or ""}
+    }
+    return jsonify(payload), (200 if ok else 400)
 # end def
 
 def html_programs():

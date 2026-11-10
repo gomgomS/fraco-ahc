@@ -71,6 +71,16 @@ def order(pkey):
     # end try
 # end def
 
+@admin_blueprint.route("/admin/orders/<pkey>/assets", methods=["GET"])
+def order_assets_download(pkey):
+    try:
+        return view_admin.download_order_assets(pkey)
+    except Exception:
+        print(traceback.format_exc())
+        return "An error occurred", 500
+    # end try
+# end def
+
 @admin_blueprint.route("/admin/orders/<pkey>/shipping-document", methods=["GET"])
 def order_shipping_document(pkey):
     try:
@@ -109,6 +119,36 @@ def product_edit(pkey):
         print(traceback.format_exc())
         return "An error occurred", 500
     # end try
+# end def
+
+@admin_blueprint.route("/admin/products/<pkey>/assets", methods=["GET"])
+def product_assets_download(pkey):
+    try:
+        return view_admin.download_product_assets(pkey)
+    except Exception:
+        print(traceback.format_exc())
+        return "An error occurred", 500
+    # end try
+# end def
+
+@admin_blueprint.route("/admin/tutorials", methods=["GET", "POST"])
+def tutorials():
+    return _wrap(view_admin.html_tutorials)
+# end def
+
+@admin_blueprint.route("/admin/tutorials/new", methods=["GET", "POST"])
+def tutorial_new():
+    return _wrap(lambda: view_admin.html_tutorial_form(""))
+# end def
+
+@admin_blueprint.route("/admin/tutorials/upload-image", methods=["POST"])
+def tutorial_upload_image():
+    return _wrap(view_admin.tutorial_image_upload)
+# end def
+
+@admin_blueprint.route("/admin/tutorials/<pkey>", methods=["GET", "POST"])
+def tutorial_edit(pkey):
+    return _wrap(lambda: view_admin.html_tutorial_form(pkey))
 # end def
 
 @admin_blueprint.route("/admin/programs", methods=["GET"])

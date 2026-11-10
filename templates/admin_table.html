@@ -75,6 +75,16 @@
                     {% else %}
                     —
                     {% endif %}
+                    {% elif cell.kind == 'duplicate' %}
+                    {% if data.can_write %}
+                    <form method="post" action="{{ request.path }}" onsubmit="return confirm('Duplicate this product as a new Draft?');">
+                        <input type="hidden" name="action" value="duplicate">
+                        <input type="hidden" name="pkey" value="{{ cell.pkey }}">
+                        <button class="btn-line" type="submit">Duplicate</button>
+                    </form>
+                    {% else %}
+                    —
+                    {% endif %}
                     {% elif cell.kind == 'delete' %}
                     {% if data.can_delete %}
                     <form method="post" action="{{ request.path }}" onsubmit="return confirm('Delete this row?');">

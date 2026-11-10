@@ -1,343 +1,526 @@
 {% extends 'admin_base.html' %}
+{% import 'admin_orders_macros.html' as aom %}
 {% block title %}{{ data.row.order_id }} | Admin{% endblock %}
 {% block content %}
+{% include 'admin_orders_ui.html' %}
 <style>
-.admin-order-econ {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 12px;
-    margin-bottom: 24px;
+.ao-detail-badges { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* Progress */
+.ao-steps { position: relative; display: flex; margin: 0 0 20px; padding: 18px 20px; list-style: none; overflow-x: auto; }
+.ao-step { flex: 1 0 96px; position: relative; text-align: center; font-size: 13px; color: var(--ao-faint); }
+.ao-step::before {
+    content: ""; position: absolute; top: 13px; left: calc(-50% + 16px); right: calc(50% + 16px);
+    height: 2px; background: #e4e4e7;
 }
-.admin-order-econ article {
-    border: 1px solid #ddd;
-    padding: 14px 16px;
-    background: #fafafa;
+.ao-step:first-child::before { display: none; }
+.ao-step-dot {
+    position: relative; z-index: 1; display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; margin-bottom: 6px; border-radius: 50%;
+    background: #fff; border: 2px solid #e4e4e7; font-size: 12px; font-weight: 700; color: var(--ao-faint);
 }
-.admin-order-econ article.is-highlight {
-    border-color: #111;
-    background: #fff;
+.ao-step.is-done { color: var(--ao-muted); }
+.ao-step.is-done::before, .ao-step.is-current::before { background: #15803d; }
+.ao-step.is-done .ao-step-dot { background: #15803d; border-color: #15803d; color: #fff; }
+.ao-step.is-current { color: var(--ao-text); font-weight: 700; }
+.ao-step.is-current .ao-step-dot { background: #18181b; border-color: #18181b; color: #fff; box-shadow: 0 0 0 4px rgba(24, 24, 27, .1); }
+
+/* Page tabs */
+.ao-pagetabs { display: flex; gap: 4px; border-bottom: 1px solid var(--ao-line); margin-bottom: 20px; }
+.ao-pagetab { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; margin-bottom: -1px; border-bottom: 2px solid transparent; font-size: 15px; font-weight: 600; color: var(--ao-muted); }
+.ao-pagetab:hover { color: var(--ao-text); }
+.ao-pagetab.is-active { color: var(--ao-text); border-bottom-color: #18181b; }
+.ao-pagetab .ao-badge { font-size: 12px; padding: 1px 8px; }
+
+/* Layout */
+.ao-layout { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 20px; align-items: start; }
+.ao-side { position: sticky; top: 20px; }
+
+/* Items */
+.ao-item { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; gap: 14px; padding: 14px 0; border-bottom: 1px solid #f0f0f2; }
+.ao-item:first-of-type { padding-top: 0; }
+.ao-item:last-of-type { border-bottom: 0; padding-bottom: 0; }
+.ao-item img, .ao-item-ph { width: 56px; height: 56px; border-radius: 8px; object-fit: cover; background: var(--ao-soft); }
+.ao-item-name { font-weight: 700; }
+.ao-item-meta { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-top: 2px; font-size: 13px; color: var(--ao-muted); }
+.ao-item-price { text-align: right; font-variant-numeric: tabular-nums; }
+.ao-item-price strong { display: block; }
+.ao-item-ship { grid-column: 2 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ao-item-ship-form { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ao-item-ship .ao-select { width: auto; min-width: 170px; min-height: 34px; padding-top: 5px; padding-bottom: 5px; font-size: 14px; }
+.ao-item-ship-label { font-size: 13px; color: var(--ao-muted); }
+
+/* Shipping type choice */
+.ao-choice-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.ao-choice { position: relative; display: block; padding: 14px 16px 14px 46px; border: 1.5px solid #d4d4d8; border-radius: 12px; cursor: pointer; background: #fff; }
+.ao-choice input { position: absolute; left: 16px; top: 17px; width: 18px; height: 18px; accent-color: #18181b; }
+.ao-choice strong { display: block; font-size: 15px; }
+.ao-choice span { display: block; margin-top: 2px; font-size: 13px; color: var(--ao-muted); }
+.ao-choice:has(input:checked) { border-color: #18181b; background: #fafafa; box-shadow: 0 0 0 3px rgba(24, 24, 27, .06); }
+.ao-section-gap { margin-top: 22px; padding-top: 20px; border-top: 1px solid #f0f0f2; }
+.ao-total-line { display: flex; justify-content: space-between; gap: 12px; margin-top: 12px; padding: 10px 14px; border-radius: 10px; background: var(--ao-soft); font-size: 14px; }
+.ao-total-line strong { font-variant-numeric: tabular-nums; }
+
+.ao-big { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.ao-danger { border-color: #f3c7c5; }
+.ao-danger .ao-card-title { color: #991b1b; }
+.ao-contact { display: grid; gap: 4px; margin-top: 6px; font-size: 14px; }
+.ao-contact a { color: var(--ao-text); }
+.ao-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+
+@media (max-width: 1099px) {
+    .ao-layout { grid-template-columns: minmax(0, 1fr); }
+    .ao-side { position: static; }
 }
-.admin-order-econ .field-label { margin: 0 0 6px; }
-.admin-order-econ strong {
-    font-family: "IBM Plex Mono", monospace;
-    font-size: 17px;
+@media (max-width: 899px) {
+    html, body { max-width: 100%; overflow-x: hidden; }
+    .admin-shell { grid-template-columns: minmax(0, 1fr); }
+    .admin-side { padding: 16px; border-right: 0; border-bottom: 1px solid #ddd; background: #fff; overflow: hidden; }
+    .admin-side .dash-nav { display: flex; gap: 8px; margin: 0 -16px; padding: 0 16px 8px; overflow-x: auto; }
+    .admin-side .dash-nav a { flex: 0 0 auto; padding: 9px 12px; border: 1px solid #ddd; white-space: nowrap; }
+    .admin-side .dash-nav a.active { border-color: #111; background: #111; color: #fff; }
+    .admin-main { padding: 20px 14px 48px; }
+    .ao-title { font-size: 24px; }
+    .ao-item { grid-template-columns: 48px minmax(0, 1fr); }
+    .ao-item img, .ao-item-ph { width: 48px; height: 48px; }
+    .ao-item-price { grid-column: 2; text-align: left; }
 }
-.admin-order-econ .is-cut { color: #666; }
-.admin-order-econ .is-profit { color: #111; }
-.admin-order-stack {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 16px;
-    margin-bottom: 24px;
-}
-.admin-order-pill-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 10px;
-}
-.admin-order-pill {
-    font-family: "IBM Plex Mono", monospace;
-    font-size: 11px;
-    letter-spacing: .04em;
-    text-transform: uppercase;
-    padding: 6px 10px;
-    border: 1px solid #ddd;
-    background: #fff;
-}
-.admin-order-pill.is-on { border-color: #111; background: #111; color: #fff; }
-.admin-econ-cell strong { font-family: "IBM Plex Mono", monospace; }
 </style>
-<p class="product-meta"><a class="section-link" href="/admin/orders">Orders</a></p>
-<h1 class="section-title" style="margin: 8px 0 16px;">{{ data.row.order_id }}</h1>
 
-<div class="admin-order-econ" aria-label="Seller economics summary">
-    <article>
-        <p class="field-label">Sale (subtotal)</p>
-        <strong>{{ data.seller_economics.sale }}</strong>
-    </article>
-    <article>
-        <p class="field-label">Bahan baku</p>
-        <strong class="is-cut">−{{ data.seller_economics.bahan }}</strong>
-    </article>
-    {% if data.seller_economics.discount_num > 0 %}
-    <article>
-        <p class="field-label">Referral discount</p>
-        <strong class="is-cut">−{{ data.seller_economics.discount }}</strong>
-        <p class="product-meta" style="margin-top:6px;">From profit only</p>
-    </article>
-    {% endif %}
-    <article>
-        <p class="field-label">Gross profit</p>
-        <strong>{{ data.seller_economics.profit }}</strong>
-    </article>
-    {% if data.seller_economics.shipping_show %}
-    <article>
-        <p class="field-label">Shipping (courier)</p>
-        <strong class="is-cut">−{{ data.seller_economics.shipping_delivery }}</strong>
-    </article>
-    <article>
-        <p class="field-label">Packing / arrangement</p>
-        <strong class="is-cut">−{{ data.seller_economics.shipping_service_fee }}</strong>
-    </article>
-    {% endif %}
-    <article class="is-highlight">
-        <p class="field-label">Seller net profit</p>
-        <strong class="is-profit">{{ data.seller_economics.net_seller }}</strong>
-        <p class="product-meta" style="margin-top:6px;">After bahan{% if data.seller_economics.shipping_show %} + ship + pack{% endif %}</p>
-    </article>
-    <article>
-        <p class="field-label">Total cuts</p>
-        <strong class="is-cut">−{{ data.seller_economics.cuts }}</strong>
-        <p class="product-meta" style="margin-top:6px;">Bahan{% if data.seller_economics.shipping_show %} · ship · pack{% endif %}</p>
-    </article>
-</div>
+{% set row = data.row %}
+{% set econ = data.seller_economics %}
+{% set status_help = {
+    'Pending Payment': "Waiting for the buyer's transfer.",
+    'Preorder': 'Waiting for preorder stock to arrive.',
+    'Paid': 'Payment confirmed. Prepare the items.',
+    'Ready': 'Items are packed and ready to hand over.',
+    'Processing': 'Being handed to the courier or officer.',
+    'Shipped': 'On the way to the customer.',
+    'Completed': 'Received by the customer. Nothing left to do.',
+    'Cancelled': 'Order stopped. No further action needed.'
+} %}
+{% set flow = ['Pending Payment', 'Paid'] + (['Preorder'] if (row.order_status == 'Preorder' or row.has_preorder) else []) + ['Ready', 'Processing', 'Shipped', 'Completed'] %}
+{% set flow_labels = {'Pending Payment': 'Awaiting payment'} %}
+{% set current_step = flow.index(row.order_status) if row.order_status in flow else -1 %}
+{% set ship_handler = row.shipping_handler or 'NOT_SELECTED' %}
+{% set ship_label = 'Officer' if ship_handler == 'OFFICER' else ('Self-arranged' if ship_handler == 'SELF' else 'Not chosen') %}
 
-<div class="filter-row" style="margin-bottom:24px;">
-    <a class="filter-chip{% if data.order_tab == 'details' %} active{% endif %}" href="/admin/orders/{{ data.row.pkey }}?tab=details">Order details</a>
-    <a class="filter-chip{% if data.order_tab == 'shipping' %} active{% endif %}" href="/admin/orders/{{ data.row.pkey }}?tab=shipping">Shipping</a>
-</div>
+<div class="ao">
+    <a class="ao-back" href="/admin/orders">← All orders</a>
 
-{% if data.order_tab == 'details' %}
-{% if data.form_ok %}<p class="prose-fraco" style="margin-bottom:12px;">{{ data.form_ok }}</p>{% endif %}
-{% if data.form_error %}<p class="prose-fraco" style="color:#b00000; margin-bottom:12px;">{{ data.form_error }}</p>{% endif %}
-
-<div class="admin-order-stack">
-    <section class="pay-box" style="padding:18px;">
-        <p class="field-label">Customer</p>
-        <p style="margin-top:8px;"><strong>{{ data.row.full_name }}</strong></p>
-        <p class="product-meta" style="margin-top:6px;">{{ data.row.email }} · {{ data.row.phone }}</p>
-        {% set addr_rows = data.address_rows %}
-        {% set addr_fallback = data.row.address %}
-        {% include 'address_display.html' %}
-    </section>
-    <section class="pay-box" style="padding:18px;">
-        <p class="field-label">Referral in charge</p>
-        <p style="margin-top:8px;">
-            {% if data.referrer and data.referrer.pkey %}
-            <a class="section-link" href="/admin/participants/{{ data.referrer.pkey }}">{{ data.referrer_label }}</a>
-            {% else %}
-            {{ data.referrer_label }}
-            {% endif %}
-        </p>
-        <div class="admin-order-pill-row">
-            <span class="admin-order-pill{% if data.row.payment_status == 'Paid' %} is-on{% endif %}">Pay: {{ data.row.payment_status or '—' }}</span>
-            <span class="admin-order-pill{% if data.row.order_status %} is-on{% endif %}">Order: {{ data.row.order_status or '—' }}</span>
-            <span class="admin-order-pill">Buyer total: {{ data.row.total }}</span>
+    <header class="ao-head" style="margin-top: 10px;">
+        <div>
+            <h1 class="ao-title">Order {{ row.order_id }}</h1>
+            <div class="ao-meta-line">
+                {% if row.rec_timestamp_str %}<span>Placed {{ row.rec_timestamp_str[0:16] }}</span>{% endif %}
+                <span>{{ row.full_name }}</span>
+                <span>{{ data.item_rows|length }} item{% if data.item_rows|length != 1 %}s{% endif %}</span>
+            </div>
         </div>
-    </section>
+        <div class="ao-detail-badges" aria-label="Current state">
+            {{ aom.status_badge(row.order_status) }}
+            {{ aom.pay_badge(row.payment_status) }}
+            {{ aom.ship_badge(ship_handler, 'Shipping: ' ~ ship_label) }}
+        </div>
+    </header>
+
+    {% if data.flash_ok %}<div class="ao-alert ao-alert-ok" role="status">✓ {{ data.flash_ok }}</div>{% endif %}
+    {% if data.flash_error %}<div class="ao-alert ao-alert-error" role="alert">{{ data.flash_error }}</div>{% endif %}
+
+    {% if row.order_status == 'Cancelled' %}
+    <div class="ao-alert ao-alert-error">This order was cancelled. {{ status_help['Cancelled'] }}</div>
+    {% else %}
+    <ol class="ao-card ao-steps" aria-label="Order progress">
+        {% for step in flow %}
+        <li class="ao-step{% if loop.index0 < current_step %} is-done{% elif loop.index0 == current_step %} is-current{% endif %}"{% if loop.index0 == current_step %} aria-current="step"{% endif %}>
+            <span class="ao-step-dot">{% if loop.index0 < current_step %}✓{% else %}{{ loop.index }}{% endif %}</span><br>
+            {{ flow_labels.get(step, step) }}
+        </li>
+        {% endfor %}
+    </ol>
+    {% endif %}
+
+    <div class="ao-kpis" aria-label="Money summary">
+        <div class="ao-kpi">
+            <span>Buyer paid</span>
+            <strong>{{ row.total }}</strong>
+            <small>Total charged at checkout</small>
+        </div>
+        <div class="ao-kpi">
+            <span>Gross profit</span>
+            <strong>{{ econ.profit }}</strong>
+            <small>Sale − bahan baku{% if econ.discount_num > 0 %} − referral discount{% endif %}</small>
+        </div>
+        <div class="ao-kpi is-highlight">
+            <span>Seller net</span>
+            <strong>{{ econ.net_seller }}</strong>
+            <small>{% if econ.shipping_show %}After shipping &amp; packing costs{% else %}No shipping costs on this order{% endif %}</small>
+        </div>
+    </div>
+
+    <nav class="ao-pagetabs" aria-label="Order sections">
+        <a class="ao-pagetab{% if data.order_tab == 'details' %} is-active{% endif %}" href="/admin/orders/{{ row.pkey }}?tab=details">Order details</a>
+        <a class="ao-pagetab{% if data.order_tab == 'shipping' %} is-active{% endif %}" href="/admin/orders/{{ row.pkey }}?tab=shipping">
+            Shipping {{ aom.ship_badge(ship_handler, ship_label) }}
+        </a>
+    </nav>
+
+    {% if data.order_tab == 'details' %}
+    <div class="ao-layout">
+        <div>
+            <section class="ao-card">
+                <div class="ao-card-head">
+                    <div>
+                        <h2 class="ao-card-title">Items</h2>
+                        <p class="ao-card-sub">Each item can have its own shipment status, for example when part of the order is a preorder.</p>
+                    </div>
+                </div>
+                {% for item in data.item_rows %}
+                {% set line = item.line %}
+                <div class="ao-item">
+                    {% if line.image %}<img src="{{ line.image }}" alt="">{% else %}<div class="ao-item-ph"></div>{% endif %}
+                    <div>
+                        <div class="ao-item-name">{{ line.name }}</div>
+                        <div class="ao-item-meta">
+                            <span>Qty {{ line.qty }}</span>
+                            {% if line.size %}<span>Size {{ line.size }}</span>{% endif %}
+                            {% if line.color %}<span>{{ line.color }}</span>{% endif %}
+                            <span class="ao-badge" data-tone="{{ 'violet' if line.is_preorder else 'teal' }}" style="font-size:12px; padding:0 8px;">{{ 'Preorder' if line.is_preorder else 'In stock' }}</span>
+                        </div>
+                    </div>
+                    <div class="ao-item-price">
+                        <strong>{{ line.line_price }}</strong>
+                        <span class="ao-muted">Profit {{ line.line_profit or '—' }}</span>
+                    </div>
+                    <div class="ao-item-ship">
+                        {% if data.can_write %}
+                        <form class="ao-item-ship-form" method="post">
+                            <input type="hidden" name="action" value="order_line_status">
+                            <input type="hidden" name="item_index" value="{{ item.index }}">
+                            <label class="ao-item-ship-label" for="line_status_{{ item.index }}">Shipment status</label>
+                            <select class="ao-select" name="line_status" id="line_status_{{ item.index }}">
+                                {% for status in item.options %}
+                                <option value="{{ status }}"{% if item.status == status %} selected{% endif %}>{{ status }}</option>
+                                {% endfor %}
+                            </select>
+                            <button class="ao-btn ao-btn-sm" type="submit">Save</button>
+                        </form>
+                        {% else %}
+                        <span class="ao-item-ship-label">Shipment status</span> {{ aom.status_badge(item.status) }}
+                        {% endif %}
+                    </div>
+                </div>
+                {% else %}
+                <p class="ao-muted">No items.</p>
+                {% endfor %}
+            </section>
+
+            <section class="ao-card">
+                <h2 class="ao-card-title">Money breakdown</h2>
+                <p class="ao-card-sub">How the seller net is calculated for this order.</p>
+                <dl class="ao-rows">
+                    <div class="is-subtotal"><dt>Sale (subtotal)</dt><dd>{{ row.subtotal or econ.sale }}</dd></div>
+                    <div class="is-cut"><dt>Bahan baku (cost of goods)</dt><dd>−{{ econ.bahan }}</dd></div>
+                    {% if econ.discount_num > 0 %}
+                    <div class="is-cut"><dt>Referral discount{% if row.referral_code %} · {{ row.referral_code }}{% endif %}</dt><dd>−{{ econ.discount }}</dd></div>
+                    {% endif %}
+                    <div class="is-subtotal"><dt>Gross profit (referral credit)</dt><dd>{{ econ.profit }}</dd></div>
+                    {% if econ.shipping_show %}
+                    <div class="is-cut"><dt>Courier / shipping</dt><dd>−{{ econ.shipping_delivery }}</dd></div>
+                    <div class="is-cut"><dt>Packing service</dt><dd>−{{ econ.shipping_service_fee }}</dd></div>
+                    {% endif %}
+                    <div class="is-total"><dt>Seller net</dt><dd>{{ econ.net_seller }}</dd></div>
+                </dl>
+                <dl class="ao-rows" style="margin-top: 12px;">
+                    <div><dt>Buyer paid (total)</dt><dd>{{ row.total }}</dd></div>
+                </dl>
+                {% if econ.discount_num > 0 %}
+                <p class="ao-help">The referral discount comes out of profit only — bahan baku always stays at full cost.</p>
+                {% endif %}
+                {% if econ.shipping_show and not econ.shipping_locked %}
+                <p class="ao-help">Shipping costs are saved on this order. They count fully against the member's progress once officer shipping is "Being processed" or later.</p>
+                {% endif %}
+            </section>
+        </div>
+
+        <aside class="ao-side">
+            <section class="ao-card">
+                <h2 class="ao-card-title">Update order</h2>
+                <p class="ao-card-sub">Change the overall status or confirm payment.</p>
+                <form method="post">
+                    <div class="ao-field">
+                        <label class="ao-label" for="order_status">Order status</label>
+                        <select class="ao-select" name="order_status" id="order_status"{% if not data.can_write %} disabled{% endif %}>
+                            {% for item in data.statuses %}
+                            <option value="{{ item }}"{% if row.order_status == item %} selected{% endif %}>{{ item }}</option>
+                            {% endfor %}
+                        </select>
+                        <p class="ao-help" id="order-status-help">{{ status_help.get(row.order_status, '') }}</p>
+                    </div>
+                    <div class="ao-field">
+                        <label class="ao-label" for="payment_status">Payment</label>
+                        <select class="ao-select" name="payment_status" id="payment_status"{% if not data.can_write %} disabled{% endif %}>
+                            {% for item in data.pay_statuses %}
+                            <option value="{{ item }}"{% if row.payment_status == item %} selected{% endif %}>{{ 'Not paid yet' if item == 'Pending' else item }}</option>
+                            {% endfor %}
+                        </select>
+                        <p class="ao-help">Only mark as paid after checking the transfer.</p>
+                    </div>
+                    <div class="ao-field">
+                        <label class="ao-label" for="notes">Internal notes</label>
+                        <textarea class="ao-textarea" name="notes" id="notes" rows="3" placeholder="Only staff can see this"{% if not data.can_write %} disabled{% endif %}>{{ row.notes }}</textarea>
+                    </div>
+                    {% if data.can_write %}
+                    <button class="ao-btn ao-btn-primary ao-btn-block" type="submit" style="margin-top: 18px;">Save changes</button>
+                    {% endif %}
+                </form>
+            </section>
+
+            <section class="ao-card">
+                <h2 class="ao-card-title">Customer</h2>
+                <p class="ao-strong" style="margin: 6px 0 0;">{{ row.full_name }}</p>
+                <div class="ao-contact">
+                    {% if row.email %}<a class="ao-link" href="mailto:{{ row.email }}">{{ row.email }}</a>{% endif %}
+                    {% if row.phone %}<a class="ao-link" href="tel:{{ row.phone }}">{{ row.phone }}</a>{% endif %}
+                </div>
+                {% set addr_rows = data.address_rows %}
+                {% set addr_fallback = row.address %}
+                {% include 'address_display.html' %}
+            </section>
+
+            <section class="ao-card">
+                <h2 class="ao-card-title">Referral in charge</h2>
+                <p style="margin: 6px 0 0;">
+                    {% if data.referrer and data.referrer.pkey %}
+                    <a class="ao-link" href="/admin/participants/{{ data.referrer.pkey }}">{{ data.referrer_label }}</a>
+                    {% elif data.referrer_label and data.referrer_label != '—' %}
+                    {{ data.referrer_label }}
+                    {% else %}
+                    <span class="ao-muted">No referral on this order</span>
+                    {% endif %}
+                </p>
+            </section>
+
+            {% if data.can_delete %}
+            <section class="ao-card ao-danger">
+                <h2 class="ao-card-title">Delete order</h2>
+                <p class="ao-card-sub">Its sale, profit, and shipping cost will stop counting in admin, Finance, and the member target. This cannot be undone here.</p>
+                <form method="post" onsubmit="return confirm('Delete order {{ row.order_id }}? Its sale, profit, and shipping expense will stop counting in admin, Finance, and the member target.');">
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="pkey" value="{{ row.pkey }}">
+                    <button class="ao-btn ao-btn-danger ao-btn-block" type="submit">Delete this order</button>
+                </form>
+            </section>
+            {% endif %}
+        </aside>
+    </div>
+    {% endif %}
+
+    {% if data.order_tab == 'shipping' %}
+    {% set elig = data.shipping_eligibility %}
+    <div class="ao-layout">
+        <div>
+            <section class="ao-card">
+                <h2 class="ao-card-title">Shipping arrangement</h2>
+                <p class="ao-card-sub">Choose who sends the package, then fill in the courier details when it ships.</p>
+                <form method="post" id="admin-shipping-form">
+                    <input type="hidden" name="action" value="shipping_update">
+                    <fieldset style="border:0; padding:0; margin:0;">
+                        <legend class="ao-label">Who ships this order?</legend>
+                        <div class="ao-choice-row">
+                            <label class="ao-choice">
+                                <input type="radio" name="shipping_handler" value="OFFICER" class="js-shipping-handler"{% if row.shipping_handler == 'OFFICER' %} checked{% endif %} required{% if not data.can_write %} disabled{% endif %}>
+                                <strong>FRACO officer</strong>
+                                <span>Officer packs and sends it. Costs are taken from the member's progress.</span>
+                            </label>
+                            <label class="ao-choice">
+                                <input type="radio" name="shipping_handler" value="SELF" class="js-shipping-handler"{% if row.shipping_handler == 'SELF' %} checked{% endif %} required{% if not data.can_write %} disabled{% endif %}>
+                                <strong>Member arranges it</strong>
+                                <span>The member delivers it themselves. No shipping cost is recorded.</span>
+                            </label>
+                        </div>
+                    </fieldset>
+                    {% if not row.shipping_handler %}<p class="ao-help">Not chosen yet — the member hasn't picked a shipping option.</p>{% endif %}
+
+                    <div id="admin-officer-shipping" class="ao-section-gap">
+                        <div class="ao-grid-2">
+                            <div>
+                                <label class="ao-label" for="shipping_request_status">Shipping progress</label>
+                                <select class="ao-select" name="shipping_request_status" id="shipping_request_status"{% if not data.can_write %} disabled{% endif %}>
+                                    {% for status in data.shipping_statuses %}
+                                    <option value="{{ status.value }}"{% if row.shipping_request_status == status.value %} selected{% endif %}>{{ status.label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="ao-label" for="shipping_expedition">Courier</label>
+                                <select class="ao-select" name="shipping_expedition" id="shipping_expedition"{% if not data.can_write %} disabled{% endif %}>
+                                    <option value="">Select courier</option>
+                                    {% if row.shipping_expedition and row.shipping_expedition not in data.shipping_expeditions %}
+                                    <option value="{{ row.shipping_expedition }}" selected>{{ row.shipping_expedition }}</option>
+                                    {% endif %}
+                                    {% for expedition in data.shipping_expeditions %}
+                                    <option value="{{ expedition }}"{% if row.shipping_expedition == expedition %} selected{% endif %}>{{ expedition }}</option>
+                                    {% endfor %}
+                                </select>
+                                <p class="ao-help">Edit the list in <a class="ao-link" href="/admin/settings?tab=shipping">Settings → Shipping</a>.</p>
+                            </div>
+                        </div>
+
+                        <div class="ao-section-gap">
+                            <p class="ao-label" style="margin-bottom: 10px;">Costs (Rp)</p>
+                            <div class="ao-grid-2">
+                                <div>
+                                    <label class="ao-label" for="shipping_service_fee_num" style="font-weight:500;">Packing / arrangement fee</label>
+                                    <input class="ao-input num" type="number" min="0" step="1000" name="shipping_service_fee_num" id="shipping_service_fee_num" value="{{ row.shipping_service_fee_num or 0 }}" data-available="{{ elig.available_num }}"{% if not data.can_write %} disabled{% endif %}>
+                                </div>
+                                <div>
+                                    <label class="ao-label" for="shipping_budget_num" style="font-weight:500;">Courier cost</label>
+                                    <input class="ao-input num" type="number" min="0" step="1000" name="shipping_budget_num" id="shipping_budget_num" value="{{ row.shipping_budget_num or 0 }}"{% if not data.can_write %} disabled{% endif %}>
+                                </div>
+                            </div>
+                            <div class="ao-total-line"><span>Total taken from member progress</span><strong id="shipping-expense-total">{{ row.shipping_total_expense or 'Rp 0' }}</strong></div>
+                            <p class="ao-alert ao-alert-warn" id="shipping-expense-hint" style="margin: 10px 0 0; display: none;"></p>
+                        </div>
+
+                        <div class="ao-section-gap ao-grid-2">
+                            <div>
+                                <label class="ao-label" for="shipping_tracking_code">Tracking number</label>
+                                <input class="ao-input" name="shipping_tracking_code" id="shipping_tracking_code" value="{{ row.shipping_tracking_code or '' }}" placeholder="e.g. JX1234567890"{% if not data.can_write %} disabled{% endif %}>
+                            </div>
+                            <div>
+                                <label class="ao-label" for="shipping_tracking_url">Tracking link</label>
+                                <input class="ao-input" type="url" name="shipping_tracking_url" id="shipping_tracking_url" value="{{ row.shipping_tracking_url or '' }}" placeholder="https://..."{% if not data.can_write %} disabled{% endif %}>
+                            </div>
+                        </div>
+                        <p class="ao-help">The customer sees the courier, tracking number, and link on their order tracking page.</p>
+                    </div>
+                    {% if data.can_write %}
+                    <button class="ao-btn ao-btn-primary" type="submit" style="margin-top: 20px;">Save shipping</button>
+                    {% endif %}
+                </form>
+            </section>
+
+            <section class="ao-card">
+                <h2 class="ao-card-title">Buyer's checkout address</h2>
+                <p class="ao-card-sub">{{ row.full_name }}{% if row.phone %} · {{ row.phone }}{% endif %}</p>
+                {% set addr_rows = data.address_rows %}
+                {% set addr_fallback = row.address %}
+                {% include 'address_display.html' %}
+            </section>
+        </div>
+
+        <aside class="ao-side">
+            {% if row.shipping_handler == 'OFFICER' %}
+            <section class="ao-card">
+                <h2 class="ao-card-title">Package recipient</h2>
+                <p class="ao-card-sub">Filled in by the member.</p>
+                <p class="ao-strong" style="margin:0;">{{ row.shipping_name or row.full_name }}</p>
+                <p class="ao-muted" style="margin:2px 0 0;">{{ row.shipping_phone or row.phone }}</p>
+                {% set addr_rows = data.shipping_address_rows or data.address_rows %}
+                {% set addr_fallback = row.shipping_address or row.address %}
+                {% include 'address_display.html' %}
+                {% if row.shipping_package_note %}<p class="ao-help" style="margin-top:12px;"><strong>Note:</strong> {{ row.shipping_package_note }}</p>{% endif %}
+                <div class="ao-section-gap">
+                    <p class="ao-label">Shipping label</p>
+                    <p class="ao-help" style="margin:0 0 12px;">Sender (member), recipient, items, and package note.</p>
+                    <div class="ao-actions">
+                        <a class="ao-btn" href="/admin/orders/{{ row.pkey }}/shipping-document" target="_blank" rel="noopener">Preview</a>
+                        <a class="ao-btn ao-btn-primary" href="/admin/orders/{{ row.pkey }}/shipping-document.pdf">Download PDF</a>
+                    </div>
+                </div>
+            </section>
+            {% endif %}
+
+            <section class="ao-card">
+                <h2 class="ao-card-title">Member shipping budget</h2>
+                <p class="ao-card-sub">What the member has available to cover officer shipping.</p>
+                <p class="ao-big">{{ elig.available }}</p>
+                <p class="ao-muted" style="margin: 0 0 12px;">Available now</p>
+                <dl class="ao-rows">
+                    <div><dt>Merch profit (paid orders)</dt><dd>{{ elig.merch or 'Rp 0' }}</dd></div>
+                    <div><dt>Support received</dt><dd>{{ elig.proposal or 'Rp 0' }}</dd></div>
+                    <div><dt>Self contribution</dt><dd>{{ elig.self_contribution or 'Rp 0' }}</dd></div>
+                    <div class="is-cut"><dt>Used by other shipments</dt><dd>−{{ elig.spent or 'Rp 0' }}</dd></div>
+                </dl>
+                <div class="ao-section-gap">
+                    <dl class="ao-rows">
+                        <div><dt>Minimum progress required</dt><dd>{{ elig.minimum }}</dd></div>
+                        <div><dt>Default packing fee</dt><dd>{{ elig.service_fee }}</dd></div>
+                    </dl>
+                    {% if elig.minimum_num == 0 %}
+                    <p class="ao-help">No minimum is set, so members can request officer shipping at any time.</p>
+                    {% endif %}
+                    <p class="ao-help">Change these rules in <a class="ao-link" href="/admin/settings?tab=shipping">Settings → Shipping</a>.</p>
+                </div>
+            </section>
+
+            {% if data.can_write and row.shipping_handler %}
+            <section class="ao-card ao-danger">
+                <h2 class="ao-card-title">Reset shipping choice</h2>
+                <p class="ao-card-sub">Clears the recipient, courier, costs, and tracking so the member can choose again.</p>
+                <form method="post" onsubmit="return confirm('Reset this shipping choice? Recipient, courier, costs, and tracking information will be cleared. The member can choose again.');">
+                    <input type="hidden" name="action" value="shipping_reset">
+                    <button class="ao-btn ao-btn-danger ao-btn-block" type="submit">Reset shipping choice</button>
+                </form>
+            </section>
+            {% endif %}
+        </aside>
+    </div>
+    {% endif %}
 </div>
 
-<h2 class="section-title" style="font-size: 20px; margin: 0 0 12px;">Items</h2>
-{% with table=data.item_table %}{% include 'admin_table.html' %}{% endwith %}
-
-<section class="pay-box" style="padding:18px; margin-top:20px;">
-    <p class="field-label">Checkout totals</p>
-    <dl class="dash-order-dl" style="margin-top:12px;">
-        <div><dt>Subtotal</dt><dd>{{ data.row.subtotal }}</dd></div>
-        <div><dt>Bahan baku</dt><dd>−{{ data.seller_economics.bahan }}</dd></div>
-        {% if data.seller_economics.discount_num > 0 %}
-        <div><dt>Referral discount</dt><dd>−{{ data.seller_economics.discount }}{% if data.row.referral_code %} ({{ data.row.referral_code }}){% endif %}</dd></div>
-        {% endif %}
-        <div><dt>Gross profit (referral credit)</dt><dd>{{ data.seller_economics.profit }}</dd></div>
-        {% if data.seller_economics.shipping_show %}
-        <div><dt>Shipping expense</dt><dd>−{{ data.seller_economics.shipping_delivery }}</dd></div>
-        <div><dt>Packing service</dt><dd>−{{ data.seller_economics.shipping_service_fee }}</dd></div>
-        {% endif %}
-        <div><dt><strong>Seller net</strong></dt><dd><strong>{{ data.seller_economics.net_seller }}</strong></dd></div>
-        <div><dt>Buyer paid (total)</dt><dd>{{ data.row.total }}</dd></div>
-    </dl>
-    {% if data.seller_economics.discount_num > 0 %}
-    <p class="product-meta" style="margin-top:10px;">Referral discount is taken from profit only — bahan baku stays full cost.</p>
-    {% endif %}
-    {% if data.seller_economics.shipping_show and not data.seller_economics.shipping_locked %}
-    <p class="product-meta" style="margin-top:10px;">Shipping cuts are saved on this order; they fully hit combined progress when officer status is Processing or later.</p>
-    {% endif %}
-</section>
-{% endif %}
-
-{% if data.order_tab == 'shipping' %}
-<section class="admin-block" style="margin-top: 0;">
-    {% if data.form_ok %}<p class="prose-fraco" style="margin-bottom:12px;">{{ data.form_ok }}</p>{% endif %}
-    {% if data.form_error %}<p class="prose-fraco" style="color:#b00000; margin-bottom:12px;">{{ data.form_error }}</p>{% endif %}
-
-    <div class="admin-order-stack">
-        <section class="pay-box" style="padding:18px;">
-            <p class="field-label">Member combined progress</p>
-            <p style="margin-top:8px; font-size:22px;"><strong>{{ data.shipping_eligibility.available }}</strong></p>
-            <p class="product-meta" style="margin-top:6px;">Available for shipping deductions</p>
-            <dl class="dash-order-dl" style="margin-top:14px; font-size:14px;">
-                <div><dt>Merch profit (Paid)</dt><dd>{{ data.shipping_eligibility.merch or 'Rp 0' }}</dd></div>
-                <div><dt>Support received</dt><dd>{{ data.shipping_eligibility.proposal or 'Rp 0' }}</dd></div>
-                <div><dt>Self contribution</dt><dd>{{ data.shipping_eligibility.self_contribution or 'Rp 0' }}</dd></div>
-                <div><dt>Other officer shipping</dt><dd>−{{ data.shipping_eligibility.spent or 'Rp 0' }}</dd></div>
-            </dl>
-        </section>
-        <section class="pay-box" style="padding:18px;">
-            <p class="field-label">Officer shipping rules (Settings)</p>
-            <p style="margin-top:8px;">Minimum progress: <strong>{{ data.shipping_eligibility.minimum }}</strong></p>
-            <p class="product-meta" style="margin-top:6px;">Default packing fee: {{ data.shipping_eligibility.service_fee }}</p>
-            {% if data.shipping_eligibility.minimum_num == 0 %}
-            <p class="product-meta" style="margin-top:10px;">Minimum is Rp 0 — members may request officer shipping without a progress threshold.</p>
-            {% endif %}
-            {% if data.seller_economics.shipping_show %}
-            <p class="product-meta" style="margin-top:10px;">This order: ship −{{ data.seller_economics.shipping_delivery }} · pack −{{ data.seller_economics.shipping_service_fee }}</p>
-            {% endif %}
-        </section>
-    </div>
-
-    <section class="pay-box" style="padding:18px; margin-bottom:20px;">
-        <p class="field-label">Alamat checkout pembeli</p>
-        <p class="product-meta" style="margin-top:6px;">{{ data.row.full_name }} · {{ data.row.phone }}</p>
-        {% set addr_rows = data.address_rows %}
-        {% set addr_fallback = data.row.address %}
-        {% include 'address_display.html' %}
-    </section>
-
-    {% if data.row.shipping_handler == 'OFFICER' %}
-    <div class="admin-order-stack">
-        <section class="pay-box" style="padding:18px;">
-            <p class="field-label">Package recipient (from member)</p>
-            <p style="margin-top:8px;"><strong>{{ data.row.shipping_name or data.row.full_name }}</strong></p>
-            <p class="product-meta" style="margin-top:6px;">{{ data.row.shipping_phone or data.row.phone }}</p>
-            {% set addr_rows = data.shipping_address_rows or data.address_rows %}
-            {% set addr_fallback = data.row.shipping_address or data.row.address %}
-            {% include 'address_display.html' %}
-            {% if data.row.shipping_package_note %}<p class="product-meta" style="margin-top:10px;">Note: {{ data.row.shipping_package_note }}</p>{% endif %}
-        </section>
-        <section class="pay-box" style="padding:18px;">
-            <p class="field-label">Dokumen pengiriman</p>
-            <p class="product-meta" style="margin:8px 0 14px;">Pengirim (member), penerima, barang, catatan paket.</p>
-            <div class="filter-row">
-                <a class="btn-line" href="/admin/orders/{{ data.row.pkey }}/shipping-document" target="_blank" rel="noopener">Pratinjau</a>
-                <a class="btn-black" href="/admin/orders/{{ data.row.pkey }}/shipping-document.pdf">Unduh PDF</a>
-            </div>
-        </section>
-    </div>
-    {% endif %}
-
-    <section class="pay-box" style="padding:18px; margin-bottom:20px;">
-        <p class="field-label">Update shipping</p>
-        <form class="form-stack" method="post" id="admin-shipping-form" style="margin-top:14px;">
-            <input type="hidden" name="action" value="shipping_update">
-            <div>
-                <label class="field-label" for="shipping_handler">Shipping type</label>
-                <select class="field" name="shipping_handler" id="shipping_handler" required>
-                    <option value="">Not selected</option>
-                    <option value="OFFICER"{% if data.row.shipping_handler == 'OFFICER' %} selected{% endif %}>Handled by FRACO officer</option>
-                    <option value="SELF"{% if data.row.shipping_handler == 'SELF' %} selected{% endif %}>Self-arranged by member</option>
-                </select>
-            </div>
-            <div id="admin-officer-shipping">
-                <div style="margin-top:12px;">
-                    <label class="field-label" for="shipping_request_status">Officer shipping status</label>
-                    <select class="field" name="shipping_request_status" id="shipping_request_status">
-                        {% for status in data.shipping_statuses %}
-                        <option value="{{ status.value }}"{% if data.row.shipping_request_status == status.value %} selected{% endif %}>{{ status.label }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div style="margin-top:12px;">
-                    <label class="field-label" for="shipping_expedition">Expedition</label>
-                    <select class="field" name="shipping_expedition" id="shipping_expedition">
-                        <option value="">Select expedition</option>
-                        {% if data.row.shipping_expedition and data.row.shipping_expedition not in data.shipping_expeditions %}
-                        <option value="{{ data.row.shipping_expedition }}" selected>{{ data.row.shipping_expedition }}</option>
-                        {% endif %}
-                        {% for expedition in data.shipping_expeditions %}
-                        <option value="{{ expedition }}"{% if data.row.shipping_expedition == expedition %} selected{% endif %}>{{ expedition }}</option>
-                        {% endfor %}
-                    </select>
-                    <p class="product-meta" style="margin-top:7px;"><a class="section-link" href="/admin/settings?tab=shipping">Settings → Shipping</a> expeditions</p>
-                </div>
-                <div class="admin-order-stack" style="margin-top:14px;">
-                    <div>
-                        <label class="field-label" for="shipping_service_fee_num">Packing / arrangement fee</label>
-                        <input class="field" type="number" min="0" step="1000" name="shipping_service_fee_num" id="shipping_service_fee_num" value="{{ data.row.shipping_service_fee_num or 0 }}" data-available="{{ data.shipping_eligibility.available_num }}">
-                    </div>
-                    <div>
-                        <label class="field-label" for="shipping_budget_num">Courier / shipping budget</label>
-                        <input class="field" type="number" min="0" step="1000" name="shipping_budget_num" id="shipping_budget_num" value="{{ data.row.shipping_budget_num or 0 }}">
-                    </div>
-                </div>
-                <p class="product-meta" id="shipping-expense-hint" style="margin-top:10px; display:none; color:#b00000;"></p>
-                <div style="margin-top:12px;"><label class="field-label" for="shipping_tracking_code">Tracking code</label><input class="field" name="shipping_tracking_code" id="shipping_tracking_code" value="{{ data.row.shipping_tracking_code or '' }}"></div>
-                <div style="margin-top:12px;"><label class="field-label" for="shipping_tracking_url">Tracking URL</label><input class="field" type="url" name="shipping_tracking_url" id="shipping_tracking_url" value="{{ data.row.shipping_tracking_url or '' }}" placeholder="https://..."></div>
-            </div>
-            {% if data.can_write %}<button class="btn-black" type="submit" style="margin-top:16px;">Save shipping information</button>{% endif %}
-        </form>
-        {% if data.can_write and data.row.shipping_handler %}
-        <form method="post" style="margin-top:16px;" onsubmit="return confirm('Reset this shipping choice? Recipient, expedition, budget, and tracking information will be cleared. The member can choose again.');">
-            <input type="hidden" name="action" value="shipping_reset">
-            <button class="btn-line" type="submit">Reset shipping choice</button>
-        </form>
-        {% endif %}
-    </section>
-</section>
-{% endif %}
-
-{% if data.order_tab == 'details' %}
-<form class="form-stack" method="post" style="margin-top: 28px;">
-    <div>
-        <label class="field-label" for="order_status">Order status</label>
-        <select class="field" name="order_status" id="order_status">
-            {% for item in data.statuses %}
-            <option value="{{ item }}"{% if data.row.order_status == item %} selected{% endif %}>{{ item }}</option>
-            {% endfor %}
-        </select>
-        <p class="product-meta" style="margin-top: 8px;">Typical flow: Preorder → Ready → Processing → Shipped → Completed.</p>
-    </div>
-    <div>
-        <label class="field-label" for="payment_status">Payment status</label>
-        <select class="field" name="payment_status" id="payment_status">
-            {% for item in data.pay_statuses %}
-            <option value="{{ item }}"{% if data.row.payment_status == item %} selected{% endif %}>{{ item }}</option>
-            {% endfor %}
-        </select>
-    </div>
-    <div>
-        <label class="field-label" for="notes">Notes</label>
-        <textarea class="field" name="notes" id="notes" rows="3">{{ data.row.notes }}</textarea>
-    </div>
-    {% if data.can_write %}
-    <button class="btn-black" type="submit">Update</button>
-    {% endif %}
-</form>
-{% if data.can_delete %}
-<form method="post" style="margin-top: 16px;" onsubmit="return confirm('Delete this order? Its sale, profit, and shipping expense will stop counting in admin, Finance, and the member target.');">
-    <input type="hidden" name="action" value="delete">
-    <input type="hidden" name="pkey" value="{{ data.row.pkey }}">
-    <button class="btn-line" type="submit">Delete order</button>
-</form>
-{% endif %}
-{% endif %}
 <script>
 (function () {
-    var handler = document.getElementById("shipping_handler");
+    var steps = document.querySelector(".ao-steps");
+    var currentStep = steps && steps.querySelector(".is-current");
+    if (steps && currentStep && steps.scrollWidth > steps.clientWidth) {
+        steps.scrollLeft = currentStep.offsetLeft - (steps.clientWidth - currentStep.clientWidth) / 2;
+    }
+
+    var statusHelp = {{ status_help|tojson }};
+    var orderStatus = document.getElementById("order_status");
+    var orderStatusHelp = document.getElementById("order-status-help");
+    if (orderStatus && orderStatusHelp) {
+        orderStatus.addEventListener("change", function () {
+            orderStatusHelp.textContent = statusHelp[orderStatus.value] || "";
+        });
+    }
+
+    var handlers = Array.prototype.slice.call(document.querySelectorAll(".js-shipping-handler"));
     var officer = document.getElementById("admin-officer-shipping");
-    if (!handler || !officer) return;
+    if (!handlers.length || !officer) return;
+    function handlerValue() {
+        var checked = handlers.filter(function (input) { return input.checked; })[0];
+        return checked ? checked.value : "";
+    }
     function syncShippingType() {
-        officer.style.display = handler.value === "OFFICER" ? "" : "none";
+        officer.style.display = handlerValue() === "OFFICER" ? "" : "none";
+    }
+    function rupiah(n) {
+        return "Rp " + n.toLocaleString("id-ID");
     }
     function syncExpenseLimits() {
         var serviceFee = document.getElementById("shipping_service_fee_num");
         var shippingBudget = document.getElementById("shipping_budget_num");
         var hint = document.getElementById("shipping-expense-hint");
+        var total = document.getElementById("shipping-expense-total");
         if (!serviceFee || !shippingBudget) return;
         var available = parseInt(serviceFee.dataset.available || "0", 10);
-        var feeValue = Math.max(0, parseInt(serviceFee.value || "0", 10));
-        var budgetValue = Math.max(0, parseInt(shippingBudget.value || "0", 10));
+        var feeValue = Math.max(0, parseInt(serviceFee.value || "0", 10) || 0);
+        var budgetValue = Math.max(0, parseInt(shippingBudget.value || "0", 10) || 0);
+        if (total) total.textContent = rupiah(feeValue + budgetValue);
         if (hint) {
             if (available > 0 && feeValue + budgetValue > available) {
                 hint.style.display = "";
-                hint.textContent = "Note: service fee + budget (Rp " + (feeValue + budgetValue).toLocaleString("id-ID") + ") exceeds available combined progress (Rp " + available.toLocaleString("id-ID") + "). Admin can still save; the full amount is recorded as a deduction.";
+                hint.textContent = "Heads up: these costs (" + rupiah(feeValue + budgetValue) + ") are more than the member's available budget (" + rupiah(available) + "). You can still save — the full amount is recorded as a deduction.";
             } else {
                 hint.style.display = "none";
                 hint.textContent = "";
             }
         }
     }
-    handler.addEventListener("change", syncShippingType);
+    handlers.forEach(function (input) { input.addEventListener("change", syncShippingType); });
     var serviceFee = document.getElementById("shipping_service_fee_num");
     var shippingBudget = document.getElementById("shipping_budget_num");
     if (serviceFee) serviceFee.addEventListener("input", syncExpenseLimits);

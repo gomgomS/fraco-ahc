@@ -234,7 +234,7 @@ class participate_proc:
                 session["cart_sid"] = sid
             # end if
         # end if
-        password_hash = generate_password_hash(password)
+        password_hash = generate_password_hash(password, method="pbkdf2:sha256")
         reg_id = "FRP" + str(int(time.time()))
         rec = database.new(self.mgdDB, "db_participant")
         rec.put("fk_user_id", "")
