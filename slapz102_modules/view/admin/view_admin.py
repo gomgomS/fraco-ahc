@@ -911,6 +911,16 @@ def html_product_form(pkey=""):
         if existing_gallery == [] and old_image != "":
             existing_gallery = [old_image]
         # end if
+        saved_gallery = list(existing_gallery)
+        removed_images = [
+            item for item in request.form.getlist("remove_images") if item in existing_gallery
+        ]
+        if removed_images != []:
+            existing_gallery = [item for item in existing_gallery if item not in removed_images]
+            if image in removed_images:
+                image = existing_gallery[0] if existing_gallery != [] else ""
+            # end if
+        # end if
         upload_files = [
             file_obj for file_obj in request.files.getlist("image_file")
             if file_obj != None and file_obj.filename != ""
@@ -919,7 +929,7 @@ def html_product_form(pkey=""):
         if len(upload_files) + len(kept_existing) > 12:
             fields = _decorate_product_form(proc, _keep_product_assets(_product_fields(proc, params), rec))
             fields["image"] = image or old_image
-            fields["images"] = existing_gallery
+            fields["images"] = saved_gallery
             data = proc.page("products", {
                 "row": fields,
                 "form_error": "A product can have up to 12 images. Remove some images before uploading more.",
@@ -946,7 +956,7 @@ def html_product_form(pkey=""):
             # end for
             fields = _decorate_product_form(proc, _keep_product_assets(_product_fields(proc, params), rec))
             fields["image"] = image or old_image
-            fields["images"] = existing_gallery
+            fields["images"] = saved_gallery
             data = proc.page("products", {
                 "row": fields,
                 "form_error": upload_error,
@@ -984,10 +994,10 @@ def html_product_form(pkey=""):
                 proc.delete_local_upload(uploaded_image)
             # end for
             fields["image"] = old_image
-            fields["images"] = existing_gallery
+            fields["images"] = saved_gallery
             data = proc.page("products", {
                 "row": _decorate_product_form(proc, _keep_product_assets(fields, rec)),
-                "form_error": assets_result.get("desc", "Could not upload assets zip"),
+                "form_error": assets_result.get("desc", "Could not upload assets file"),
                 "statuses": proc.PRODUCT_STATUSES,
                 "categories": _product_category_options(proc, fields)
             })
@@ -1007,6 +1017,11 @@ def html_product_form(pkey=""):
             if uploaded_images != [] and old_image != "" and old_image != image and not proc.product_image_in_use(old_image, pkey):
                 proc.delete_local_upload(old_image)
             # end if
+            for removed_image in removed_images:
+                if removed_image not in (fields.get("images") or []) and not proc.product_image_in_use(removed_image, pkey):
+                    proc.delete_local_upload(removed_image)
+                # end if
+            # end for
             if old_assets != "" and "assets_zip" in fields and fields.get("assets_zip") != old_assets:
                 proc.delete_product_assets(old_assets, pkey)
             # end if
@@ -1017,7 +1032,7 @@ def html_product_form(pkey=""):
         # end for
         if uploaded_images != []:
             fields["image"] = old_image
-            fields["images"] = existing_gallery
+            fields["images"] = saved_gallery
         # end if
         if assets_result.get("status") == "SUCCESS":
             proc.delete_product_assets(assets_result.get("stored"), pkey)
@@ -1055,13 +1070,14 @@ def download_product_assets(pkey):
     if path == None:
         return "Not found", 404
     # end if
-    download_name = rec.get("assets_zip_name") or ((rec.get("slug") or "product") + "-assets.zip")
-    return _send_zip(path, download_name)
+    ext = "." + path.rsplit(".", 1)[-1].lower()
+    download_name = rec.get("assets_zip_name") or ((rec.get("slug") or "product") + "-assets" + ext)
+    return _send_archive(path, download_name)
 # end def
 
-def _send_zip(path_or_file, download_name):
+def _send_archive(path_or_file, download_name):
     send_kwargs = {
-        "mimetype": "application/zip",
+        "mimetype": admin_proc.assets_mimetype(download_name),
         "as_attachment": True
     }
     # Flask < 2.0 only accepts attachment_filename.
@@ -1088,7 +1104,7 @@ def download_order_assets(pkey):
         return "No product assets for this order", 404
     # end if
     if len(files) == 1:
-        return _send_zip(files[0].get("path"), files[0].get("download_name"))
+        return _send_archive(files[0].get("path"), files[0].get("download_name"))
     # end if
     bundle = tempfile.SpooledTemporaryFile(max_size=32 * 1024 * 1024)
     with zipfile.ZipFile(bundle, "w", zipfile.ZIP_STORED) as archive:
@@ -1098,7 +1114,7 @@ def download_order_assets(pkey):
     # end with
     bundle.seek(0)
     order_id = re.sub(r"[^A-Za-z0-9_-]", "", rec.get("order_id") or "order") or "order"
-    return _send_zip(bundle, order_id + "-assets.zip")
+    return _send_archive(bundle, order_id + "-assets.zip")
 # end def
 
 def html_tutorials():

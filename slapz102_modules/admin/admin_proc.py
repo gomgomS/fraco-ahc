@@ -32,6 +32,7 @@ class admin_proc:
     ALLOWED_EXT = ["pdf", "doc", "docx", "jpg", "jpeg", "png", "webp"]
     IMAGE_EXT = ["jpg", "jpeg", "png", "webp", "gif"]
     PRODUCT_ASSETS_MAX_BYTES = 200 * 1024 * 1024
+    PRODUCT_ASSETS_EXT = ["zip", "rar"]
     PAGE_SIZE = 20
     DEFAULT_MERCHANDISE_CATEGORIES = ["Apparel", "Accessories", "Member Kit", "Other"]
     DEFAULT_SHIPPING_EXPEDITIONS = ["JNE", "J&T Express", "SiCepat", "AnterAja", "POS Indonesia", "GoSend", "GrabExpress", "Other"]
@@ -3244,6 +3245,28 @@ class admin_proc:
         return full
     # end def
 
+    def is_assets_archive(self, path, ext):
+        if ext == "zip":
+            return zipfile.is_zipfile(path)
+        # end if
+        if ext == "rar":
+            with open(path, "rb") as handle:
+                head = handle.read(8)
+            # end with
+            # RAR 4.x signature, then RAR 5.x signature.
+            return head[0:7] == b"Rar!\x1a\x07\x00" or head[0:8] == b"Rar!\x1a\x07\x01\x00"
+        # end if
+        return False
+    # end def
+
+    @staticmethod
+    def assets_mimetype(name):
+        if (name or "").lower().endswith(".rar"):
+            return "application/vnd.rar"
+        # end if
+        return "application/zip"
+    # end def
+
     def save_product_assets(self, file_obj):
         response = {"status": "FAILED", "desc": "", "stored": "", "name": "", "size": 0}
         if file_obj == None or file_obj.filename == "":
@@ -3252,8 +3275,8 @@ class admin_proc:
         # end if
         name = secure_filename(file_obj.filename)
         ext = name.rsplit(".", 1)[-1].lower() if "." in name else ""
-        if ext != "zip":
-            response["desc"] = "Assets must be a .zip file"
+        if ext not in self.PRODUCT_ASSETS_EXT:
+            response["desc"] = "Assets must be a .zip or .rar file"
             return response
         # end if
         dest_dir = self.product_assets_dir()
@@ -3261,18 +3284,18 @@ class admin_proc:
             os.makedirs(dest_dir)
         # end if
         stem = name.rsplit(".", 1)[0] or "assets"
-        stored = stem + "-" + idgen._get_api_call_id() + ".zip"
+        stored = stem + "-" + idgen._get_api_call_id() + "." + ext
         full = os.path.join(dest_dir, stored)
         file_obj.save(full)
         size = os.path.getsize(full)
         if size > self.PRODUCT_ASSETS_MAX_BYTES:
             os.remove(full)
-            response["desc"] = "Assets zip is larger than " + str(self.PRODUCT_ASSETS_MAX_BYTES // (1024 * 1024)) + " MB"
+            response["desc"] = "Assets file is larger than " + str(self.PRODUCT_ASSETS_MAX_BYTES // (1024 * 1024)) + " MB"
             return response
         # end if
-        if not zipfile.is_zipfile(full):
+        if not self.is_assets_archive(full, ext):
             os.remove(full)
-            response["desc"] = "That file is not a valid zip archive"
+            response["desc"] = "That file is not a valid ." + ext + " archive"
             return response
         # end if
         response["status"] = "SUCCESS"
@@ -3322,13 +3345,17 @@ class admin_proc:
             if path == None:
                 continue
             # end if
-            base = secure_filename(product.get("assets_zip_name") or "") or "assets.zip"
+            ext = "." + (path.rsplit(".", 1)[-1].lower() if "." in path else "zip")
+            base = secure_filename(product.get("assets_zip_name") or "") or ("assets" + ext)
+            if not base.lower().endswith(ext):
+                base = base + ext
+            # end if
             slug = self.slugify(product.get("slug") or product.get("name") or "product") or "product"
             name = slug + "-" + base if not base.startswith(slug) else base
-            stem = name[:-4] if name.lower().endswith(".zip") else name
+            stem = name[:-len(ext)]
             counter = 2
             while name in used_names:
-                name = stem + "-" + str(counter) + ".zip"
+                name = stem + "-" + str(counter) + ext
                 counter = counter + 1
             # end while
             used_names.append(name)

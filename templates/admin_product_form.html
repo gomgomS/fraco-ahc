@@ -131,34 +131,58 @@
     </div>
     {% set current_images = data.row.images if data.row.images else ([data.row.image] if data.row.image else []) %}
     {% if current_images %}
+    <style>
+    .pf-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; margin-top: 10px; max-width: 640px; }
+    .pf-tile { position: relative; }
+    .pf-tile img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; border: 2px solid #ddd; transition: opacity .15s; }
+    .pf-tile.is-cover img { border-color: #111; }
+    .pf-remove {
+        display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; margin-top: 6px; padding: 6px 8px;
+        border: 1px solid #ddd; border-radius: 6px; font-size: 13px; cursor: pointer; user-select: none; background: #fff;
+    }
+    .pf-remove:hover { border-color: #b00000; color: #b00000; }
+    .pf-remove input { width: 15px; height: 15px; margin: 0; accent-color: #b00000; }
+    .pf-tile:has(input:checked) img { opacity: .3; border-color: #b00000; }
+    .pf-tile:has(input:checked) .pf-remove { border-color: #b00000; color: #b00000; background: #fdf4f4; }
+    .pf-tile:has(input:checked)::after {
+        content: "Will be removed"; position: absolute; top: 8px; left: 8px; right: 8px; padding: 3px 6px; border-radius: 4px;
+        background: #b00000; color: #fff; font-size: 11px; text-align: center;
+    }
+    </style>
     <div>
         <p class="product-meta">Current product gallery · {{ current_images|length }} image{% if current_images|length != 1 %}s{% endif %}</p>
-        <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(90px,1fr)); gap:10px; margin-top:10px; max-width:620px;">
+        {% if data.can_write %}<p class="product-meta" style="margin-top: 4px;">To delete an image, tick <strong>Remove</strong> under it, then click <strong>Save product</strong>. If you remove the cover, the next image becomes the cover.</p>{% endif %}
+        <div class="pf-gallery">
             {% for image in current_images %}
-            <div>
-                <img src="{{ image }}" alt="{{ data.row.name or 'Product' }} image {{ loop.index }}" style="display:block; width:100%; aspect-ratio:1; object-fit:cover; border:2px solid {% if loop.first %}#111{% else %}#ddd{% endif %};">
+            <div class="pf-tile{% if loop.first %} is-cover{% endif %}">
+                <img src="{{ image }}" alt="{{ data.row.name or 'Product' }} image {{ loop.index }}">
                 <p class="product-meta" style="margin-top:4px;">{% if loop.first %}Cover{% else %}Image {{ loop.index }}{% endif %}</p>
+                {% if data.can_write %}
+                <label class="pf-remove">
+                    <input type="checkbox" name="remove_images" value="{{ image }}"> Remove
+                </label>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
     </div>
     {% endif %}
     <div class="pay-box" style="padding: 16px;">
-        <label class="field-label" for="assets_file" style="margin: 0;">Assets zip (admin only)</label>
-        <p class="product-meta" style="margin-top: 8px;">Design files, mockups, or print-ready artwork for this product. Stored privately — customers never see it. One .zip per product, max 200 MB; uploading a new one replaces the old one.</p>
+        <label class="field-label" for="assets_file" style="margin: 0;">Assets file (admin only)</label>
+        <p class="product-meta" style="margin-top: 8px;">Design files, mockups, or print-ready artwork for this product. Stored privately — customers never see it. One .zip or .rar per product, max 200 MB; uploading a new one replaces the old one.</p>
         {% if data.row.assets_zip %}
         <p class="prose-fraco" style="margin-top: 12px;">
-            Current: <a class="section-link" href="/admin/products/{{ data.row.pkey }}/assets">{{ data.row.assets_zip_name or 'assets.zip' }}</a>
+            Current: <a class="section-link" href="/admin/products/{{ data.row.pkey }}/assets">{{ data.row.assets_zip_name or 'assets' }}</a>
             {% if data.row.assets_zip_size_label %}<span class="product-meta">· {{ data.row.assets_zip_size_label }}</span>{% endif %}
         </p>
         {% if data.can_write %}
         <label class="field-label" style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
-            <input type="checkbox" name="remove_assets" value="1"> Remove current assets zip
+            <input type="checkbox" name="remove_assets" value="1"> Remove current assets file
         </label>
         {% endif %}
         {% endif %}
         {% if data.can_write %}
-        <input class="field" type="file" name="assets_file" id="assets_file" accept=".zip,application/zip" style="margin-top: 12px;">
+        <input class="field" type="file" name="assets_file" id="assets_file" accept=".zip,.rar,application/zip,application/vnd.rar,application/x-rar-compressed" style="margin-top: 12px;">
         {% endif %}
     </div>
     <div>

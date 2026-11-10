@@ -220,7 +220,7 @@
                     <td class="ao-c-status">{{ aom.status_badge(o.order_status) }}</td>
                     <td class="ao-c-assets">
                         {% if o.assets_count %}
-                        <a class="ao-btn ao-btn-sm" href="{{ o.href }}/assets" download title="Download the product asset zip{% if o.assets_count > 1 %}s ({{ o.assets_count }} products, bundled){% endif %}">
+                        <a class="ao-btn ao-btn-sm" href="{{ o.href }}/assets" download title="Download the product asset file{% if o.assets_count > 1 %}s ({{ o.assets_count }} products, bundled in one zip){% endif %}">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"></path><path d="M7 10l5 5 5-5"></path><path d="M5 21h14"></path></svg>
                             Download{% if o.assets_count > 1 %} ({{ o.assets_count }}){% endif %}
                         </a>
