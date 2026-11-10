@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Tutorials | FRACO{% endblock %}
+
+{% block content %}
+<style>
+.tpub { max-width: 760px; margin: 0 auto; padding: 56px 20px 96px; color: #242424; }
+.tpub-head h1 { margin: 0; font-family: var(--font-display); font-size: 42px; font-weight: 800; letter-spacing: -0.02em; }
+.tpub-head p { margin: 8px 0 0; font-size: 17px; color: #6b6b6b; }
+.tpub-list { margin-top: 32px; border-top: 1px solid #f2f2f2; }
+.tpub-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; padding: 28px 0; border-bottom: 1px solid #f2f2f2; color: inherit; }
+.tpub-item h2 { margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 700; line-height: 1.3; letter-spacing: -0.01em; }
+.tpub-item:hover h2 { text-decoration: underline; text-underline-offset: 4px; }
+.tpub-excerpt { margin: 8px 0 0; font-family: "Source Serif 4", Charter, Georgia, serif; font-size: 17px; line-height: 1.55; color: #6b6b6b; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.tpub-meta { margin-top: 12px; font-size: 13px; color: #6b6b6b; }
+.tpub-thumb { width: 140px; height: 105px; object-fit: cover; border-radius: 4px; background: #f2f2f2; }
+.tpub-empty { padding: 64px 0; text-align: center; color: #6b6b6b; font-size: 17px; }
+@media (max-width: 640px) {
+    .tpub { padding-top: 32px; }
+    .tpub-head h1 { font-size: 32px; }
+    .tpub-thumb { width: 88px; height: 88px; }
+}
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+
+<section class="tpub">
+    <header class="tpub-head">
+        <h1>Tutorials</h1>
+        <p>Step-by-step guides from the FRACO team.</p>
+    </header>
+    <div class="tpub-list">
+        {% for t in data.tutorials %}
+        <a class="tpub-item" href="/tutorials/{{ t.slug }}">
+            <div>
+                <h2>{{ t.title }}</h2>
+                {% if t.excerpt %}<p class="tpub-excerpt">{{ t.excerpt }}</p>{% endif %}
+                <p class="tpub-meta">{{ t.published_date }} · {{ t.read_minutes or 1 }} min read{% if t.author_name %} · {{ t.author_name }}{% endif %}</p>
+            </div>
+            {% if t.cover_image %}<img class="tpub-thumb" src="{{ t.cover_image }}" alt="" loading="lazy">{% endif %}
+        </a>
+        {% else %}
+        <p class="tpub-empty">No tutorials yet. Check back soon.</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

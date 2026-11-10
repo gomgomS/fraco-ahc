@@ -27,6 +27,11 @@ body { margin: 0; background: #fff; color: var(--tut-text); font-family: var(--t
     max-width: 1080px; margin: 0 auto; padding: 14px 24px; background: rgba(255, 255, 255, .96);
 }
 .tut-bar-left, .tut-bar-right { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.tut-bar-right { flex-wrap: wrap; justify-content: flex-end; gap: 4px 6px; }
+@media (max-width: 900px) {
+    .tut-bar { flex-wrap: wrap; }
+    .tut-pill { padding: 7px 11px; }
+}
 .tut-logo { font-weight: 800; font-size: 22px; letter-spacing: .12em; color: var(--tut-text); }
 .tut-state { font-size: 14px; color: var(--tut-muted); white-space: nowrap; }
 .tut-state strong { color: var(--tut-text); font-weight: 600; }
@@ -112,6 +117,13 @@ body { margin: 0; background: #fff; color: var(--tut-text); font-family: var(--t
 .tut-toast.is-error { background: #c94a4a; }
 .tut-toast.is-hidden { opacity: 0; pointer-events: none; }
 
+.tut-slug { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin: -4px 0 32px; font-family: var(--tut-sans); font-size: 13px; color: var(--tut-muted); }
+.tut-slug label { font-weight: 600; color: var(--tut-text); }
+.tut-slug-field { display: inline-flex; align-items: center; min-width: 0; max-width: 100%; padding: 4px 10px; border: 1px solid #e6e6e6; border-radius: 6px; background: #fafafa; }
+.tut-slug-field:focus-within { border-color: var(--tut-green); background: #fff; }
+.tut-slug-prefix { color: var(--tut-faint); white-space: nowrap; }
+.tut-slug-field input { min-width: 120px; width: 26ch; max-width: 100%; padding: 2px 0; border: 0; background: transparent; outline: none; font-family: var(--tut-sans); font-size: 13px; color: var(--tut-text); }
+.tut-slug-hint { color: var(--tut-faint); }
 .tut-restore {
     display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px 14px; margin: 0 auto; padding: 10px 24px;
     max-width: 1080px; background: #fef8e6; border-top: 1px solid #f3e2b0; border-bottom: 1px solid #f3e2b0; font-size: 14px; color: #5c4400;
@@ -144,6 +156,7 @@ body { margin: 0; background: #fff; color: var(--tut-text); font-family: var(--t
         <span class="tut-state"><strong id="tut-status-label">{{ 'Published' if is_published else 'Draft' }}</strong><span class="tut-hide-sm" id="tut-save-state">{% if row.pkey %} · Saved{% endif %}</span></span>
     </div>
     <div class="tut-bar-right">
+        {% if is_published and row.slug %}<a class="tut-pill" href="/tutorials/{{ row.slug }}" target="_blank" rel="noopener">View live ↗</a>{% endif %}
         <a class="tut-pill tut-hide-sm" href="/admin/tutorials{% if is_published %}?tab=published{% endif %}">Close</a>
         {% if data.can_write %}
         {% if data.can_delete and row.pkey %}
@@ -173,6 +186,14 @@ body { margin: 0; background: #fff; color: var(--tut-text); font-family: var(--t
 <main class="tut-page{% if not data.can_write %} tut-read{% endif %}">
     {% if data.can_write %}
     <h1 class="tut-title" id="tut-title" contenteditable="true" data-placeholder="Title" spellcheck="true">{{ row.title or '' }}</h1>
+    <div class="tut-slug">
+        <label for="tut-slug">Public link</label>
+        <div class="tut-slug-field">
+            <span class="tut-slug-prefix">{{ data.public_host }}/tutorials/</span>
+            <input id="tut-slug" type="text" value="{{ row.slug or '' }}" placeholder="follows-the-title" spellcheck="false" autocomplete="off" maxlength="80" data-auto="{{ '0' if row.slug else '1' }}">
+        </div>
+        <span class="tut-slug-hint">{% if is_published %}Changing this breaks links people already shared.{% else %}Visible once published. Letters, numbers, and dashes.{% endif %}</span>
+    </div>
     {% else %}
     <h1 class="tut-title">{{ row.title or 'Untitled' }}</h1>
     <p class="tut-meta-line">{% if row.author_name %}{{ row.author_name }} · {% endif %}{{ row.read_minutes or 1 }} min read{% if row.edited_ago %} · Updated {{ row.edited_ago }}{% endif %}</p>
@@ -220,14 +241,17 @@ body { margin: 0; background: #fff; color: var(--tut-text); font-family: var(--t
 
 <form method="post" id="tut-form" hidden>
     <input type="hidden" name="title" id="tut-title-input">
+    <input type="hidden" name="slug" id="tut-slug-input">
     <input type="hidden" name="content" id="tut-content-input">
 </form>
 {% endif %}
 
 {% if data.editor_error %}
 <div class="tut-toast is-error" id="tut-toast">{{ data.editor_error }}</div>
+{% elif data.slug_taken %}
+<div class="tut-toast" id="tut-toast">That link was already used, so it was saved as /tutorials/{{ row.slug }}</div>
 {% elif data.saved == 'published' %}
-<div class="tut-toast" id="tut-toast">Published</div>
+<div class="tut-toast" id="tut-toast">Published · /tutorials/{{ row.slug }}</div>
 {% elif data.saved == 'draft' %}
 <div class="tut-toast" id="tut-toast">Draft saved</div>
 {% endif %}
@@ -265,6 +289,7 @@ body { margin: 0; background: #fff; color: var(--tut-text); font-family: var(--t
         try {
             localStorage.setItem(BACKUP_KEY, JSON.stringify({
                 title: titleEl.innerText.trim(),
+                slug: slugEl ? slugEl.value : "",
                 content: body.innerHTML,
                 at: Date.now()
             }));
@@ -552,7 +577,36 @@ body { margin: 0; background: #fff; color: var(--tut-text); font-family: var(--t
         ensureStructure();
         syncPlus();
     });
-    titleEl.addEventListener("input", markDirty);
+    titleEl.addEventListener("input", function () {
+        markDirty();
+        if (slugEl && slugEl.dataset.auto === "1") slugEl.value = slugify(titleEl.innerText);
+    });
+
+    /* Public link (slug) */
+    var slugEl = document.getElementById("tut-slug");
+    function slugify(text) {
+        return (text || "").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80).replace(/-+$/, "");
+    }
+    if (slugEl) {
+        slugEl.addEventListener("input", function () {
+            slugEl.dataset.auto = slugEl.value.trim() === "" ? "1" : "0";
+            markDirty();
+        });
+        slugEl.addEventListener("blur", function () {
+            slugEl.value = slugify(slugEl.value);
+            if (slugEl.value === "") {
+                slugEl.dataset.auto = "1";
+                slugEl.value = slugify(titleEl.innerText);
+            }
+        });
+        slugEl.addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                placeCaret(body.firstElementChild || body, false);
+            }
+        });
+    }
 
     /* Paste & drop: images upload, everything else becomes clean text */
     function pastePlain(event, target) {
@@ -691,6 +745,7 @@ body { margin: 0; background: #fff; color: var(--tut-text); font-family: var(--t
             return;
         }
         document.getElementById("tut-title-input").value = title;
+        document.getElementById("tut-slug-input").value = slugEl ? slugify(slugEl.value) : "";
         document.getElementById("tut-content-input").value = serialize();
         writeBackup();
         submitting = true;
@@ -735,6 +790,10 @@ body { margin: 0; background: #fff; color: var(--tut-text); font-family: var(--t
         bar.hidden = false;
         document.getElementById("tut-restore-yes").addEventListener("click", function () {
             titleEl.textContent = saved.title || "";
+            if (slugEl && saved.slug) {
+                slugEl.value = saved.slug;
+                slugEl.dataset.auto = "0";
+            }
             body.innerHTML = saved.content || "<p><br></p>";
             Array.prototype.forEach.call(body.querySelectorAll("figure.is-uploading"), function (el) { el.remove(); });
             ensureStructure();

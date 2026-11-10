@@ -22,6 +22,7 @@ from reportlab.lib.units import mm
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 import idgen
 import sanitize
+from slapz102_core import config
 from admin.admin_proc import admin_proc
 from tutorial.tutorial_proc import tutorial_proc
 
@@ -1175,21 +1176,29 @@ def html_tutorial_form(pkey=""):
             return redirect("/admin/tutorials?tab=" + ("published" if rec.get("status") == "PUBLISHED" else "drafts"))
         # end if
         title = html_lib.unescape(params.get("title") or "")
+        slug = html_lib.unescape(params.get("slug") or "")
         content = sanitize.clean_rich_html(request.form.get("content") or "")
         status = (params.get("status") or "DRAFT").strip().upper()
-        result = tut.save_tutorial(pkey, title, content, status, proc.current_admin())
+        result = tut.save_tutorial(pkey, title, content, status, proc.current_admin(), slug)
         if result.get("status") == "SUCCESS":
-            return redirect("/admin/tutorials/" + result.get("pkey") + "?saved=" + ("published" if status == "PUBLISHED" else "draft"))
+            target = "/admin/tutorials/" + result.get("pkey") + "?saved=" + ("published" if status == "PUBLISHED" else "draft")
+            if result.get("slug_adjusted"):
+                target = target + "&slug_taken=1"
+            # end if
+            return redirect(target)
         # end if
         form_error = result.get("desc") or "Could not save"
         rec = dict(rec)
         rec["title"] = title
+        rec["slug"] = slug
         rec["content"] = content
     # end if
     data = proc.page("tutorials", {
         "row": rec,
         "editor_error": form_error,
-        "saved": (request.args.get("saved") or "").strip()
+        "saved": (request.args.get("saved") or "").strip(),
+        "slug_taken": (request.args.get("slug_taken") or "") == "1",
+        "public_host": re.sub(r"^https?://", "", config.G_PUBLIC_SITE_URL).rstrip("/")
     })
     return render_template("admin_tutorial_editor.html", data=data)
 # end def

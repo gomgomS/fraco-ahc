@@ -36,8 +36,8 @@ class tutorial_proc:
         return slug or "tutorial"
     # end def
 
-    def unique_slug(self, title, pkey=""):
-        base = self.slugify(title)
+    def unique_slug(self, text, pkey=""):
+        base = self.slugify(text)[0:80].strip("-") or "tutorial"
         slug = base
         counter = 2
         while self.mgdDB.db_tutorial.find_one(
@@ -150,8 +150,8 @@ class tutorial_proc:
         return self.decorate(rec)
     # end def
 
-    def save_tutorial(self, pkey, title, content_html, status, admin=None):
-        response = {"status": "FAILED", "desc": "", "pkey": pkey}
+    def save_tutorial(self, pkey, title, content_html, status, admin=None, slug=""):
+        response = {"status": "FAILED", "desc": "", "pkey": pkey, "slug": "", "slug_adjusted": False}
         title = (title or "").strip()
         if title == "":
             response["desc"] = "Add a title before saving."
@@ -160,10 +160,23 @@ class tutorial_proc:
         if status not in self.STATUSES:
             status = "DRAFT"
         # end if
+        existing = None
+        if pkey != "":
+            existing = self.get_tutorial(pkey)
+            if existing == None:
+                response["desc"] = "Tutorial not found"
+                return response
+            # end if
+        # end if
+        # Keep the saved slug when none is typed, so editing the title never breaks a shared link.
+        wanted = (slug or "").strip() or ((existing or {}).get("slug") or "") or title
+        final_slug = self.unique_slug(wanted, pkey)
+        response["slug"] = final_slug
+        response["slug_adjusted"] = (slug or "").strip() != "" and final_slug != self.slugify(slug)[0:80].strip("-")
         now = self.now_str()
         fields = {
             "title": title[0:200],
-            "slug": self.unique_slug(title, pkey),
+            "slug": final_slug,
             "content": content_html or "",
             "excerpt": self.excerpt(content_html),
             "cover_image": self.first_image(content_html),
@@ -186,17 +199,35 @@ class tutorial_proc:
             response["status"] = "SUCCESS"
             return response
         # end if
-        existing = self.get_tutorial(pkey)
-        if existing == None:
-            response["desc"] = "Tutorial not found"
-            return response
-        # end if
         if status == "PUBLISHED" and (existing.get("published_str") or "") == "":
             fields["published_str"] = now
         # end if
         self.mgdDB.db_tutorial.update_one({"pkey": pkey}, {"$set": fields})
         response["status"] = "SUCCESS"
         return response
+    # end def
+
+    def list_published(self):
+        recs = list(self.mgdDB.db_tutorial.find(
+            {"is_deleted": False, "status": "PUBLISHED"},
+            {"_id": 0, "content": 0}
+        ).sort("published_str", -1))
+        for rec in recs:
+            rec["published_date"] = (rec.get("published_str") or rec.get("rec_timestamp_str") or "")[0:10]
+        # end for
+        return recs
+    # end def
+
+    def get_published(self, slug):
+        rec = self.mgdDB.db_tutorial.find_one(
+            {"slug": (slug or "").strip().lower(), "is_deleted": False, "status": "PUBLISHED"},
+            {"_id": 0}
+        )
+        if rec == None:
+            return None
+        # end if
+        rec["published_date"] = (rec.get("published_str") or rec.get("rec_timestamp_str") or "")[0:10]
+        return rec
     # end def
 
     def delete_tutorial(self, pkey):

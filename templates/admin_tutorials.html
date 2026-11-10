@@ -58,6 +58,10 @@
                 <span class="tut-dot">·</span>
                 <span>{{ t.read_minutes or 1 }} min read</span>
                 {% if t.author_name %}<span class="tut-dot">·</span><span>{{ t.author_name }}</span>{% endif %}
+                {% if data.tab == 'published' and t.slug %}
+                <span class="tut-dot">·</span>
+                <a href="/tutorials/{{ t.slug }}" target="_blank" rel="noopener">View ↗</a>
+                {% endif %}
                 {% if data.can_write %}
                 <span class="tut-dot">·</span>
                 <a href="/admin/tutorials/{{ t.pkey }}">Edit</a>
