@@ -10,6 +10,8 @@ from slapz102_core import config
 
 app = Flask(__name__)
 app.secret_key = config.G_FLASK_SECRET
+# The app sits behind an HTTPS proxy but sees plain http, so absolute redirects would downgrade to http://.
+app.response_class.autocorrect_location_header = False
 
 from home.home_blueprint import home_blueprint
 from about.about_blueprint import about_blueprint

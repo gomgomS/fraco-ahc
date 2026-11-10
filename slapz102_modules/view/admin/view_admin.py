@@ -1194,20 +1194,38 @@ def html_tutorial_form(pkey=""):
     return render_template("admin_tutorial_editor.html", data=data)
 # end def
 
+def _tutorial_upload_reply(action, desc, url, code):
+    return jsonify({
+        "message_id": idgen._get_api_call_id(),
+        "message_action": "TUTORIAL_IMAGE_UPLOAD_" + action,
+        "message_desc": desc,
+        "message_data": {"url": url}
+    }), code
+# end def
+
 def tutorial_image_upload():
-    gate = _gate("tutorials", write=True)
-    if gate != None:
-        return gate
+    proc = admin_proc()
+    access = proc.gate("tutorials")
+    if access.get("status") == "LOGIN":
+        return _tutorial_upload_reply(
+            "LOGIN_REQUIRED",
+            "Your admin login has expired. Log in again in a new tab, then add the image again — your text is kept.",
+            "",
+            401
+        )
+    # end if
+    admin = access.get("admin") or {}
+    if access.get("status") != "SUCCESS" or not proc.can_write(admin.get("role", ""), "tutorials"):
+        return _tutorial_upload_reply("FORBIDDEN", "Your role cannot add images to tutorials.", "", 403)
     # end if
     result = tutorial_proc().save_image(request.files.get("image"))
     ok = result.get("status") == "SUCCESS"
-    payload = {
-        "message_id": idgen._get_api_call_id(),
-        "message_action": "TUTORIAL_IMAGE_UPLOAD_" + ("SUCCESS" if ok else "FAILED"),
-        "message_desc": result.get("desc") or ("Uploaded" if ok else "Upload failed"),
-        "message_data": {"url": result.get("url") or ""}
-    }
-    return jsonify(payload), (200 if ok else 400)
+    return _tutorial_upload_reply(
+        "SUCCESS" if ok else "FAILED",
+        result.get("desc") or ("Uploaded" if ok else "Upload failed"),
+        result.get("url") or "",
+        200 if ok else 400
+    )
 # end def
 
 def html_programs():
