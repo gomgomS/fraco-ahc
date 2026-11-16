@@ -71,7 +71,10 @@ class cart_proc:
                 continue
             # end if
             qty = int(row.get("qty", 1))
-            unit = int(product.get("price_num", 0))
+            unit = self.merch.price_num_for_size(product, row.get("size") or "")
+            size_key = (row.get("size") or "").strip()
+            spec = self.merch.size_specs_resolved(product).get(size_key) or {}
+            size_is_kids = (spec.get("cat") or "").upper() == "ANAK"
             bahan = int(product.get("bahan_baku_num") or 0)
             if bahan < 0:
                 bahan = 0
@@ -93,6 +96,7 @@ class cart_proc:
                 "name": product.get("name", ""),
                 "image": product.get("image", ""),
                 "size": row.get("size", ""),
+                "size_is_kids": size_is_kids,
                 "color": row.get("color", ""),
                 "qty": qty,
                 "sku": (product.get("sku") or "").strip(),
@@ -599,8 +603,8 @@ class cart_proc:
         phone = (params.get("phone") or "").strip()
         addr = self.address.collect(params)
         addr_check = self.address.validate(addr)
-        if full_name == "" or email == "" or phone == "":
-            response["desc"] = "Name, email, and phone are required"
+        if full_name == "" or phone == "":
+            response["desc"] = "Name and phone are required"
             return response
         # end if
         if addr_check.get("status") != "SUCCESS":

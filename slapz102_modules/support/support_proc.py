@@ -35,10 +35,60 @@ class support_proc:
             "list_mode": "LIMIT",
             "public_total_mode": "ACCUMULATED",
             "public_total_num": 0,
+            "public_total_label": "",
+            "public_total_note": "",
             "proposal_pdf_url": "",
             "proposal_pdf_label": "Download proposal (PDF)",
+            "display_mode": "AUTO",
+            "display_limit": 10,
+            "display_rows": [],
             "status": "ENABLE"
         }
+    # end def
+
+    def custom_display_rows(self, settings=None, site=None):
+        # Curated public list: admin picks specific donors and/or types custom rows.
+        if settings == None:
+            settings = self.get_settings()
+        # end if
+        rows = []
+        raw = settings.get("display_rows") or []
+        if not isinstance(raw, list):
+            raw = []
+        # end if
+        for entry in raw:
+            if not isinstance(entry, dict):
+                continue
+            # end if
+            kind = (entry.get("kind") or "").strip().upper()
+            if kind == "DONOR":
+                donor = self.mgdDB.db_donor.find_one(
+                    {"pkey": (entry.get("pkey") or "").strip(), "is_deleted": False},
+                    {"_id": 0}
+                )
+                if donor == None:
+                    continue
+                # end if
+                row = self.decorate_donor(donor, site)
+                rows.append(row)
+            elif kind == "CUSTOM":
+                name = (entry.get("name") or "").strip()
+                if name == "":
+                    continue
+                # end if
+                rows.append({
+                    "name": name,
+                    "amount_label": (entry.get("amount_label") or "").strip(),
+                    "is_member": False,
+                    "member_badge": ""
+                })
+            # end if
+        # end for
+        limit = int(settings.get("display_limit") or 0)
+        if limit > 0 and len(rows) > limit:
+            rows = rows[:limit]
+        # end if
+        return rows
     # end def
 
     def resolve_proposal_pdf_path(self):
@@ -277,8 +327,9 @@ class support_proc:
 
     def decorate_donor(self, item, site=None):
         row = dict(item)
+        ui = self.site.UI.get(self.site.get_lang()) or self.site.UI["en"]
         if item.get("is_anonymous") == True:
-            row["name"] = "Anonymous"
+            row["name"] = ui.get("support_anonymous") or "Anonymous"
         # end if
         is_member = self.is_self_pledge(item)
         row["is_member"] = is_member
@@ -322,12 +373,13 @@ class support_proc:
         ).sort("rec_timestamp", -1))
         total_num = 0
         ticker = []
+        ui = self.site.UI.get(self.site.get_lang()) or self.site.UI["en"]
         for item in donors:
             total_num = total_num + int(item.get("amount_num") or 0)
             if len(ticker) < 16:
                 ticker.append({
-                    "name": "Anonymous" if item.get("is_anonymous") == True else (item.get("name") or "FRACO supporter"),
-                    "amount": item.get("amount_label") or self.format_rp(item.get("amount_num")) or "Support"
+                    "name": (ui.get("support_anonymous") or "Anonymous") if item.get("is_anonymous") == True else (item.get("name") or ui.get("support_fallback_name") or "FRACO supporter"),
+                    "amount": item.get("amount_label") or self.format_rp(item.get("amount_num")) or (ui.get("support_amount_fallback") or "Support")
                 })
             # end if
         # end for
@@ -339,11 +391,23 @@ class support_proc:
         if total_mode == "CUSTOM":
             display_total = int(settings.get("public_total_num") or 0)
         # end if
+        site = self.site.get_site() or {}
+        event = (site.get("event_full_name") or "Alumni Home Coming 2027").strip()
+        label = (settings.get("public_total_label") or "").strip()
+        if label == "":
+            label = ui.get("support_proof_total") or "Total support received"
+        # end if
+        note = (settings.get("public_total_note") or "").strip()
+        if note == "":
+            note = (ui.get("support_thanks_line") or "Thank you for keeping {event} moving forward").replace("{event}", event)
+        # end if
         return {
             "supporter_count": len(donors),
             "total": self.format_rp(display_total) or "Rp 0",
             "total_mode": total_mode,
             "show_total": total_mode != "HIDDEN",
+            "label": label,
+            "note": note,
             "ticker": ticker
         }
     # end def
@@ -351,22 +415,38 @@ class support_proc:
     def get_support_page(self, form_ok=False, form_error="", form_values=None, form_field=""):
         settings = self.get_settings()
         site = self.site.get_site() or {}
-        donors, show_all = self.top_donors(settings)
-        ranked = []
-        rank = 1
-        for item in donors:
-            row = self.decorate_donor(item, site)
-            row["rank"] = rank
-            ranked.append(row)
-            rank = rank + 1
-        # end for
+        if (settings.get("display_mode") or "AUTO").upper() == "CUSTOM":
+            ranked = self.custom_display_rows(settings, site)
+            show_all = False
+            rank = 1
+            for row in ranked:
+                row["rank"] = rank
+                rank = rank + 1
+            # end for
+        else:
+            donors, show_all = self.top_donors(settings)
+            ranked = []
+            rank = 1
+            for item in donors:
+                row = self.decorate_donor(item, site)
+                row["rank"] = rank
+                ranked.append(row)
+                rank = rank + 1
+            # end for
+        # end if
         if form_values == None:
             form_values = {}
         # end if
         lang = self.site.get_lang()
+        ui = self.site.UI.get(lang) or self.site.UI["en"]
         event = (site.get("event_full_name") or "Alumni Home Coming 2027").strip()
         class_label = (site.get("class_label") or "Class of 2017").strip()
         page_title = (settings.get("title") or "Support Us").strip()
+        # Default title follows the site language; custom admin titles stay as written
+        if page_title == "" or page_title == "Support Us":
+            page_title = ui.get("nav_support") or "Support Us"
+            settings["title"] = page_title
+        # end if
         if lang == "id":
             share_desc = (
                 "Dukung " + event + " — unduh proposal PDF dan isi komitmen dukungan. "

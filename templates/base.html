@@ -36,14 +36,14 @@
         <div class="header-left">
             <a href="/" class="logo">{{ data.name }}</a>
             <nav class="desktop-nav" aria-label="Primary">
-                <a class="nav-link" href="/">Home</a>
-                <a class="nav-link" href="/about">About</a>
-                <a class="nav-link" href="/programs">Programs</a>
-                <a class="nav-link" href="/merchandise">Merchandise</a>
-                <a class="nav-link" href="/partners">Partners</a>
-                <a class="nav-link" href="/participate">Participate</a>
-                <a class="nav-link" href="/support">Support Us</a>
-                <a class="nav-link" href="/updates">Updates</a>
+                <a class="nav-link" href="/">{{ data.ui.nav_home }}</a>
+                <a class="nav-link" href="/about">{{ data.ui.about_h1 }}</a>
+                {# <a class="nav-link" href="/programs">Programs</a> #}
+                <a class="nav-link" href="/merchandise">{{ data.ui.merch_title }}</a>
+                {# <a class="nav-link" href="/partners">Partners</a> #}
+                {# <a class="nav-link" href="/participate">Participate</a> #}
+                <a class="nav-link" href="/support">{{ data.ui.nav_support }}</a>
+                {# <a class="nav-link" href="/updates">Updates</a> #}
             </nav>
         </div>
         <div class="header-right">
@@ -53,9 +53,9 @@
                 <a class="lang-link{% if data.lang == 'id' %} is-active{% endif %}" href="/lang/id?next={{ request.path|urlencode }}">ID</a>
             </div>
             {% if data.auth_user %}
-            <a class="nav-link" href="/dashboard">Account</a>
+            <a class="nav-link" href="/dashboard">{{ data.ui.nav_account }}</a>
             {% else %}
-            <a class="nav-link" href="/login">Login</a>
+            <a class="nav-link" href="/login">{{ data.ui.nav_login }}</a>
             {% endif %}
             <button class="icon-btn js-search-open" type="button" aria-label="Search">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -80,9 +80,9 @@
 
     <div class="search-panel" id="searchPanel">
         <form action="/merchandise" method="get">
-            <input type="search" name="q" placeholder="Search FRACO programs, merch, updates..." aria-label="Search">
-            <button class="nav-link" type="submit">Search</button>
-            <button class="nav-link js-search-close" type="button">Close</button>
+            <input type="search" name="q" placeholder="{{ data.ui.search_placeholder }}" aria-label="Search">
+            <button class="nav-link" type="submit">{{ data.ui.search_btn }}</button>
+            <button class="nav-link js-search-close" type="button">{{ data.ui.search_close }}</button>
         </form>
     </div>
 
@@ -97,24 +97,24 @@
             </button>
         </div>
         <nav>
-            <a href="/">Home</a>
-            <a href="/about">About</a>
-            <a href="/programs">Programs</a>
-            <a href="/merchandise">Merchandise</a>
-            <a href="/partners">Partners</a>
-            <a href="/participate">Participate</a>
-            <a href="/support">Support Us</a>
-            <a href="/updates">Updates</a>
-            <a href="/cart">Cart</a>
-            <div class="sub">Programs</div>
+            <a href="/">{{ data.ui.nav_home }}</a>
+            <a href="/about">{{ data.ui.nav_about }}</a>
+            {# <a href="/programs">Programs</a> #}
+            <a href="/merchandise">{{ data.ui.merch_title }}</a>
+            {# <a href="/partners">Partners</a> #}
+            {# <a href="/participate">Participate</a> #}
+            <a href="/support">{{ data.ui.nav_support }}</a>
+            {# <a href="/updates">Updates</a> #}
+            <a href="/cart">{{ data.ui.nav_cart }}</a>
+            {# <div class="sub">Programs</div>
             <a href="/programs/university-fair">University Fair</a>
             <a href="/programs/career-workshop">Career Workshop</a>
             <a href="/programs/spiritual-affairs">Spiritual Affairs</a>
-            <a href="/programs/events">Events</a>
-            <div class="sub">Help</div>
-            <a href="/participate">Register</a>
-            <a href="/login">Login</a>
-            {% if data.auth_user %}<a href="/dashboard">Account</a>{% endif %}
+            <a href="/programs/events">Events</a> #}
+            <div class="sub">{{ data.ui.nav_help }}</div>
+            {# <a href="/participate">Register</a> #}
+            <a href="/login">{{ data.ui.nav_login }}</a>
+            {% if data.auth_user %}<a href="/dashboard">{{ data.ui.nav_account }}</a>{% endif %}
             <a href="{{ data.whatsapp_url }}" target="_blank" rel="noopener">WhatsApp</a>
         </nav>
     </aside>
@@ -128,27 +128,27 @@
                 <p>{{ data.presented_by }}. {{ data.event_full_name }}.</p>
             </div>
             <div class="footer-col">
-                <h4>Navigate</h4>
-                <a href="/about">About</a>
-                <a href="/programs">Programs</a>
-                <a href="/merchandise">Merchandise</a>
-                <a href="/updates">Updates</a>
+                <h4>{{ data.ui.footer_navigate }}</h4>
+                <a href="/about">{{ data.ui.nav_about }}</a>
+                {# <a href="/programs">Programs</a> #}
+                <a href="/merchandise">{{ data.ui.merch_title }}</a>
+                {# <a href="/updates">Updates</a> #}
             </div>
             <div class="footer-col">
-                <h4>Participate</h4>
-                <a href="/partners">Partners</a>
-                <a href="/support">Support Us</a>
-                <a href="/participate">Register</a>
-                <a href="/login">Login</a>
-                <a href="/cart">Cart</a>
-                <a href="{{ data.whatsapp_url }}" target="_blank" rel="noopener">Contact</a>
+                <h4>{{ data.ui.footer_participate }}</h4>
+                {# <a href="/partners">Partners</a> #}
+                <a href="/support">{{ data.ui.nav_support }}</a>
+                {# <a href="/participate">Register</a> #}
+                <a href="/login">{{ data.ui.nav_login }}</a>
+                <a href="/cart">{{ data.ui.nav_cart }}</a>
+                <a href="{{ data.whatsapp_url }}" target="_blank" rel="noopener">{{ data.ui.footer_contact }}</a>
             </div>
         </div>
         <div class="footer-bottom">
             <div class="footer-social">
                 <a href="{{ data.whatsapp_url }}" target="_blank" rel="noopener">WhatsApp</a>
-                <a href="/updates">Updates</a>
-                <a href="/gallery">Gallery</a>
+                {# <a href="/updates">Updates</a> #}
+                <a href="/gallery">{{ data.ui.gallery_title }}</a>
             </div>
             <div>&copy;2026 {{ data.name }} · {{ data.class_label }} · {{ data.event_full_name }}</div>
         </div>

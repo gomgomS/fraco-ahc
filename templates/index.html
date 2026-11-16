@@ -3,6 +3,26 @@
 {% block body_class %}home{% endblock %}
 
 {% block content %}
+<style>
+.hero-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    min-width: 118px;
+    padding: 10px 28px;
+    border-radius: 999px;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+.hero-btn-ghost { border: 1px solid #fff; color: #fff; background: rgba(0, 0, 0, 0.18); }
+.hero-btn-ghost:hover { background: #fff; color: #000; }
+.hero-btn-solid { background: #fff; color: #000; }
+.hero-btn-solid:hover { opacity: 0.82; }
+</style>
 <section class="hero" aria-label="FRACO">
     <div class="hero-slide active" data-theme="light">
         <img src="/static/upload/heroes/3f2a13b1e8aff1b8f642.jpg" alt="FRACO community">
@@ -12,8 +32,8 @@
             <p class="hero-sub">{{ data.subtitle }}</p>
             <p class="hero-kicker">{{ data.event_full_name }} · {{ data.class_label }}</p>
             <div class="hero-actions">
-                <a class="btn-ghost" href="/about">{{ data.ui.explore }}</a>
-                <a class="btn-solid" href="/merchandise">{{ data.ui.shop }}</a>
+                <a class="hero-btn hero-btn-ghost" href="/about">{{ data.ui.explore }}</a>
+                <a class="hero-btn hero-btn-solid" href="/merchandise">{{ data.ui.shop }}</a>
             </div>
         </div>
     </div>
@@ -29,7 +49,7 @@
     </div>
 </section>
 
-<section class="section" style="padding-top: 0;">
+{# <section class="section" style="padding-top: 0;">
     <div class="section-head">
         <h2 class="section-title">{{ data.ui.programs_title }}</h2>
         <a class="section-link" href="/programs">{{ data.ui.view_all }}</a>
@@ -46,7 +66,7 @@
         </a>
         {% endfor %}
     </div>
-</section>
+</section> #}
 
 <section class="section" style="padding-top: 0;">
     <div class="section-head">
@@ -59,11 +79,11 @@
             <a href="/merchandise/{{ item.slug }}">
                 <div class="product-media">
                     <img src="{{ item.image }}" alt="{{ item.name }}">
-                    <span class="badge-new">{{ item.availability }}</span>
+                    <span class="badge-new">{{ item.availability_label or item.availability }}</span>
                 </div>
                 <h3 class="product-name">{{ item.name }}</h3>
                 <p class="product-price">{{ item.price }}</p>
-                <p class="product-meta">{{ item.sizes | join(' / ') }}</p>
+                <p class="product-meta">{{ item.sizes | join(' / ') | replace('One Size', data.ui.size_one) }}</p>
             </a>
             {% if item.category != 'Member Kit' and item.stock > 0 %}
             <form method="post" action="/cart/add" style="margin-top: 12px;">
@@ -91,13 +111,13 @@
         <h2>{{ data.ui.partners_heading }}</h2>
         <p>{{ data.ui.partners_body }}</p>
         <div class="hero-actions" style="justify-content: flex-start;">
-            <a class="btn-solid" href="/sponsorship">{{ data.ui.become_sponsor }}</a>
-            <a class="btn-ghost" href="/sponsorship/apply">{{ data.ui.download_proposal }}</a>
+            <a class="hero-btn hero-btn-solid" href="/sponsorship">{{ data.ui.become_sponsor }}</a>
+            <a class="hero-btn hero-btn-ghost" href="/sponsorship/apply">{{ data.ui.download_proposal }}</a>
         </div>
     </div>
 </section>
 
-<section class="section">
+{# <section class="section">
     <div class="section-head">
         <h2 class="section-title">{{ data.ui.updates_title }}</h2>
         <a class="section-link" href="/updates">{{ data.ui.view_all }}</a>
@@ -114,7 +134,7 @@
         </a>
         {% endfor %}
     </div>
-</section>
+</section> #}
 
 <section class="section" style="padding-top: 0;">
     <div class="section-head">

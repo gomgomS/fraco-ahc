@@ -10,21 +10,21 @@
             {% if data.form_error %}
             <p class="prose-fraco" style="color: #b00000; margin-bottom: 20px;">{{ data.form_error }}</p>
             {% endif %}
-            <form class="form-stack" method="post" id="checkout-form">
+            <form class="form-stack" method="post" id="checkout-form" novalidate>
                 <div>
-                    <label class="field-label" for="full_name">Full name</label>
+                    <label class="field-label" for="full_name">Full name <span style="color: #b00000;">*</span></label>
                     <input class="field" type="text" name="full_name" id="full_name" value="{{ data.form_values.full_name or '' }}" required>
                 </div>
                 <div>
-                    <label class="field-label" for="email">Email</label>
-                    <input class="field" type="email" name="email" id="email" value="{{ data.form_values.email or '' }}" required>
+                    <label class="field-label" for="email">Email <span class="product-meta">(opsional)</span></label>
+                    <input class="field" type="email" name="email" id="email" value="{{ data.form_values.email or '' }}">
                 </div>
                 <div>
-                    <label class="field-label" for="phone">Phone</label>
+                    <label class="field-label" for="phone">Phone <span style="color: #b00000;">*</span></label>
                     <input class="field" type="text" name="phone" id="phone" value="{{ data.form_values.phone or '' }}" required>
                 </div>
                 <div>
-                    <p class="field-label" style="margin-bottom:10px;">Alamat pengiriman</p>
+                    <p class="field-label" style="margin-bottom:10px;">Alamat pengiriman <span style="color: #b00000;">*</span></p>
                     <p class="product-meta" style="margin-bottom:14px;">Pilih wilayah Indonesia, lalu isi nama jalan. Kode pos terisi otomatis.</p>
                     {% set addr_prefix = '' %}
                     {% set addr_rec = data.form_values %}
@@ -60,8 +60,65 @@
                     <p class="prose-fraco" style="margin-top: 10px;">This bag includes <strong>preorder</strong> items{% if data.preorder_eta %} (expected {{ data.preorder_eta }}){% endif %}. You pay to reserve; shipping follows production.</p>
                     {% endif %}
                 </div>
-                <button class="btn-black" type="submit">Place order</button>
+                <p class="prose-fraco" id="checkout-error" style="display: none; color: #b00000; margin: 0 0 12px;"></p>
+                <button class="btn-black" type="submit">Buy</button>
             </form>
+            <script>
+            (function () {
+                var form = document.getElementById("checkout-form");
+                if (!form) return;
+                var banner = document.getElementById("checkout-error");
+                function labelOf(el) {
+                    var lbl = form.querySelector('label[for="' + (el.id || "") + '"]');
+                    return lbl ? lbl.textContent.replace("*", "").trim() : (el.name || "Field");
+                }
+                function clearMark(el) {
+                    el.style.borderColor = "";
+                    el.style.background = "";
+                    el.style.color = "";
+                    el.removeEventListener("input", el._clearMark);
+                    el.removeEventListener("change", el._clearMark);
+                }
+
+                function markEl(el) {
+                    el.style.borderColor = "#b00000";
+                    el.style.background = "#fde8e8";
+                    el.style.color = "#b00000";
+                }
+                form.addEventListener("submit", function (ev) {
+                    var submitter = ev.submitter || document.activeElement;
+                    var isApply = submitter && submitter.name === "action" && submitter.value === "apply_referral";
+                    if (isApply) return;
+                    var missing = [];
+                    var els = form.querySelectorAll("[required]");
+                    for (var i = 0; i < els.length; i++) {
+                        var el = els[i];
+                        if (el.disabled) continue;
+                        clearMark(el);
+                        if ((el.value || "").trim() === "") missing.push(el);
+                    }
+                    if (missing.length === 0) {
+                        if (banner) banner.style.display = "none";
+                        return;
+                    }
+                    ev.preventDefault();
+                    var names = [];
+                    missing.forEach(function (el) {
+                        names.push(labelOf(el));
+                        markEl(el);
+                        el._clearMark = function () { clearMark(el); };
+                        el.addEventListener("input", el._clearMark);
+                        el.addEventListener("change", el._clearMark);
+                    });
+                    if (banner) {
+                        banner.textContent = "Please fill in the required fields marked with * — missing: " + names.join(", ") + ".";
+                        banner.style.display = "block";
+                    }
+                    missing[0].scrollIntoView({ behavior: "smooth", block: "center" });
+                    missing[0].focus({ preventScroll: true });
+                });
+            })();
+            </script>
         </div>
         <aside class="cart-summary">
             <p class="product-meta">Order summary</p>

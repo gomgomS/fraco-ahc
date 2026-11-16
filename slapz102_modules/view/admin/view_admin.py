@@ -165,6 +165,27 @@ def html_participant(pkey):
             proc.delete_participant(pkey)
             return redirect("/admin/participants")
         # end if
+        if action == "add_contribution":
+            result = proc.add_participant_contribution(pkey, params)
+            if result.get("status") == "SUCCESS":
+                return redirect("/admin/participants/" + pkey + "?tab=contribution&ok=1")
+            # end if
+            detail = proc.participant_detail(proc.get_row("db_participant", pkey) or rec, "contribution")
+            detail["form_error"] = result.get("desc") or "Could not add contribution"
+            data = proc.page("participants", detail)
+            return render_template("admin_participant.html", data=data)
+        # end if
+        if action == "donor_follow":
+            donor_pkey = (params.get("donor_pkey") or "").strip()
+            if donor_pkey != "":
+                proc.update_donor_follow(donor_pkey, params.get("follow_status") or "")
+            # end if
+            back_tab = (params.get("tab") or "contribution").strip().lower()
+            if back_tab not in ["details", "summary", "merch", "proposal", "contribution"]:
+                back_tab = "contribution"
+            # end if
+            return redirect("/admin/participants/" + pkey + "?tab=" + back_tab)
+        # end if
         new_password = request.form.get("new_password") or ""
         fields = {
             "full_name": params.get("full_name") or "",
@@ -204,6 +225,7 @@ def html_participant(pkey):
         return redirect("/admin/participants/" + pkey + "?tab=details")
     # end if
     detail = proc.participant_detail(rec, tab)
+    detail["form_ok"] = (request.args.get("ok") or "") == "1"
     data = proc.page("participants", detail)
     return render_template("admin_participant.html", data=data)
 # end def
@@ -637,6 +659,14 @@ def _decorate_product_form(proc, rec):
     if not isinstance(by_size, dict):
         by_size = {}
     # end if
+    price_by_size = rec.get("price_by_size") or {}
+    if not isinstance(price_by_size, dict):
+        price_by_size = {}
+    # end if
+    specs_by_size = rec.get("size_specs") or {}
+    if not isinstance(specs_by_size, dict):
+        specs_by_size = {}
+    # end if
     rows = []
     for idx in range(0, len(sizes)):
         sz = sizes[idx]
@@ -648,9 +678,56 @@ def _decorate_product_form(proc, rec):
                 qty = 0
             # end try
         # end if
-        rows.append({"size": sz, "stock": qty, "idx": idx})
+        price_override = 0
+        if sz in price_by_size:
+            try:
+                price_override = int(price_by_size.get(sz) or 0)
+            except Exception:
+                price_override = 0
+            # end try
+        # end if
+        # Stored specs win; the default table fills gaps so old products
+        # show (and save) lebar/panjang + category automatically
+        spec = dict(specs_by_size.get(sz) or {})
+        fallback = proc.size_spec_default(sz)
+        if fallback != None:
+            if str(spec.get("cat") or "").strip().upper() not in ["DEWASA", "ANAK"]:
+                spec["cat"] = fallback["cat"]
+            # end if
+            try:
+                spec_lebar = int(spec.get("lebar") or 0)
+            except Exception:
+                spec_lebar = 0
+            # end try
+            try:
+                spec_panjang = int(spec.get("panjang") or 0)
+            except Exception:
+                spec_panjang = 0
+            # end try
+            if spec_lebar <= 0:
+                spec_lebar = fallback["lebar"]
+            # end if
+            if spec_panjang <= 0:
+                spec_panjang = fallback["panjang"]
+            # end if
+        else:
+            spec_lebar = 0
+            spec_panjang = 0
+            spec["cat"] = str(spec.get("cat") or "").strip().upper()
+        # end if
+        rows.append({
+            "size": sz,
+            "stock": qty,
+            "idx": idx,
+            "price_num": price_override,
+            "cat": spec.get("cat") or "",
+            "lebar": spec_lebar,
+            "panjang": spec_panjang
+        })
     # end for
     rec["size_stock_rows"] = rows
+    # Dict on purpose: the template embeds it with | tojson (script-safe, no HTML escaping)
+    rec["size_table"] = proc.size_spec_table()
     rec["stock_by_size"] = by_size
     rec["assets_zip_size_label"] = _format_bytes(rec.get("assets_zip_size"))
     return rec
@@ -731,6 +808,8 @@ def _product_fields(proc, params):
     # end if
     sizes = proc.parse_list(params.get("sizes"))
     stock_by_size = {}
+    price_by_size = {}
+    size_specs = {}
     stock_num = 0
     if sizes != []:
         for idx in range(0, len(sizes)):
@@ -742,6 +821,16 @@ def _product_fields(proc, params):
             # end if
             stock_by_size[sz] = n
             stock_num = stock_num + n
+            pkey_size = "price_size_" + str(idx)
+            p = proc.parse_int(params.get(pkey_size))
+            # 0 or empty = keep the standard price for this size
+            if p > 0:
+                price_by_size[sz] = p
+            # end if
+            spec = proc.size_spec_from_params(sz, params, idx)
+            if spec != None:
+                size_specs[sz] = spec
+            # end if
         # end for
     else:
         stock_num = proc.parse_int(params.get("stock"))
@@ -778,6 +867,8 @@ def _product_fields(proc, params):
         "discount_enabled": discount_enabled,
         "stock": stock_num,
         "stock_by_size": stock_by_size,
+        "price_by_size": price_by_size,
+        "size_specs": size_specs,
         "reserved": proc.parse_int(params.get("reserved")),
         "sold": proc.parse_int(params.get("sold")),
         "sizes": sizes,
@@ -2145,7 +2236,7 @@ def html_team():
 
 def _donations_tab():
     tab = (request.args.get("tab") or request.form.get("tab") or "").strip().lower()
-    if tab not in ["settings", "pledges", "add"]:
+    if tab not in ["settings", "pledges", "add", "display"]:
         if (request.args.get("edit") or "").strip() != "":
             tab = "add"
         elif (request.args.get("follow") or "").strip() != "":
@@ -2209,6 +2300,65 @@ def html_donations():
             # end if
             return redirect("/admin/donations?tab=settings")
         # end if
+        if action == "save_display_settings":
+            result = proc.save_display_settings(params)
+            if result.get("status") != "SUCCESS":
+                data = proc.page("donations", {
+                    "donations_tab": "display",
+                    "settings": proc.get_donation_settings(),
+                    "list_table": proc.table_donors(),
+                    "edit_donor": {},
+                    "donor_options": proc.donor_options(),
+                    "display_rows": proc.display_rows_view(),
+                    "form_error": result.get("desc") or "Could not save display settings"
+                })
+                return render_template("admin_donations.html", data=data)
+            # end if
+            return redirect("/admin/donations?tab=display")
+        # end if
+        if action == "add_display_donor":
+            result = proc.add_display_donor(params.get("display_donor_pkey") or "")
+            if result.get("status") != "SUCCESS":
+                data = proc.page("donations", {
+                    "donations_tab": "display",
+                    "settings": proc.get_donation_settings(),
+                    "list_table": proc.table_donors(),
+                    "edit_donor": {},
+                    "donor_options": proc.donor_options(),
+                    "display_rows": proc.display_rows_view(),
+                    "form_error": result.get("desc") or "Could not add donor"
+                })
+                return render_template("admin_donations.html", data=data)
+            # end if
+            return redirect("/admin/donations?tab=display")
+        # end if
+        if action == "add_display_custom":
+            result = proc.add_display_custom(params)
+            if result.get("status") != "SUCCESS":
+                data = proc.page("donations", {
+                    "donations_tab": "display",
+                    "settings": proc.get_donation_settings(),
+                    "list_table": proc.table_donors(),
+                    "edit_donor": {},
+                    "donor_options": proc.donor_options(),
+                    "display_rows": proc.display_rows_view(),
+                    "form_error": result.get("desc") or "Could not add custom row"
+                })
+                return render_template("admin_donations.html", data=data)
+            # end if
+            return redirect("/admin/donations?tab=display")
+        # end if
+        if action == "remove_display_row":
+            proc.remove_display_row(params.get("display_row_index") or "")
+            return redirect("/admin/donations?tab=display")
+        # end if
+        if action == "move_display_row":
+            proc.move_display_row(
+                params.get("display_row_index") or "",
+                params.get("display_row_dir") or ""
+            )
+            return redirect("/admin/donations?tab=display")
+        # end if
         result = proc.save_donor(pkey, params)
         if result.get("status") != "SUCCESS":
             data = proc.page("donations", {
@@ -2234,7 +2384,10 @@ def html_donations():
         "settings": proc.get_donation_settings(),
         "list_table": proc.table_donors(),
         "edit_donor": edit_donor,
-        "follow_labels": proc.DONOR_FOLLOW_LABELS
+        "follow_labels": proc.DONOR_FOLLOW_LABELS,
+        "donor_options": proc.donor_options() if tab == "display" else [],
+        "display_rows": proc.display_rows_view() if tab == "display" else [],
+        "preview": proc.support_preview() if tab == "display" else {}
     })
     return render_template("admin_donations.html", data=data)
 # end def

@@ -75,6 +75,23 @@
                     {% else %}
                     —
                     {% endif %}
+                    {% elif cell.kind == 'donor_follow' %}
+                    {% if data.can_write %}
+                    <form method="post" action="{{ request.path }}">
+                        <input type="hidden" name="action" value="donor_follow">
+                        <input type="hidden" name="donor_pkey" value="{{ cell.pkey }}">
+                        <input type="hidden" name="tab" value="{{ request.args.get('tab') or 'contribution' }}">
+                        {% if cell.status == 'RECEIVED' %}
+                        <input type="hidden" name="follow_status" value="FOLLOW_UP">
+                        <button class="btn-line" type="submit">Back to Follow up</button>
+                        {% else %}
+                        <input type="hidden" name="follow_status" value="RECEIVED">
+                        <button class="btn-line" type="submit">Mark Received</button>
+                        {% endif %}
+                    </form>
+                    {% else %}
+                    <span class="admin-status" data-status="{{ cell.status }}">{{ cell.text }}</span>
+                    {% endif %}
                     {% elif cell.kind == 'duplicate' %}
                     {% if data.can_write %}
                     <form method="post" action="{{ request.path }}" onsubmit="return confirm('Duplicate this product as a new Draft?');">

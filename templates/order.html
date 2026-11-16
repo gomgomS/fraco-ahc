@@ -3,15 +3,18 @@
 
 {% block content %}
 <section class="section">
-    <div class="prose-fraco" style="max-width: 720px; margin: 0 auto 40px;">
+    <div class="prose-fraco" style="max-width: 720px; margin: 0 auto 40px; position: relative;">
         <p class="product-meta">Order</p>
         <h1 class="section-title" style="margin: 8px 0 16px;">{{ data.order.order_id }}</h1>
+        {% if data.order.payment_status == 'Paid' %}
+        <div aria-label="Paid" style="position: absolute; top: -6px; right: 0; transform: rotate(-8deg); border: 3px solid #176b3a; color: #176b3a; font-family: var(--font-display); font-weight: 800; font-size: 26px; letter-spacing: 0.14em; padding: 4px 16px; border-radius: 8px; opacity: 0.85; box-shadow: inset 0 0 0 1px rgba(23, 107, 58, 0.25); user-select: none;">{{ data.ui.stamp_paid }}</div>
+        {% endif %}
         <p>Payment status: {{ data.order.payment_status }}</p>
         <p>Order status: {{ data.order.order_status }}</p>
         {% if data.order.has_preorder %}
         <p class="prose-fraco" style="margin-top: 16px;">This order includes <strong>preorder</strong> items{% if data.order.preorder_eta %} (expected {{ data.order.preorder_eta }}){% endif %}. Payment reserves your order; shipping follows production.</p>
         {% else %}
-        <p class="prose-fraco" style="margin-top: 16px;">FRACO has the order. Payment stays pending until the merchandise division confirms and sends transfer details to {{ data.order.email }}.</p>
+        <p class="prose-fraco" style="margin-top: 16px;">FRACO has the order. Payment stays pending until the merchandise division confirms{% if data.order.email %} and sends transfer details to {{ data.order.email }}{% endif %}.</p>
         {% endif %}
     </div>
     <div class="checkout-grid">
@@ -31,7 +34,7 @@
             <h2 class="section-title" style="font-size: 22px; margin-bottom: 16px;">Ship to</h2>
             <p>{{ data.order.full_name }}</p>
             <p>{{ data.order.phone }}</p>
-            <p>{{ data.order.email }}</p>
+            {% if data.order.email %}<p>{{ data.order.email }}</p>{% endif %}
             {% if data.order.street %}<p>{{ data.order.street }}</p>{% endif %}
             {% if data.order.address_detail %}<p>{{ data.order.address_detail }}</p>{% endif %}
             {% if data.order.village or data.order.district %}

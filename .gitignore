@@ -35,6 +35,7 @@ logs/
 *.sqlite3
 instance/
 flask_session/
+storage_private/
 
 # Temporary files
 tmp/

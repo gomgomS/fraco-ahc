@@ -106,7 +106,7 @@
         <div>
             <p class="product-meta">{{ data.product.category }}{% if data.is_preorder %} · Preorder{% elif data.is_in_stock %} · In stock{% else %} · Out of stock{% endif %}</p>
             <h1 class="section-title" style="margin: 8px 0 12px;">{{ data.product.name }}</h1>
-            <p class="product-price" style="font-size: 16px;">{{ data.product.price }}</p>
+            <p class="product-price" style="font-size: 16px;" id="pdp-price" data-base-price="{{ data.product.price }}">{{ data.product.price }}</p>
             <p class="prose-fraco" style="margin: 20px 0;">{{ data.product.description }}</p>
             {% if data.is_preorder %}
             <div class="dash-note" style="margin-bottom: 20px;">
@@ -142,13 +142,16 @@
                             data-preorder="{{ 1 if row.is_preorder else 0 }}"
                             data-limit="{{ row.buy_limit }}"
                             data-stock="{{ row.stock }}"
+                            data-price-label="{{ row.price_label if row.has_price_override else '' }}"
+                            data-lebar="{{ row.lebar or 0 }}"
+                            data-panjang="{{ row.panjang or 0 }}"
                             {% if not row.available %}aria-disabled="true" disabled{% endif %}
                         >
-                            <span class="size-chip-label">{{ row.size }}</span>
+                            <span class="size-chip-label">{{ row.size }}{% if row.is_kids %} <span style="font-size: 10px; font-weight: 700; background: #176b3a; color: #fff; border-radius: 4px; padding: 2px 6px; vertical-align: 1px; letter-spacing: 0.02em;">{{ data.ui.size_kids }}</span>{% endif %}</span>
                             <span class="size-chip-meta">
                                 {% if row.stock > 0 %}{{ row.stock }} left
                                 {% elif row.is_preorder %}Preorder
-                                {% else %}Out{% endif %}
+                                {% else %}Out{% endif %}{% if row.has_price_override %} · {{ row.price_label }}{% endif %}
                             </span>
                         </button>
                         {% else %}
@@ -160,6 +163,31 @@
                         {% endfor %}
                     </div>
                     <p class="product-meta" id="size-status" style="margin-top: 10px;"></p>
+                    <p class="product-meta" id="size-dims" style="margin-top: 6px; display: none;"></p>
+                    {% if data.product.size_guide_rows %}
+                    <details style="margin-top: 14px; border: 1px solid #e6e9e6; border-radius: 10px; padding: 10px 14px; background: #fff;">
+                        <summary style="cursor: pointer; font-weight: 700; font-size: 14px;">{{ data.ui.size_guide_title }}</summary>
+                        <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px;">
+                            <thead>
+                                <tr style="text-align: left; color: #6b6b76; font-size: 13px;">
+                                    <th style="padding: 6px 8px;">Size</th>
+                                    <th style="padding: 6px 8px;">{{ data.ui.size_lebar }}</th>
+                                    <th style="padding: 6px 8px;">{{ data.ui.size_panjang }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in data.product.size_guide_rows %}
+                                <tr style="border-top: 1px solid #f0f0f2;">
+                                    <td style="padding: 6px 8px; font-weight: 600;">{{ row.size }}{% if row.is_kids %} <span style="font-size: 10px; font-weight: 700; background: #176b3a; color: #fff; border-radius: 4px; padding: 2px 6px;">{{ data.ui.size_kids }}</span>{% endif %}</td>
+                                    <td style="padding: 6px 8px;">{{ row.lebar }} cm</td>
+                                    <td style="padding: 6px 8px;">{{ row.panjang }} cm</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        <p class="product-meta" style="margin-top: 10px;">{{ data.ui.size_note }}</p>
+                    </details>
+                    {% endif %}
                 </div>
                 {% endif %}
                 {% if data.product.colors %}
@@ -181,7 +209,7 @@
                 </div>
                 <div class="hero-actions" style="justify-content: flex-start; margin-top: 8px;">
                     <button class="btn-black" type="submit" id="btn-add">{% if data.is_preorder %}Preorder{% else %}Add to Cart{% endif %}</button>
-                    <button class="btn-line" type="submit" name="next" value="checkout" id="btn-buy">{% if data.is_preorder %}Preorder now{% else %}Buy Now{% endif %}</button>
+                    {# <button class="btn-line" type="submit" name="next" value="checkout" id="btn-buy">{% if data.is_preorder %}Preorder now{% else %}Buy Now{% endif %}</button> #}
                 </div>
             </form>
             <script>
@@ -192,8 +220,13 @@
                 var colorInput = document.getElementById("color");
                 var qty = document.getElementById("qty");
                 var status = document.getElementById("size-status");
+                var dimsEl = document.getElementById("size-dims");
+                var lblLebar = {{ data.ui.size_lebar | tojson }};
+                var lblPanjang = {{ data.ui.size_panjang | tojson }};
                 var btnAdd = document.getElementById("btn-add");
                 var btnBuy = document.getElementById("btn-buy");
+                var priceEl = document.getElementById("pdp-price");
+                var basePrice = priceEl ? (priceEl.getAttribute("data-base-price") || priceEl.textContent) : "";
                 var sizeChips = form.querySelectorAll(".size-chip[data-size]");
                 var colorChips = form.querySelectorAll(".color-chip[data-color]");
 
@@ -205,6 +238,19 @@
                     var limit = parseInt(btn.getAttribute("data-limit") || "1", 10);
                     var preorder = btn.getAttribute("data-preorder") === "1";
                     var stock = parseInt(btn.getAttribute("data-stock") || "0", 10);
+                    var sizePrice = btn.getAttribute("data-price-label") || "";
+                    if (priceEl) priceEl.textContent = sizePrice !== "" ? sizePrice : basePrice;
+                    var lebar = parseInt(btn.getAttribute("data-lebar") || "0", 10);
+                    var panjang = parseInt(btn.getAttribute("data-panjang") || "0", 10);
+                    if (dimsEl) {
+                        if (lebar > 0 || panjang > 0) {
+                            dimsEl.textContent = lblLebar + " " + lebar + " cm · " + lblPanjang + " " + panjang + " cm";
+                            dimsEl.style.display = "";
+                        } else {
+                            dimsEl.textContent = "";
+                            dimsEl.style.display = "none";
+                        }
+                    }
                     if (isNaN(limit) || limit < 1) limit = 1;
                     if (qty) {
                         qty.max = String(limit);

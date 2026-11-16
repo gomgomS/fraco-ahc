@@ -1,228 +1,344 @@
 {% extends 'admin_base.html' %}
 {% block title %}{% if data.row.pkey %}Edit{% else %}New{% endif %} product | Admin{% endblock %}
 {% block content %}
-<p class="product-meta"><a class="section-link" href="/admin/products">Products</a></p>
-<h1 class="section-title" style="margin: 8px 0 24px;">{% if data.row.pkey %}Edit{% else %}Create{% endif %} product</h1>
+{% include 'admin_orders_ui.html' %}
+<div class="ao pf" style="max-width: 1080px;">
+<style>
+.admin-main:has(.pf) { background: #f6f6f7; }
+.pf-check { display: inline-flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.pf-check input { width: 17px; height: 17px; accent-color: #18181b; }
+.size-row { display: grid; grid-template-columns: 64px 1fr 1fr 110px 84px 84px; gap: 8px; align-items: center; margin-top: 8px; }
+.size-row-head { margin-top: 4px; }
+.size-row-head span { font-size: 12px; font-weight: 600; color: var(--ao-muted); }
+.pf-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; margin-top: 12px; }
+.pf-tile { position: relative; }
+.pf-tile img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; border: 2px solid var(--ao-line); border-radius: 8px; transition: opacity .15s; }
+.pf-tile.is-cover img { border-color: #18181b; }
+.pf-remove {
+    display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; margin-top: 6px; padding: 6px 8px;
+    border: 1px solid var(--ao-line); border-radius: 8px; font-size: 13px; cursor: pointer; user-select: none; background: #fff;
+}
+.pf-remove:hover { border-color: #b91c1c; color: #b91c1c; }
+.pf-remove input { width: 15px; height: 15px; margin: 0; accent-color: #b91c1c; }
+.pf-tile:has(input:checked) img { opacity: .3; border-color: #b91c1c; }
+.pf-tile:has(input:checked) .pf-remove { border-color: #b91c1c; color: #b91c1c; background: #fdeceb; }
+.pf-tile:has(input:checked)::after {
+    content: "Will be removed"; position: absolute; top: 8px; left: 8px; right: 8px; padding: 3px 6px; border-radius: 6px;
+    background: #b91c1c; color: #fff; font-size: 11px; text-align: center;
+}
+.pf-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+@media (max-width: 899px) {
+    .size-row { grid-template-columns: repeat(3, 1fr); }
+    .size-row-head { display: none; }
+    .size-row label[for^="stock_size"] { grid-column: 1 / -1; margin-bottom: -4px; }
+}
+</style>
+
+<header class="ao-head">
+    <div>
+        <a class="ao-back" href="/admin/products">← Products</a>
+        <h1 class="ao-title">{% if data.row.pkey %}{{ data.row.name or 'Edit product' }}{% else %}Create product{% endif %}</h1>
+        <p class="ao-sub">
+            {% if data.row.pkey %}{{ data.row.slug or '—' }}{% if data.row.sku %} · SKU {{ data.row.sku }}{% endif %}{% else %}Fill in the details below, then save as Draft or Active.{% endif %}
+        </p>
+        <div class="ao-meta-line">
+            <span class="ao-badge" data-tone="{% if data.row.status == 'ACTIVE' %}green{% elif data.row.status == 'DRAFT' %}amber{% else %}ghost{% endif %}">{{ data.row.status or 'DRAFT' }}</span>
+            {% if data.row.category %}<span class="ao-badge" data-tone="blue">{{ data.row.category }}</span>{% endif %}
+            {% if data.row.is_preorder %}<span class="ao-badge" data-tone="violet">Preorder</span>{% endif %}
+        </div>
+    </div>
+</header>
 
 {% if data.form_error %}
-<p class="prose-fraco" style="color: #b00000; margin-bottom: 16px;">{{ data.form_error }}</p>
+<div class="ao-alert ao-alert-error" role="alert"><span aria-hidden="true">⚠</span><span>{{ data.form_error }}</span></div>
 {% endif %}
 {% if data.form_ok %}
-<p class="prose-fraco" style="margin-bottom: 16px;">{{ data.form_ok }}</p>
+<div class="ao-alert ao-alert-ok" role="status"><span aria-hidden="true">✓</span><span>{{ data.form_ok }}</span></div>
 {% endif %}
 
-    <div class="pay-box" style="padding: 16px; margin-bottom: 24px;">
-    <p class="field-label" style="margin: 0;">How stock &amp; preorder work</p>
-    <p class="prose-fraco" style="margin-top: 8px;">
-        Set stock <strong>per size</strong> when sizes exist (total is the sum). No sizes → one total stock field.
-        Optionally allow <strong>preorder when out of stock</strong>. In stock → normal order. Out of stock + allow preorder → Preorder.
-        When goods arrive, raise stock and use <strong>Stock arrived</strong> so waiting preorders move to Ready.
-    </p>
+{% if data.row.pkey %}
+<div class="ao-kpis">
+    <div class="ao-kpi"><span>Stock on hand</span><strong>{{ data.row.stock or 0 }}</strong><small>total across sizes</small></div>
+    <div class="ao-kpi"><span>Reserved</span><strong>{{ data.row.reserved or 0 }}</strong><small>held for preorders</small></div>
+    <div class="ao-kpi"><span>Sold</span><strong>{{ data.row.sold or 0 }}</strong><small>paid units</small></div>
+    <div class="ao-kpi is-highlight"><span>Profit / unit</span><strong>{% if data.row.has_referral_discount %}{{ data.row.profit_with_discount or 'Rp 0' }}{% else %}{{ data.row.profit or 'Rp 0' }}{% endif %}</strong><small>{% if data.row.has_referral_discount %}after referral discount{% else %}price − bahan baku{% endif %}</small></div>
 </div>
+{% endif %}
 
-<form class="form-stack" method="post" enctype="multipart/form-data" id="product-form">
-    <div><label class="field-label" for="name">Name</label><input class="field" name="name" id="name" value="{{ data.row.name or '' }}" required></div>
-    <div><label class="field-label" for="slug">Slug</label><input class="field" name="slug" id="slug" value="{{ data.row.slug or '' }}"></div>
-    <div><label class="field-label" for="sku">SKU</label><input class="field" name="sku" id="sku" value="{{ data.row.sku or '' }}" placeholder="e.g. FRACO-TEE-B1">
-        <p class="product-meta" style="margin-top: 8px;">Optional internal stock code. Customers see the product name; leave blank if you do not track batches.</p>
-    </div>
-    <div>
-        <label class="field-label" for="category">Category</label>
-        <select class="field" name="category" id="category" required>
-            <option value="">Select category</option>
-            {% for category in data.categories %}
-            <option value="{{ category }}"{% if data.row.category == category %} selected{% endif %}>{{ category }}</option>
-            {% endfor %}
-        </select>
-        <p class="product-meta" style="margin-top: 8px;">Manage category options in <a class="section-link" href="/admin/settings#merchandise-categories">Admin Settings</a>.</p>
-    </div>
-    <div><label class="field-label" for="description">Description</label><textarea class="field" name="description" id="description" rows="4">{{ data.row.description or '' }}</textarea></div>
-    <div><label class="field-label" for="price_num">Price / jual (number)</label><input class="field" name="price_num" id="price_num" type="number" min="0" value="{{ data.row.price_num or 0 }}"></div>
-    <div><label class="field-label" for="bahan_baku_num">Bahan baku / cost (number)</label><input class="field" name="bahan_baku_num" id="bahan_baku_num" type="number" min="0" value="{{ data.row.bahan_baku_num or 0 }}">
-        <p class="product-meta">Cost of goods — never reduced by referral discount. Member merch credit uses profit only.</p>
-    </div>
-    <div class="pay-box" style="padding: 16px;" id="profit-box">
-        <p class="field-label" style="margin: 0;">Profit per unit</p>
-        <p class="prose-fraco" style="margin-top: 8px;">
-            Base: <strong id="profit-base-label">{{ data.row.profit or 'Rp 0' }}</strong>
-            <span class="product-meta">(price − bahan baku)</span>
-        </p>
-        <p class="prose-fraco" style="margin-top: 8px;{% if not data.row.has_referral_discount %} display: none;{% endif %}" id="profit-disc-row">
-            Referral discount: − <span id="profit-disc-label">{{ data.row.discount_unit or 'Rp 0' }}</span>
-            <span class="product-meta">(cuts profit only, not bahan baku)</span>
-        </p>
-        <p class="prose-fraco" style="margin-top: 12px;">
-            Profit final: <strong id="profit-after-label">{% if data.row.has_referral_discount %}{{ data.row.profit_with_discount or 'Rp 0' }}{% else %}{{ data.row.profit or 'Rp 0' }}{% endif %}</strong>
-            <span class="product-meta" id="profit-final-note">{% if data.row.has_referral_discount %}(base − referral discount){% else %}(same as base — no referral discount){% endif %}</span>
-        </p>
-        <p class="prose-fraco" id="profit-disc-warn" style="margin-top: 10px; color: #b00000;{% if not data.row.discount_hits_bahan %} display: none;{% endif %}">
-            Warning: referral discount is higher than profit. Profit final becomes Rp 0 and the extra amount eats into bahan baku (cost). Lower the discount or raise the price / lower bahan.
-        </p>
-    </div>
-    <div class="pay-box" style="padding: 16px;">
-        <p class="field-label" style="margin: 0;">Referral discount (optional)</p>
-        <p class="product-meta" style="margin-top: 8px;">Referral code can credit a member even without a discount. Turn this on only if you want buyers to get money off when they use a valid code.</p>
-        <label class="field-label" style="display: flex; align-items: center; gap: 10px; margin-top: 14px;">
-            <input type="checkbox" name="discount_enabled" value="1" id="discount_enabled"{% if data.row.discount_enabled %} checked{% endif %}>
-            Offer referral discount on this product
-        </label>
-        <div id="discount-fields" style="margin-top: 14px;{% if not data.row.discount_enabled %} display: none;{% endif %}">
+<form method="post" enctype="multipart/form-data" id="product-form">
+    <div class="ao-card">
+        <div class="ao-card-head">
             <div>
-                <label class="field-label" for="discount_type">Discount type</label>
-                <select class="field" name="discount_type" id="discount_type">
-                    <option value="PCT"{% if (data.row.discount_type or 'PCT') == 'PCT' %} selected{% endif %}>Percent (%)</option>
-                    <option value="FIXED"{% if data.row.discount_type == 'FIXED' %} selected{% endif %}>Fixed amount (Rp)</option>
+                <h2 class="ao-card-title">Product details</h2>
+                <p class="ao-card-sub">What buyers see on the product page.</p>
+            </div>
+        </div>
+        <div class="ao-grid-2">
+            <div class="ao-field">
+                <label class="ao-label" for="name">Name</label>
+                <input class="ao-input" name="name" id="name" value="{{ data.row.name or '' }}" required>
+            </div>
+            <div class="ao-field">
+                <label class="ao-label" for="slug">Slug</label>
+                <input class="ao-input" name="slug" id="slug" value="{{ data.row.slug or '' }}" placeholder="auto from name if blank">
+            </div>
+            <div class="ao-field">
+                <label class="ao-label" for="sku">SKU</label>
+                <input class="ao-input" name="sku" id="sku" value="{{ data.row.sku or '' }}" placeholder="e.g. FRACO-TEE-B1">
+                <p class="ao-help">Optional internal code. Leave blank if you do not track batches.</p>
+            </div>
+            <div class="ao-field">
+                <label class="ao-label" for="category">Category</label>
+                <select class="ao-select" name="category" id="category" required>
+                    <option value="">Select category</option>
+                    {% for category in data.categories %}
+                    <option value="{{ category }}"{% if data.row.category == category %} selected{% endif %}>{{ category }}</option>
+                    {% endfor %}
                 </select>
+                <p class="ao-help">Options are managed in <a class="ao-link" href="/admin/settings#merchandise-categories">Admin Settings</a>.</p>
             </div>
-            <div style="margin-top: 12px;">
-                <label class="field-label" for="discount_num">Discount value</label>
-                <input class="field" name="discount_num" id="discount_num" type="number" min="0" value="{{ data.row.discount_num or 0 }}" placeholder="e.g. 10 for 10%, or 25000 for Rp 25.000">
-                <p class="product-meta" style="margin-top: 8px;">Percent: 1–100. Fixed: rupiah off per unit. The rupiah off comes out of profit, not bahan baku.</p>
+            <div class="ao-field">
+                <label class="ao-label" for="colors">Colors (comma)</label>
+                <input class="ao-input" name="colors" id="colors" value="{{ data.row.colors|join(', ') if data.row.colors else '' }}" placeholder="e.g. Black, White">
             </div>
-            <div style="margin-top: 12px;">
-                <label class="field-label" for="discount_note">Discount note (shown on checkout)</label>
-                <textarea class="field" name="discount_note" id="discount_note" rows="2" placeholder="e.g. Use a member code to unlock this discount.">{{ data.row.discount_note or '' }}</textarea>
+            <div class="ao-field">
+                <label class="ao-label" for="description">Description</label>
+                <textarea class="ao-textarea" name="description" id="description" rows="4">{{ data.row.description or '' }}</textarea>
             </div>
-            {% if data.row.discount %}
-            <p class="product-meta" style="margin-top: 10px;">Saved label: {{ data.row.discount }}</p>
+        </div>
+    </div>
+
+    <div class="ao-card">
+        <div class="ao-card-head">
+            <div>
+                <h2 class="ao-card-title">Pricing</h2>
+                <p class="ao-card-sub">Price, cost, and profit per unit.</p>
+            </div>
+        </div>
+        <div class="ao-grid-2">
+            <div class="ao-field">
+                <label class="ao-label" for="price_num">Price / jual</label>
+                <input class="ao-input" name="price_num" id="price_num" type="number" min="0" value="{{ data.row.price_num or 0 }}">
+            </div>
+            <div class="ao-field">
+                <label class="ao-label" for="bahan_baku_num">Bahan baku / cost</label>
+                <input class="ao-input" name="bahan_baku_num" id="bahan_baku_num" type="number" min="0" value="{{ data.row.bahan_baku_num or 0 }}">
+                <p class="ao-help">Cost of goods — never reduced by referral discount. Member merch credit uses profit only.</p>
+            </div>
+        </div>
+        <dl class="ao-rows" style="margin-top: 14px;">
+            <div><dt>Base profit</dt><dd id="profit-base-label">{{ data.row.profit or 'Rp 0' }}</dd></div>
+            <div id="profit-disc-row" {% if not data.row.has_referral_discount %}style="display: none;"{% endif %}><dt>Referral discount</dt><dd style="color: #b45309;">− <span id="profit-disc-label">{{ data.row.discount_unit or 'Rp 0' }}</span></dd></div>
+            <div class="is-total"><dt>Profit final</dt><dd id="profit-after-label">{% if data.row.has_referral_discount %}{{ data.row.profit_with_discount or 'Rp 0' }}{% else %}{{ data.row.profit or 'Rp 0' }}{% endif %}</dd></div>
+        </dl>
+        <p class="ao-help" id="profit-final-note">{% if data.row.has_referral_discount %}(base − referral discount){% else %}(same as base — no referral discount){% endif %}</p>
+        <div id="profit-disc-warn" class="ao-alert ao-alert-warn" style="margin-top: 12px;{% if not data.row.discount_hits_bahan %} display: none;{% endif %}">
+            <span aria-hidden="true">⚠</span>
+            <span>Referral discount is higher than profit. Profit final becomes Rp 0 and the extra eats into bahan baku. Lower the discount, raise the price, or lower the cost.</span>
+        </div>
+        <div style="border-top: 1px solid var(--ao-line); margin-top: 16px; padding-top: 16px;">
+            <label class="pf-check"><input type="checkbox" name="discount_enabled" value="1" id="discount_enabled"{% if data.row.discount_enabled %} checked{% endif %}> Offer referral discount on this product</label>
+            <p class="ao-help">A referral code credits the member even without a discount. Turn this on only if buyers should get money off with a valid code.</p>
+            <div id="discount-fields" style="margin-top: 14px;{% if not data.row.discount_enabled %} display: none;{% endif %}">
+                <div class="ao-grid-2">
+                    <div class="ao-field">
+                        <label class="ao-label" for="discount_type">Discount type</label>
+                        <select class="ao-select" name="discount_type" id="discount_type">
+                            <option value="PCT"{% if (data.row.discount_type or 'PCT') == 'PCT' %} selected{% endif %}>Percent (%)</option>
+                            <option value="FIXED"{% if data.row.discount_type == 'FIXED' %} selected{% endif %}>Fixed amount (Rp)</option>
+                        </select>
+                    </div>
+                    <div class="ao-field">
+                        <label class="ao-label" for="discount_num">Discount value</label>
+                        <input class="ao-input" name="discount_num" id="discount_num" type="number" min="0" value="{{ data.row.discount_num or 0 }}" placeholder="e.g. 10 for 10%, or 25000 for Rp 25.000">
+                        <p class="ao-help">Percent: 1–100. Fixed: rupiah off per unit — comes out of profit, not bahan baku.</p>
+                    </div>
+                </div>
+                <div class="ao-field">
+                    <label class="ao-label" for="discount_note">Discount note (shown on checkout)</label>
+                    <textarea class="ao-textarea" name="discount_note" id="discount_note" rows="2" placeholder="e.g. Use a member code to unlock this discount.">{{ data.row.discount_note or '' }}</textarea>
+                </div>
+                {% if data.row.discount %}
+                <p class="ao-help">Saved label: <strong>{{ data.row.discount }}</strong></p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="ao-card">
+        <div class="ao-card-head">
+            <div>
+                <h2 class="ao-card-title">Sizes, stock &amp; preorder</h2>
+                <p class="ao-card-sub">Stock per size when sizes exist (total = sum). No sizes → one total stock field. In stock → normal order; out of stock + preorder allowed → buyers can preorder. When goods arrive, use <strong>Stock arrived</strong> below to move waiting preorders to Ready.</p>
+            </div>
+        </div>
+        <div class="ao-field">
+            <label class="ao-label" for="sizes">Sizes (comma)</label>
+            <input class="ao-input" name="sizes" id="sizes" value="{{ data.row.sizes|join(', ') if data.row.sizes else '' }}" placeholder="e.g. S, M, L, XL — or 1, 2, 3 for kids">
+            <p class="ao-help">Leave blank for one-size items. Known sizes (XS–5XL, 0–3) auto-fill category and measurements below.</p>
+        </div>
+        <div class="ao-field" id="stock-total-wrap" style="margin-top: 14px;">
+            <label class="ao-label" for="stock">Stock on hand (total)</label>
+            <input class="ao-input" name="stock" id="stock" type="number" min="0" value="{{ data.row.stock or 0 }}" style="max-width: 180px;">
+            <p class="ao-help">0 = out of stock. Used when there are no sizes.</p>
+        </div>
+        <div id="stock-by-size-wrap" style="margin-top: 14px;{% if not data.row.sizes %} display: none;{% endif %}">
+            <div class="size-row size-row-head">
+                <span></span>
+                <span>Stock</span>
+                <span>Price <small>(empty = standard)</small></span>
+                <span>Category</span>
+                <span>Lebar (cm)</span>
+                <span>Panjang (cm)</span>
+            </div>
+            <div id="stock-by-size-fields">
+                {% for row in data.row.size_stock_rows or [] %}
+                <div class="size-row">
+                    <label class="ao-label" style="margin: 0;" for="stock_size_{{ row.idx }}">{{ row.size }}</label>
+                    <input class="ao-input" type="number" min="0" name="stock_size_{{ row.idx }}" id="stock_size_{{ row.idx }}" value="{{ row.stock or 0 }}" data-size-stock="1" data-size-label="{{ row.size }}">
+                    <input class="ao-input" type="number" min="0" name="price_size_{{ row.idx }}" id="price_size_{{ row.idx }}" value="{{ row.price_num or '' }}" placeholder="Standard" data-size-price="1">
+                    <select class="ao-select" name="size_cat_{{ row.idx }}" id="size_cat_{{ row.idx }}" data-size-cat="1">
+                        <option value="DEWASA"{% if (row.cat or 'DEWASA') == 'DEWASA' %} selected{% endif %}>Dewasa</option>
+                        <option value="ANAK"{% if row.cat == 'ANAK' %} selected{% endif %}>Anak</option>
+                    </select>
+                    <input class="ao-input" type="number" min="0" name="size_lebar_{{ row.idx }}" id="size_lebar_{{ row.idx }}" value="{{ row.lebar or '' }}" placeholder="cm" data-size-lebar="1">
+                    <input class="ao-input" type="number" min="0" name="size_panjang_{{ row.idx }}" id="size_panjang_{{ row.idx }}" value="{{ row.panjang or '' }}" placeholder="cm" data-size-panjang="1">
+                </div>
+                {% endfor %}
+            </div>
+            <p class="ao-help" style="margin-top: 10px;">Total: <strong id="stock-size-total">{{ data.row.stock or 0 }}</strong> <span class="ao-muted" id="stock-total-hint">— auto-filled from the rows above.</span></p>
+        </div>
+        <div style="border-top: 1px solid var(--ao-line); margin-top: 16px; padding-top: 16px;">
+            <label class="pf-check"><input type="checkbox" name="allow_preorder" value="1" id="allow_preorder"{% if data.row.allow_preorder or data.row.is_preorder %} checked{% endif %}> Allow preorder when out of stock</label>
+            <p class="ao-help">If checked and a size (or total) is 0, buyers can still order it as Preorder. If unchecked, zero-stock items cannot be bought.</p>
+            <div class="ao-grid-2" style="margin-top: 12px;">
+                <div class="ao-field">
+                    <label class="ao-label" for="preorder_eta">Expected ready / ship</label>
+                    <input class="ao-input" name="preorder_eta" id="preorder_eta" value="{{ data.row.preorder_eta or '' }}" placeholder="e.g. April 2027">
+                </div>
+                <div class="ao-field">
+                    <label class="ao-label" for="preorder_note">Preorder note (shown to buyers)</label>
+                    <input class="ao-input" name="preorder_note" id="preorder_note" value="{{ data.row.preorder_note or '' }}" placeholder="e.g. Ships after production.">
+                </div>
+            </div>
+            <div class="ao-grid-2" style="margin-top: 12px;">
+                <div class="ao-field">
+                    <label class="ao-label" for="reserved">Reserved</label>
+                    <input class="ao-input" name="reserved" id="reserved" type="number" min="0" value="{{ data.row.reserved or 0 }}">
+                    <p class="ao-help">Held for waiting preorders.</p>
+                </div>
+                <div class="ao-field">
+                    <label class="ao-label" for="sold">Sold</label>
+                    <input class="ao-input" name="sold" id="sold" type="number" min="0" value="{{ data.row.sold or 0 }}">
+                    <p class="ao-help">Paid units.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="ao-card">
+        <div class="ao-card-head">
+            <div>
+                <h2 class="ao-card-title">Images &amp; files</h2>
+                <p class="ao-card-sub">Cover, gallery, and private design assets.</p>
+            </div>
+        </div>
+        <div class="ao-grid-2">
+            <div class="ao-field">
+                <label class="ao-label" for="image">Image URL</label>
+                <input class="ao-input" name="image" id="image" value="{{ data.row.image or '' }}" placeholder="https://…">
+            </div>
+            <div class="ao-field">
+                <label class="ao-label" for="image_file">Upload images</label>
+                <input class="ao-input" type="file" name="image_file" id="image_file" accept=".jpg,.jpeg,.png,.webp" multiple>
+                <p class="ao-help" id="image-file-hint">Select multiple jpg, png, or webp files. First image becomes the cover. Maximum 12.</p>
+            </div>
+        </div>
+        {% set current_images = data.row.images if data.row.images else ([data.row.image] if data.row.image else []) %}
+        {% if current_images %}
+        <div style="margin-top: 16px;">
+            <p class="ao-label">Current gallery · {{ current_images|length }} image{% if current_images|length != 1 %}s{% endif %}{% if data.can_write %} <span class="ao-muted">— tick Remove under an image, then Save.</span>{% endif %}</p>
+            <div class="pf-gallery">
+                {% for image in current_images %}
+                <div class="pf-tile{% if loop.first %} is-cover{% endif %}">
+                    <img src="{{ image }}" alt="{{ data.row.name or 'Product' }} image {{ loop.index }}">
+                    <p class="ao-muted" style="margin-top:4px; text-align: center;">{% if loop.first %}Cover{% else %}Image {{ loop.index }}{% endif %}</p>
+                    {% if data.can_write %}
+                    <label class="pf-remove">
+                        <input type="checkbox" name="remove_images" value="{{ image }}"> Remove
+                    </label>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        <div style="border-top: 1px solid var(--ao-line); margin-top: 16px; padding-top: 16px;">
+            <label class="ao-label" for="assets_file" style="margin: 0;">Assets file (admin only)</label>
+            <p class="ao-help">Design files, mockups, or print-ready artwork. Stored privately — customers never see it. One .zip or .rar, max 200 MB; a new upload replaces the old one.</p>
+            {% if data.row.assets_zip %}
+            <p style="margin-top: 10px;">
+                <a class="ao-link" href="/admin/products/{{ data.row.pkey }}/assets">{{ data.row.assets_zip_name or 'assets' }}</a>
+                {% if data.row.assets_zip_size_label %}<span class="ao-muted">· {{ data.row.assets_zip_size_label }}</span>{% endif %}
+                {% if data.can_write %}
+                <label class="pf-check" style="margin-left: 14px;"><input type="checkbox" name="remove_assets" value="1"> Remove current file</label>
+                {% endif %}
+            </p>
+            {% endif %}
+            {% if data.can_write %}
+            <input class="ao-input" type="file" name="assets_file" id="assets_file" accept=".zip,.rar,application/zip,application/vnd.rar,application/x-rar-compressed" style="margin-top: 12px;">
             {% endif %}
         </div>
     </div>
 
-    <div class="pay-box" style="padding: 16px;">
-        <div><label class="field-label" for="sizes">Sizes (comma)</label><input class="field" name="sizes" id="sizes" value="{{ data.row.sizes|join(', ') if data.row.sizes else '' }}" placeholder="e.g. S, M, L, XL">
-            <p class="product-meta" style="margin-top: 8px;">Leave blank for one-size items. When sizes are set, stock is tracked per size below.</p>
-        </div>
-        <div id="stock-total-wrap" style="margin-top: 14px;">
-            <label class="field-label" for="stock">Stock on hand (total)</label>
-            <input class="field" name="stock" id="stock" type="number" min="0" value="{{ data.row.stock or 0 }}">
-            <p class="product-meta" style="margin-top: 8px;" id="stock-total-hint">0 = out of stock. Used when there are no sizes.</p>
-        </div>
-        <div id="stock-by-size-wrap" style="margin-top: 14px;{% if not data.row.sizes %} display: none;{% endif %}">
-            <p class="field-label" style="margin: 0;">Stock by size</p>
-            <p class="product-meta" style="margin-top: 8px;">Total stock = sum of sizes. Change sizes above, then adjust qty here before save.</p>
-            <div id="stock-by-size-fields" style="margin-top: 12px;">
-                {% for row in data.row.size_stock_rows or [] %}
-                <div style="display: flex; gap: 12px; align-items: center; margin-top: 8px;">
-                    <label class="field-label" style="min-width: 64px; margin: 0;" for="stock_size_{{ row.idx }}">{{ row.size }}</label>
-                    <input class="field" type="number" min="0" name="stock_size_{{ row.idx }}" id="stock_size_{{ row.idx }}" value="{{ row.stock or 0 }}" data-size-stock="1" data-size-label="{{ row.size }}">
-                </div>
-                {% endfor %}
-            </div>
-            <p class="product-meta" style="margin-top: 10px;">Total: <strong id="stock-size-total">{{ data.row.stock or 0 }}</strong></p>
-        </div>
-        <label class="field-label" style="display: flex; align-items: center; gap: 10px; margin-top: 16px;">
-            <input type="checkbox" name="allow_preorder" value="1" id="allow_preorder"{% if data.row.allow_preorder or data.row.is_preorder %} checked{% endif %}>
-            Allow preorder when out of stock
-        </label>
-        <p class="product-meta" style="margin-top: 10px;">If checked and a size (or total) is 0, buyers can still order that as Preorder. If unchecked and stock is 0, it cannot be bought.</p>
-        <div style="margin-top: 14px;"><label class="field-label" for="preorder_eta">Expected ready / ship</label><input class="field" name="preorder_eta" id="preorder_eta" value="{{ data.row.preorder_eta or '' }}" placeholder="e.g. April 2027"></div>
-        <div style="margin-top: 12px;"><label class="field-label" for="preorder_note">Preorder note (shown to buyers)</label><textarea class="field" name="preorder_note" id="preorder_note" rows="2" placeholder="e.g. Ships after production. Payment still required to confirm.">{{ data.row.preorder_note or '' }}</textarea></div>
-    </div>
-
-    <div><label class="field-label" for="reserved">Reserved</label><input class="field" name="reserved" id="reserved" value="{{ data.row.reserved or 0 }}"></div>
-    <div><label class="field-label" for="sold">Sold</label><input class="field" name="sold" id="sold" value="{{ data.row.sold or 0 }}"></div>
-    <div><label class="field-label" for="colors">Colors (comma)</label><input class="field" name="colors" id="colors" value="{{ data.row.colors|join(', ') if data.row.colors else '' }}"></div>
-    <div><label class="field-label" for="image">Image URL</label><input class="field" name="image" id="image" value="{{ data.row.image or '' }}"></div>
-    <div>
-        <label class="field-label" for="image_file">Upload one or more product images</label>
-        <input class="field" type="file" name="image_file" id="image_file" accept=".jpg,.jpeg,.png,.webp" multiple>
-        <p class="product-meta" id="image-file-hint">Select multiple jpg, png, or webp files. The first selected image becomes the cover; the others appear in the product gallery. Maximum 12 images.</p>
-    </div>
-    {% set current_images = data.row.images if data.row.images else ([data.row.image] if data.row.image else []) %}
-    {% if current_images %}
-    <style>
-    .pf-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; margin-top: 10px; max-width: 640px; }
-    .pf-tile { position: relative; }
-    .pf-tile img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; border: 2px solid #ddd; transition: opacity .15s; }
-    .pf-tile.is-cover img { border-color: #111; }
-    .pf-remove {
-        display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; margin-top: 6px; padding: 6px 8px;
-        border: 1px solid #ddd; border-radius: 6px; font-size: 13px; cursor: pointer; user-select: none; background: #fff;
-    }
-    .pf-remove:hover { border-color: #b00000; color: #b00000; }
-    .pf-remove input { width: 15px; height: 15px; margin: 0; accent-color: #b00000; }
-    .pf-tile:has(input:checked) img { opacity: .3; border-color: #b00000; }
-    .pf-tile:has(input:checked) .pf-remove { border-color: #b00000; color: #b00000; background: #fdf4f4; }
-    .pf-tile:has(input:checked)::after {
-        content: "Will be removed"; position: absolute; top: 8px; left: 8px; right: 8px; padding: 3px 6px; border-radius: 4px;
-        background: #b00000; color: #fff; font-size: 11px; text-align: center;
-    }
-    </style>
-    <div>
-        <p class="product-meta">Current product gallery · {{ current_images|length }} image{% if current_images|length != 1 %}s{% endif %}</p>
-        {% if data.can_write %}<p class="product-meta" style="margin-top: 4px;">To delete an image, tick <strong>Remove</strong> under it, then click <strong>Save product</strong>. If you remove the cover, the next image becomes the cover.</p>{% endif %}
-        <div class="pf-gallery">
-            {% for image in current_images %}
-            <div class="pf-tile{% if loop.first %} is-cover{% endif %}">
-                <img src="{{ image }}" alt="{{ data.row.name or 'Product' }} image {{ loop.index }}">
-                <p class="product-meta" style="margin-top:4px;">{% if loop.first %}Cover{% else %}Image {{ loop.index }}{% endif %}</p>
-                {% if data.can_write %}
-                <label class="pf-remove">
-                    <input type="checkbox" name="remove_images" value="{{ image }}"> Remove
-                </label>
-                {% endif %}
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
-    <div class="pay-box" style="padding: 16px;">
-        <label class="field-label" for="assets_file" style="margin: 0;">Assets file (admin only)</label>
-        <p class="product-meta" style="margin-top: 8px;">Design files, mockups, or print-ready artwork for this product. Stored privately — customers never see it. One .zip or .rar per product, max 200 MB; uploading a new one replaces the old one.</p>
-        {% if data.row.assets_zip %}
-        <p class="prose-fraco" style="margin-top: 12px;">
-            Current: <a class="section-link" href="/admin/products/{{ data.row.pkey }}/assets">{{ data.row.assets_zip_name or 'assets' }}</a>
-            {% if data.row.assets_zip_size_label %}<span class="product-meta">· {{ data.row.assets_zip_size_label }}</span>{% endif %}
-        </p>
-        {% if data.can_write %}
-        <label class="field-label" style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
-            <input type="checkbox" name="remove_assets" value="1"> Remove current assets file
-        </label>
-        {% endif %}
-        {% endif %}
-        {% if data.can_write %}
-        <input class="field" type="file" name="assets_file" id="assets_file" accept=".zip,.rar,application/zip,application/vnd.rar,application/x-rar-compressed" style="margin-top: 12px;">
-        {% endif %}
-    </div>
-    <div>
-        <label class="field-label" for="status">Status</label>
-        <select class="field" name="status" id="status">
-            {% for item in data.statuses %}
-            <option value="{{ item }}"{% if data.row.status == item %} selected{% endif %}>{{ item }}</option>
-            {% endfor %}
-        </select>
-    </div>
     {% if data.can_write %}
-    <button class="btn-black" type="submit">Save product</button>
+    <div class="pf-actions" style="margin: 4px 0 20px; gap: 12px;">
+        <div style="flex: 0 1 190px;">
+            <label class="ao-label" for="status">Status</label>
+            <select class="ao-select" name="status" id="status">
+                {% for item in data.statuses %}
+                <option value="{{ item }}"{% if data.row.status == item %} selected{% endif %}>{{ item }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button class="ao-btn ao-btn-primary" type="submit" style="min-width: 170px;">Save product</button>
+        <span class="ao-muted">Draft hides it from the store; Active shows it.</span>
+    </div>
     {% endif %}
 </form>
 
 {% if data.row.pkey and data.can_write %}
-<form class="form-stack" method="post" style="margin-top: 28px; padding-top: 24px; border-top: 1px solid #ddd;" onsubmit="return confirm('Set this stock and move waiting Preorder orders for this product to Ready?');">
-    <input type="hidden" name="action" value="stock_arrived">
-    <p class="field-label" style="margin: 0;">Stock arrived</p>
-    <p class="product-meta" style="margin-top: 8px;">Raises stock and advances orders still in <strong>Preorder</strong> for this product to <strong>Ready</strong>, so members can pack / ship.</p>
-    <div style="margin-top: 14px;"><label class="field-label" for="arrived_stock">New stock quantity</label><input class="field" name="arrived_stock" id="arrived_stock" type="number" min="1" value="{{ data.row.stock if data.row.stock and data.row.stock > 0 else 1 }}" required></div>
-    <button class="btn-line" type="submit" style="margin-top: 12px;">Stock arrived — update &amp; release preorders</button>
-</form>
+<div class="ao-card">
+    <div class="ao-card-head">
+        <div>
+            <h2 class="ao-card-title">Actions</h2>
+            <p class="ao-card-sub">Day-to-day operations for this product.</p>
+        </div>
+    </div>
+    <form method="post" onsubmit="return confirm('Set this stock and move waiting Preorder orders for this product to Ready?');" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin-bottom: 14px;">
+        <input type="hidden" name="action" value="stock_arrived">
+        <div style="flex: 0 1 170px;">
+            <label class="ao-label" for="arrived_stock">New stock quantity</label>
+            <input class="ao-input" name="arrived_stock" id="arrived_stock" type="number" min="1" value="{{ data.row.stock if data.row.stock and data.row.stock > 0 else 1 }}" required>
+        </div>
+        <button class="ao-btn ao-btn-success" type="submit">Stock arrived — release preorders</button>
+        <span class="ao-muted" style="flex: 1 1 200px;">Raises stock and advances waiting Preorder orders to Ready so members can pack / ship.</span>
+    </form>
+    <form method="post" onsubmit="return confirm('Duplicate this product as a new Draft? Unsaved changes on this page are not copied.');" style="margin-bottom: 14px;">
+        <input type="hidden" name="action" value="duplicate">
+        <button class="ao-btn" type="submit">Duplicate as Draft</button>
+        <span class="ao-muted" style="margin-left: 10px;">Same details, sizes, and images — stock, reserved, and sold start at 0.</span>
+    </form>
+    {% if data.can_delete %}
+    <form method="post" onsubmit="return confirm('Delete this product? It will be removed from the store.');" style="border-top: 1px solid var(--ao-line); padding-top: 14px;">
+        <input type="hidden" name="action" value="delete">
+        <button class="ao-btn ao-btn-danger" type="submit">Delete product</button>
+        <span class="ao-muted" style="margin-left: 10px;">Removes it from the store.</span>
+    </form>
+    {% endif %}
+</div>
 {% endif %}
 
-{% if data.row.pkey and data.can_write %}
-<form method="post" style="margin-top: 28px; padding-top: 24px; border-top: 1px solid #ddd;" onsubmit="return confirm('Duplicate this product as a new Draft? Unsaved changes on this page are not copied.');">
-    <input type="hidden" name="action" value="duplicate">
-    <p class="field-label" style="margin: 0;">Duplicate product</p>
-    <p class="product-meta" style="margin-top: 8px;">Creates a Draft copy with the same details, sizes, and images. Stock, reserved, and sold start at 0.</p>
-    <button class="btn-line" type="submit" style="margin-top: 12px;">Duplicate product</button>
-</form>
-{% endif %}
-
-{% if data.row.pkey and data.can_delete %}
-<form method="post" style="margin-top: 16px;" onsubmit="return confirm('Delete this product? It will be removed from the store.');">
-    <input type="hidden" name="action" value="delete">
-    <button class="btn-line" type="submit">Delete product</button>
-</form>
-{% endif %}
 <script>
 (function () {
     var imageFile = document.getElementById("image_file");
@@ -329,15 +445,46 @@
         });
         return parts;
     }
-    function readSizeStockMap() {
+    var SIZE_TABLE = {{ (data.row.size_table or {}) | tojson }};
+    var SIZE_ALIASES = { "XXL": "2XL", "XXXL": "3XL", "XXXXL": "4XL", "XXXXXL": "5XL", "2X": "2XL", "3X": "3XL", "4X": "4XL", "5X": "5XL" };
+    function sizeKey(s) {
+        var key = String(s || "").replace(/\s+/g, "").toUpperCase();
+        return SIZE_ALIASES[key] || key;
+    }
+    function defaultSpecFor(size) {
+        var key = sizeKey(size);
+        var cats = ["DEWASA", "ANAK"];
+        for (var i = 0; i < cats.length; i++) {
+            var table = SIZE_TABLE[cats[i]] || {};
+            for (var tbl in table) {
+                if (sizeKey(tbl) === key) return { cat: cats[i], lebar: table[tbl][0], panjang: table[tbl][1] };
+            }
+        }
+        return null;
+    }
+    function readSizeRows() {
         var map = {};
         document.querySelectorAll("[data-size-stock='1']").forEach(function (el) {
+            var row = el.closest(".size-row");
+            if (!row) return;
             var label = el.getAttribute("data-size-label") || "";
             if (!label) {
-                var lab = el.parentNode ? el.parentNode.querySelector("label") : null;
+                var lab = row.querySelector("label");
                 label = lab ? lab.textContent.trim() : "";
             }
-            if (label) map[label] = n(el);
+            if (!label) return;
+            var priceEl = row.querySelector("[data-size-price='1']");
+            var catEl = row.querySelector("[data-size-cat='1']");
+            var lebarEl = row.querySelector("[data-size-lebar='1']");
+            var panjangEl = row.querySelector("[data-size-panjang='1']");
+            var priceVal = priceEl ? parseInt(priceEl.value || "", 10) : NaN;
+            map[label] = {
+                stock: n(el),
+                price: priceEl && priceVal && priceVal > 0 ? String(priceVal) : "",
+                cat: catEl ? catEl.value : "",
+                lebar: lebarEl && lebarEl.value !== "" ? lebarEl.value : "",
+                panjang: panjangEl && panjangEl.value !== "" ? panjangEl.value : ""
+            };
         });
         return map;
     }
@@ -348,14 +495,13 @@
         });
         return total;
     }
-    function syncSizeStockUi() {
+    function syncSizeTableUi() {
         var sizes = parseSizes();
         var wrap = document.getElementById("stock-by-size-wrap");
         var totalWrap = document.getElementById("stock-total-wrap");
         var fields = document.getElementById("stock-by-size-fields");
         var stockEl = document.getElementById("stock");
         var totalLabel = document.getElementById("stock-size-total");
-        var prev = readSizeStockMap();
         if (!wrap || !fields || !totalWrap) return;
         if (sizes.length === 0) {
             wrap.style.display = "none";
@@ -365,13 +511,31 @@
         }
         wrap.style.display = "";
         totalWrap.style.display = "none";
+        var prev = readSizeRows();
         var html = "";
         sizes.forEach(function (sz, idx) {
-            var qty = prev.hasOwnProperty(sz) ? prev[sz] : 0;
-            html += '<div style="display:flex;gap:12px;align-items:center;margin-top:8px;">' +
-                '<label class="field-label" style="min-width:64px;margin:0;" for="stock_size_' + idx + '">' + sz + '</label>' +
-                '<input class="field" type="number" min="0" name="stock_size_' + idx + '" id="stock_size_' + idx +
-                '" value="' + qty + '" data-size-stock="1" data-size-label="' + sz.replace(/"/g, "&quot;") + '">' +
+            var keep = prev.hasOwnProperty(sz) ? prev[sz] : null;
+            var def = defaultSpecFor(sz);
+            var stockVal = keep ? keep.stock : 0;
+            var priceVal = keep ? keep.price : "";
+            var catVal = keep && keep.cat ? keep.cat : (def ? def.cat : "DEWASA");
+            var lebarVal = keep && keep.lebar !== "" ? keep.lebar : (def ? def.lebar : "");
+            var panjangVal = keep && keep.panjang !== "" ? keep.panjang : (def ? def.panjang : "");
+            var esc = sz.replace(/"/g, "&quot;");
+            html += '<div class="size-row">' +
+                '<label class="ao-label" style="margin:0;" for="stock_size_' + idx + '">' + sz + '</label>' +
+                '<input class="ao-input" type="number" min="0" name="stock_size_' + idx + '" id="stock_size_' + idx +
+                '" value="' + stockVal + '" data-size-stock="1" data-size-label="' + esc + '">' +
+                '<input class="ao-input" type="number" min="0" name="price_size_' + idx + '" id="price_size_' + idx +
+                '" value="' + priceVal + '" placeholder="Standard" data-size-price="1">' +
+                '<select class="ao-select" name="size_cat_' + idx + '" id="size_cat_' + idx + '" data-size-cat="1">' +
+                '<option value="DEWASA"' + (catVal !== "ANAK" ? " selected" : "") + '>Dewasa</option>' +
+                '<option value="ANAK"' + (catVal === "ANAK" ? " selected" : "") + '>Anak</option>' +
+                "</select>" +
+                '<input class="ao-input" type="number" min="0" name="size_lebar_' + idx + '" id="size_lebar_' + idx +
+                '" value="' + lebarVal + '" placeholder="cm" data-size-lebar="1">' +
+                '<input class="ao-input" type="number" min="0" name="size_panjang_' + idx + '" id="size_panjang_' + idx +
+                '" value="' + panjangVal + '" placeholder="cm" data-size-panjang="1">' +
                 "</div>";
         });
         fields.innerHTML = html;
@@ -391,12 +555,13 @@
     }
     var sizesEl = document.getElementById("sizes");
     if (sizesEl) {
-        sizesEl.addEventListener("input", syncSizeStockUi);
-        sizesEl.addEventListener("change", syncSizeStockUi);
-        sizesEl.addEventListener("blur", syncSizeStockUi);
+        sizesEl.addEventListener("input", syncSizeTableUi);
+        sizesEl.addEventListener("change", syncSizeTableUi);
+        sizesEl.addEventListener("blur", syncSizeTableUi);
     }
-    syncSizeStockUi();
+    syncSizeTableUi();
     refresh();
 })();
 </script>
+</div>
 {% endblock %}

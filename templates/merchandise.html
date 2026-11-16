@@ -6,7 +6,7 @@
     <img src="/static/upload/heroes/f2fe9b29ceb4405692d5.jpg" alt="FRACO merchandise">
     <div class="page-hero-copy">
         <p>{{ data.name }}</p>
-        <h1>Shop</h1>
+        <h1>{{ data.ui.shop_h1 }}</h1>
         <p>{{ data.class_label }} · {{ data.event_full_name }}</p>
     </div>
 </section>
@@ -14,14 +14,14 @@
 <section class="merch-proof">
     <div class="merch-proof-summary">
         <div>
-            <p class="product-meta">Already supporting FRACO</p>
+            <p class="product-meta">{{ data.ui.proof_supporting }}</p>
             <p class="merch-proof-number">{{ data.social_proof.buyer_count }}</p>
-            <p>customers have purchased merchandise</p>
+            <p>{{ data.ui.proof_customers }}</p>
         </div>
         <div>
-            <p class="product-meta">Total merchandise purchased</p>
+            <p class="product-meta">{{ data.ui.proof_merch_total }}</p>
             <p class="merch-proof-number">{{ data.social_proof.total }}</p>
-            <p>{{ data.social_proof.order_count }} paid orders</p>
+            <p>{{ data.social_proof.order_count }} {{ data.ui.proof_paid_orders }}</p>
         </div>
     </div>
     {% if data.social_proof.ticker %}
@@ -43,14 +43,14 @@
     <div class="filter-row">
         {% for cat in data.categories %}
         {% if cat == 'All Products' %}
-        <a class="filter-chip{% if cat == data.active_category %} active{% endif %}" href="/merchandise{% if data.query %}?q={{ data.query|urlencode }}{% endif %}">{{ cat }}</a>
+        <a class="filter-chip{% if cat == data.active_category %} active{% endif %}" href="/merchandise{% if data.query %}?q={{ data.query|urlencode }}{% endif %}">{{ data.ui.merch_all_products }}</a>
         {% else %}
         <a class="filter-chip{% if cat == data.active_category %} active{% endif %}" href="/merchandise?category={{ cat|urlencode }}{% if data.query %}&q={{ data.query|urlencode }}{% endif %}">{{ cat }}</a>
         {% endif %}
         {% endfor %}
     </div>
     {% if data.query %}
-    <p class="product-meta" style="margin-bottom: 24px;">Search: {{ data.query }}</p>
+    <p class="product-meta" style="margin-bottom: 24px;">{{ data.ui.search_label }} {{ data.query }}</p>
     {% endif %}
     <div class="product-grid">
         {% for item in data.products %}
@@ -59,90 +59,93 @@
                 <div class="product-media">
                     <img src="{{ item.image }}" alt="{{ item.name }}">
                     {% if item.is_preorder %}
-                    <span class="badge-new badge-preorder">Preorder{% if item.preorder_eta %} · {{ item.preorder_eta }}{% endif %}</span>
+                    <span class="badge-new badge-preorder">{{ data.ui.badge_preorder }}{% if item.preorder_eta %} · {{ item.preorder_eta }}{% endif %}</span>
                     {% elif item.is_in_stock %}
-                    <span class="badge-new">In stock</span>
+                    <span class="badge-new">{{ data.ui.badge_in_stock }}</span>
                     {% else %}
-                    <span class="badge-new">Out of stock</span>
+                    <span class="badge-new">{{ data.ui.badge_out_stock }}</span>
                     {% endif %}
                 </div>
                 <h3 class="product-name">{{ item.name }}</h3>
                 <p class="product-price">{{ item.price }}</p>
-                <p class="product-meta">{{ item.sizes | join(' / ') }}</p>
+                <p class="product-meta">{{ item.sizes | join(' / ') | replace('One Size', data.ui.size_one) }}</p>
                 {% if item.is_preorder %}
-                <p class="product-meta">Out of stock · preorder open</p>
+                <p class="product-meta">{{ data.ui.merch_preorder_open }}</p>
                 {% elif item.is_in_stock %}
-                <p class="product-meta">Ready to ship</p>
+                <p class="product-meta">{{ data.ui.merch_ready_ship }}</p>
                 {% else %}
-                <p class="product-meta">Unavailable</p>
+                <p class="product-meta">{{ data.ui.merch_unavailable }}</p>
                 {% endif %}
             </a>
             {% if item.can_buy %}
-            <a class="btn-line" href="/merchandise/{{ item.slug }}" style="margin-top: 12px; align-self: flex-start;">{% if item.is_preorder %}Preorder{% else %}Add to Cart{% endif %}</a>
+            <a class="btn-line" href="/merchandise/{{ item.slug }}" style="margin-top: 12px; align-self: flex-start;">{% if item.is_preorder %}{{ data.ui.badge_preorder }}{% else %}{{ data.ui.add_cart }}{% endif %}</a>
             {% else %}
-            <p class="product-meta" style="margin-top: 12px;">See product</p>
+            <p class="product-meta" style="margin-top: 12px;">{{ data.ui.merch_see_product }}</p>
             {% endif %}
         </article>
         {% else %}
-        <p class="prose-fraco">No products in this category yet.</p>
+        <p class="prose-fraco">{{ data.ui.merch_empty_category }}</p>
         {% endfor %}
     </div>
 </section>
 
 <section class="section">
     <div style="max-width: 920px; margin: 0 auto; padding: 24px; border: 1px solid #d8ddd8; background: #fff; box-sizing: border-box;">
-        <p class="product-meta">Order tracking</p>
-        <h2 class="section-title" style="font-size: 28px; margin: 6px 0 10px;">Track your merchandise</h2>
-        <p class="prose-fraco" style="margin-bottom: 18px;">Enter the transaction code shown after checkout to see payment, shipping, and merchandise progress.</p>
+        <p class="product-meta">{{ data.ui.track_kicker }}</p>
+        <h2 class="section-title" style="font-size: 28px; margin: 6px 0 10px;">{{ data.ui.track_title }}</h2>
+        <p class="prose-fraco" style="margin-bottom: 18px;">{{ data.ui.track_desc }}</p>
         <form method="get" action="/merchandise" style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
             {% if data.active_category != 'All Products' %}<input type="hidden" name="category" value="{{ data.active_category }}">{% endif %}
             {% if data.query %}<input type="hidden" name="q" value="{{ data.query }}">{% endif %}
             <div style="flex: 1 1 280px;">
-                <label class="field-label" for="track">Transaction code</label>
-                <input class="field" id="track" name="track" value="{{ data.tracking_code }}" placeholder="Example: FR1788508509" autocomplete="off" required>
+                <label class="field-label" for="track">{{ data.ui.track_code_label }}</label>
+                <input class="field" id="track" name="track" value="{{ data.tracking_code }}" placeholder="{{ data.ui.track_code_placeholder }}" autocomplete="off" required>
             </div>
-            <button class="btn-solid" type="submit">Track order</button>
+            <button class="btn-solid" type="submit">{{ data.ui.track_btn }}</button>
         </form>
 
         {% if data.tracking_checked and not data.tracking %}
         <div style="margin-top: 20px; padding: 16px; border: 1px solid #b42318; color: #b42318;">
-            No merchandise order was found for <strong>{{ data.tracking_code }}</strong>. Check the code and try again.
+            {{ data.ui.track_not_found|replace('{code}', data.tracking_code) }}
         </div>
         {% elif data.tracking %}
         <div style="margin-top: 28px; padding-top: 24px; border-top: 1px solid #d8ddd8;">
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 20px;">
                 <div>
-                    <p class="product-meta">General information</p>
+                    <p class="product-meta">{{ data.ui.track_general }}</p>
                     <h3 style="font-size: 19px; margin: 5px 0;">{{ data.tracking.transaction_code }}</h3>
                     {% if data.tracking.date %}<p class="product-meta">{{ data.tracking.date }}</p>{% endif %}
-                    <p style="margin-top: 8px;">Total: <strong>{{ data.tracking.total }}</strong></p>
+                    <p style="margin-top: 8px;">{{ data.ui.track_total }} <strong>{{ data.tracking.total }}</strong></p>
                 </div>
                 <div>
-                    <p class="product-meta">Payment status</p>
+                    <p class="product-meta">{{ data.ui.track_payment }}</p>
                     <h3 style="font-size: 19px; margin: 5px 0;">{{ data.tracking.payment_status }}</h3>
-                    <p class="product-meta">Order: {{ data.tracking.order_status }}</p>
+                    {% if data.tracking.is_paid %}
+                    <div aria-label="Paid" style="display: inline-block; margin-top: 6px; transform: rotate(-7deg); border: 3px solid #176b3a; color: #176b3a; font-weight: 800; font-size: 20px; letter-spacing: 0.14em; padding: 2px 12px; border-radius: 8px; opacity: 0.85; box-shadow: inset 0 0 0 1px rgba(23, 107, 58, 0.25); user-select: none;">{{ data.ui.stamp_paid }}</div>
+                    {% endif %}
+                    <p class="product-meta">{{ data.ui.track_order }} {{ data.tracking.order_status }}</p>
                 </div>
                 <div>
-                    <p class="product-meta">Shipping status</p>
+                    <p class="product-meta">{{ data.ui.track_shipping }}</p>
                     <h3 style="font-size: 19px; margin: 5px 0;">{{ data.tracking.shipping_status }}</h3>
                     <p class="product-meta">{{ data.tracking.shipping_info }}</p>
                     {% if data.tracking.shipping_expedition %}
-                    <p class="product-meta" style="margin-top:5px;">Expedition: <strong>{{ data.tracking.shipping_expedition }}</strong></p>
+                    <p class="product-meta" style="margin-top:5px;">{{ data.ui.track_expedition }} <strong>{{ data.tracking.shipping_expedition }}</strong></p>
                     {% endif %}
                     {% if data.tracking.shipping_tracking_code %}
-                    <p class="product-meta" style="margin-top:5px;">Tracking code: <strong>{{ data.tracking.shipping_tracking_code }}</strong></p>
+                    <p class="product-meta" style="margin-top:5px;">{{ data.ui.track_code }} <strong>{{ data.tracking.shipping_tracking_code }}</strong></p>
                     {% endif %}
                     {% if data.tracking.shipping_tracking_url %}
-                    <p style="margin-top:8px;"><a class="section-link" href="{{ data.tracking.shipping_tracking_url }}" target="_blank" rel="noopener">Track shipment →</a></p>
+                    <p style="margin-top:8px;"><a class="section-link" href="{{ data.tracking.shipping_tracking_url }}" target="_blank" rel="noopener">{{ data.ui.track_shipment }}</a></p>
                     {% endif %}
                 </div>
             </div>
 
             {% if data.tracking.is_cancelled %}
-            <div style="margin-top: 22px; padding: 14px; border: 1px solid #b42318; color: #b42318;">This order was cancelled.</div>
+            <div style="margin-top: 22px; padding: 14px; border: 1px solid #b42318; color: #b42318;">{{ data.ui.track_cancelled }}</div>
             {% else %}
             <div style="margin-top: 28px;">
-                <p class="product-meta" style="margin-bottom: 12px;">Merchandise progress</p>
+                <p class="product-meta" style="margin-bottom: 12px;">{{ data.ui.track_progress }}</p>
                 <ol style="display: grid; grid-template-columns: repeat(5, minmax(105px, 1fr)); gap: 8px; overflow-x: auto; padding: 0; list-style: none;">
                     {% for step in data.tracking.steps %}
                     <li style="min-width: 105px; padding: 12px 10px; border-top: 4px solid {% if step.done %}#176b3a{% else %}#d8ddd8{% endif %}; background: {% if step.active %}#eef8f1{% else %}#f8f9f8{% endif %};">
@@ -155,7 +158,7 @@
             {% endif %}
 
             <div style="margin-top: 24px;">
-                <p class="product-meta" style="margin-bottom: 10px;">Items</p>
+                <p class="product-meta" style="margin-bottom: 10px;">{{ data.ui.track_items }}</p>
                 {% for item in data.tracking['items'] %}
                 <p style="padding: 10px 0; border-top: 1px solid #e6e9e6;">
                     <strong>{{ item.name }}</strong> · {{ item.qty }}{% if item.variant %} · {{ item.variant }}{% endif %}
@@ -163,7 +166,7 @@
                 </p>
                 {% endfor %}
                 {% if data.tracking.has_preorder %}
-                <p class="product-meta" style="margin-top: 10px;">Includes preorder merchandise{% if data.tracking.preorder_eta %} · expected {{ data.tracking.preorder_eta }}{% endif %}.</p>
+                <p class="product-meta" style="margin-top: 10px;">{{ data.ui.track_preorder_note|replace('{eta}', data.tracking.preorder_eta or '') }}</p>
                 {% endif %}
             </div>
         </div>

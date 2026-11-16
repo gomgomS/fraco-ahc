@@ -47,7 +47,12 @@ class ahc_site_seed:
             "about_purpose": "Alumni Home Coming 2027 (AHC 2027) is FRACO's main event — ten years on from graduation in 2017. It is a community platform, not a one-day landing page, made to reconnect the class of 2017, inspire the next step, and give back through education, work, and gathering.",
             "about_audience": "It is first for FRACO alumni who graduated in 2017, and also for students looking for a next step, partners who want to build with us, and anyone in the community who wants to take part.",
             "about_activities": "The public program includes University Fair, Career Workshop, Spiritual Affairs, and Events — with FRACO merchandise, member kits, and partnership tracks running alongside.",
-            "about_impact": "The work is meant to leave something standing: relationships, opportunity, and a shared record of what the class of 2017 can still put together."
+            "about_impact": "The work is meant to leave something standing: relationships, opportunity, and a shared record of what the class of 2017 can still put together.",
+            "about_fraco_id": "FRACO adalah komunitas angkatan 2017. Kami mengorganisasi program, merchandise, kemitraan, dan kalender Alumni Home Coming agar alumni, mahasiswa, mitra, dan publik punya satu tempat untuk terhubung kembali.",
+            "about_purpose_id": "Alumni Home Coming 2027 (AHC 2027) adalah acara utama FRACO — sepuluh tahun setelah lulus pada 2017. Ini platform komunitas, bukan sekadar landing page sehari, untuk menyatukan kembali angkatan 2017, menginspirasi langkah berikutnya, dan memberi kembali melalui pendidikan, kerja, dan pertemuan.",
+            "about_audience_id": "Acara ini pertama-tama untuk alumni FRACO lulusan 2017, juga untuk mahasiswa yang mencari langkah berikutnya, mitra yang ingin membangun bersama kami, dan siapa pun di komunitas yang ingin berpartisipasi.",
+            "about_activities_id": "Program publik mencakup University Fair, Career Workshop, Spiritual Affairs, dan Events — dengan merchandise FRACO, member kit, dan jalur kemitraan berjalan bersamaan.",
+            "about_impact_id": "Kerja ini dimaksudkan untuk meninggalkan sesuatu yang berdiri: relasi, kesempatan, dan catatan bersama tentang apa yang masih bisa dibangun angkatan 2017."
         }
     # end def
 

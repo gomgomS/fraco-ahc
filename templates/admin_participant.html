@@ -156,6 +156,25 @@
 <section class="admin-block">
     <h2 class="section-title" style="font-size: 20px; margin: 0 0 8px;">Own contribution</h2>
     <p class="product-meta" style="margin-bottom: 16px;">Pledges this member added from My Proposal. Received: <strong>{{ data.summary.own }}</strong>. Still Follow up: <strong>{{ data.summary.own_pending }}</strong>.</p>
+    <div class="pay-box" style="padding: 16px; margin-bottom: 24px;">
+        <h2 class="section-title" style="font-size: 18px; margin: 0 0 8px;">Add contribution for this member</h2>
+        {% if data.form_ok %}
+        <p class="prose-fraco" style="color: #1b5e20; margin-bottom: 12px;">Contribution added as a Follow up pledge.</p>
+        {% endif %}
+        {% if data.form_error %}
+        <p class="prose-fraco" style="color: #b00000; margin-bottom: 12px;">{{ data.form_error }}</p>
+        {% endif %}
+        <form class="form-stack" method="post" style="max-width: 460px;">
+            <input type="hidden" name="action" value="add_contribution">
+            <input type="hidden" name="pkey" value="{{ data.row.pkey }}">
+            <div>
+                <label class="field-label" for="commitment">Amount</label>
+                <input class="field" type="text" name="commitment" id="commitment" placeholder="e.g. 500000 or Rp 500.000" required>
+                <p class="product-meta" style="margin-top: 8px;">Recorded under the member's name, phone, and referral code as their own pledge (Follow up). Mark it Received from Payments once confirmed.</p>
+            </div>
+            <div><button class="btn-black" type="submit">Add contribution</button></div>
+        </form>
+    </div>
     {% with table=data.contribution_table %}{% include 'admin_table.html' %}{% endwith %}
 </section>
 {% endif %}

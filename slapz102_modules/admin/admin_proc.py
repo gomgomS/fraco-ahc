@@ -2168,16 +2168,58 @@ class admin_proc:
         return support_proc().get_settings()
     # end def
 
+    def _merch_size_proc(self):
+        from merchandise.merchandise_proc import merchandise_proc
+        return merchandise_proc()
+    # end def
+
+    def size_spec_table(self):
+        return self._merch_size_proc().SIZE_TABLE
+    # end def
+
+    def size_spec_default(self, size):
+        return self._merch_size_proc().size_spec_default(size)
+    # end def
+
+    def size_spec_from_params(self, size, params, idx):
+        # Parse category / lebar / panjang for one size row; missing values
+        # auto-apply from the default table so old products pick specs up on save.
+        cat = str(params.get("size_cat_" + str(idx)) or "").strip().upper()
+        if cat not in ["DEWASA", "ANAK"]:
+            cat = ""
+        # end if
+        lebar = self.parse_int(params.get("size_lebar_" + str(idx)))
+        if lebar < 0:
+            lebar = 0
+        # end if
+        panjang = self.parse_int(params.get("size_panjang_" + str(idx)))
+        if panjang < 0:
+            panjang = 0
+        # end if
+        fallback = self.size_spec_default(size)
+        if fallback != None:
+            if cat == "":
+                cat = fallback["cat"]
+            # end if
+            if lebar <= 0:
+                lebar = fallback["lebar"]
+            # end if
+            if panjang <= 0:
+                panjang = fallback["panjang"]
+            # end if
+        # end if
+        if cat == "" and lebar <= 0 and panjang <= 0:
+            return None
+        # end if
+        return {"cat": cat, "lebar": lebar, "panjang": panjang}
+    # end def
+
     def save_donation_settings(self, params):
         settings = self.get_donation_settings()
         pkey = settings.get("pkey") or ""
         list_mode = (params.get("list_mode") or "LIMIT").upper()
         if list_mode not in ["LIMIT", "ALL"]:
             list_mode = "LIMIT"
-        # end if
-        public_total_mode = (params.get("public_total_mode") or "ACCUMULATED").upper()
-        if public_total_mode not in ["ACCUMULATED", "CUSTOM", "HIDDEN"]:
-            public_total_mode = "ACCUMULATED"
         # end if
         fields = {
             "title": params.get("title") or "Support Us",
@@ -2189,11 +2231,162 @@ class admin_proc:
             "follow_up_note": "",
             "top_limit": self.parse_int(params.get("top_limit")),
             "list_mode": list_mode,
-            "public_total_mode": public_total_mode,
-            "public_total_num": self.parse_int(params.get("public_total_num")),
             "status": params.get("status") or "ENABLE"
         }
         return self.save_row("db_donation_settings", pkey, fields)
+    # end def
+
+    def _display_rows(self, settings):
+        rows = settings.get("display_rows") or []
+        if not isinstance(rows, list):
+            rows = []
+        # end if
+        return rows
+    # end def
+
+    def save_display_settings(self, params):
+        settings = self.get_donation_settings()
+        pkey = settings.get("pkey") or ""
+        display_mode = (params.get("display_mode") or "AUTO").upper()
+        if display_mode not in ["AUTO", "CUSTOM"]:
+            display_mode = "AUTO"
+        # end if
+        display_limit = self.parse_int(params.get("display_limit"))
+        if display_limit < 0:
+            display_limit = 0
+        # end if
+        public_total_mode = (params.get("public_total_mode") or "ACCUMULATED").upper()
+        if public_total_mode not in ["ACCUMULATED", "CUSTOM", "HIDDEN"]:
+            public_total_mode = "ACCUMULATED"
+        # end if
+        return self.save_row("db_donation_settings", pkey, {
+            "display_mode": display_mode,
+            "display_limit": display_limit,
+            "public_total_mode": public_total_mode,
+            "public_total_num": self.parse_int(params.get("public_total_num")),
+            "public_total_label": (params.get("public_total_label") or "").strip(),
+            "public_total_note": (params.get("public_total_note") or "").strip()
+        })
+    # end def
+
+    def add_display_donor(self, donor_pkey):
+        response = {"status": "FAILED", "desc": ""}
+        donor_pkey = (donor_pkey or "").strip()
+        donor = self.get_row("db_donor", donor_pkey) if donor_pkey != "" else None
+        if donor == None:
+            response["desc"] = "Pick a donor to add"
+            return response
+        # end if
+        settings = self.get_donation_settings()
+        pkey = settings.get("pkey") or ""
+        rows = self._display_rows(settings)
+        rows.append({"kind": "DONOR", "pkey": donor_pkey})
+        return self.save_row("db_donation_settings", pkey, {"display_rows": rows})
+    # end def
+
+    def add_display_custom(self, params):
+        response = {"status": "FAILED", "desc": ""}
+        name = (params.get("display_custom_name") or "").strip()
+        if name == "":
+            response["desc"] = "Custom row needs a name"
+            return response
+        # end if
+        amount_label = (params.get("display_custom_amount") or "").strip()
+        settings = self.get_donation_settings()
+        pkey = settings.get("pkey") or ""
+        rows = self._display_rows(settings)
+        rows.append({"kind": "CUSTOM", "name": name, "amount_label": amount_label})
+        return self.save_row("db_donation_settings", pkey, {"display_rows": rows})
+    # end def
+
+    def remove_display_row(self, index):
+        settings = self.get_donation_settings()
+        pkey = settings.get("pkey") or ""
+        rows = self._display_rows(settings)
+        try:
+            idx = int(index)
+        except Exception:
+            idx = -1
+        # end try
+        if idx < 0 or idx >= len(rows):
+            return {"status": "FAILED", "desc": "Row not found"}
+        # end if
+        rows.pop(idx)
+        return self.save_row("db_donation_settings", pkey, {"display_rows": rows})
+    # end def
+
+    def move_display_row(self, index, direction):
+        settings = self.get_donation_settings()
+        pkey = settings.get("pkey") or ""
+        rows = self._display_rows(settings)
+        try:
+            idx = int(index)
+        except Exception:
+            idx = -1
+        # end try
+        step = -1 if str(direction or "").strip().lower() == "up" else 1
+        target = idx + step
+        if idx < 0 or idx >= len(rows) or target < 0 or target >= len(rows):
+            return {"status": "FAILED", "desc": "Cannot move row"}
+        # end if
+        rows[idx], rows[target] = rows[target], rows[idx]
+        return self.save_row("db_donation_settings", pkey, {"display_rows": rows})
+    # end def
+
+    def support_preview(self):
+        # Live preview of the public /support list + total block, as rendered today
+        from support.support_proc import support_proc
+        page = support_proc().get_support_page()
+        return {
+            "social_proof": page.get("social_proof") or {},
+            "donors": page.get("donors") or []
+        }
+    # end def
+
+    def donor_options(self):
+        recs = list(self.mgdDB.db_donor.find(
+            {"is_deleted": False},
+            {"_id": 0, "pkey": 1, "name": 1, "amount_label": 1, "amount_num": 1, "follow_status": 1}
+        ).sort([("amount_num", -1), ("name", 1)]))
+        options = []
+        for rec in recs:
+            name = (rec.get("name") or "").strip() or "(no name)"
+            amount = rec.get("amount_label") or self.format_rp(rec.get("amount_num"))
+            follow = (rec.get("follow_status") or "FOLLOW_UP").upper()
+            options.append({
+                "pkey": rec.get("pkey") or "",
+                "label": name + " — " + (amount or "Rp 0") + " (" + (self.DONOR_FOLLOW_LABELS.get(follow) or follow) + ")"
+            })
+        # end for
+        return options
+    # end def
+
+    def display_rows_view(self):
+        # Resolve current display rows for the admin table (raw, no public filtering)
+        from support.support_proc import support_proc
+        proc = support_proc()
+        settings = proc.get_settings()
+        rows = self._display_rows(settings)
+        view = []
+        for idx in range(0, len(rows)):
+            entry = rows[idx]
+            if not isinstance(entry, dict):
+                continue
+            # end if
+            kind = (entry.get("kind") or "").strip().upper()
+            if kind == "DONOR":
+                donor = self.get_row("db_donor", entry.get("pkey") or "")
+                if donor == None:
+                    view.append({"idx": idx, "kind": "DONOR", "name": "(donor removed)", "amount": "—", "missing": True})
+                else:
+                    amount = donor.get("amount_label") or self.format_rp(donor.get("amount_num"))
+                    view.append({"idx": idx, "kind": "DONOR", "name": donor.get("name") or "(no name)", "amount": amount or "—", "missing": False})
+                # end if
+            else:
+                view.append({"idx": idx, "kind": "CUSTOM", "name": entry.get("name") or "", "amount": entry.get("amount_label") or "—", "missing": False})
+            # end if
+        # end for
+        return view
     # end def
 
     def save_support_proposal_pdf(self, params, file_obj=None):
@@ -2392,11 +2585,17 @@ class admin_proc:
                 self.cell(amount or "—"),
                 self.cell(follow_label, "status", status=follow_key),
                 self.cell(self.display_date(rec)),
-                self.cell(rec.get("note") or "—", wrap=True)
+                self.cell(rec.get("note") or "—", wrap=True),
+                self.cell(
+                    follow_label,
+                    "donor_follow",
+                    pkey=rec.get("pkey", ""),
+                    status=follow_key
+                )
             ]})
         # end for
         return self.make_table(
-            ["Name", "Phone", "Amount", "Follow-up", "Date", "Note"],
+            ["Name", "Phone", "Amount", "Follow-up", "Date", "Note", "Action"],
             rows,
             None,
             empty
@@ -2584,6 +2783,51 @@ class admin_proc:
                 "No own contribution pledges yet."
             )
         }
+    # end def
+
+    def add_participant_contribution(self, pkey, params):
+        # Admin-side twin of dashboard_proc.save_member_pledge: records a SELF
+        # pledge on behalf of the member so admins can add it for them.
+        response = {"status": "FAILED", "desc": ""}
+        rec = self.get_row("db_participant", pkey)
+        if rec == None:
+            response["desc"] = "Participant not found"
+            return response
+        # end if
+        if (rec.get("member_type") or "AHC_MEMBER") != "AHC_MEMBER":
+            response["desc"] = "Own contribution applies to AHC members only"
+            return response
+        # end if
+        raw = (params.get("commitment") or params.get("amount") or params.get("contribution_amount") or "").strip()
+        digits = re.sub(r"[^0-9]", "", raw)
+        if digits == "":
+            response["desc"] = "Enter the contribution amount"
+            return response
+        # end if
+        amount_num = int(digits)
+        if amount_num <= 0:
+            response["desc"] = "Amount must be more than zero"
+            return response
+        # end if
+        code = (rec.get("referral_code") or "").strip().lower()
+        donor = database.new(self.mgdDB, "db_donor")
+        donor.put("name", (rec.get("full_name") or "").strip())
+        donor.put("phone", (rec.get("phone") or "").strip())
+        donor.put("amount_label", self.format_rp(amount_num))
+        donor.put("amount_num", amount_num)
+        donor.put("score", amount_num)
+        donor.put("note", "Self pledge added by admin")
+        donor.put("referral_code", code)
+        donor.put("fk_referrer_id", rec.get("pkey") or "")
+        donor.put("fk_referrer_reg_id", rec.get("reg_id") or "")
+        donor.put("pledge_source", "SELF")
+        donor.put("follow_status", "FOLLOW_UP")
+        donor.put("status", "HIDDEN")
+        donor.insert()
+        self.sync_participant_money(pkey)
+        response["status"] = "SUCCESS"
+        response["desc"] = "Contribution added"
+        return response
     # end def
 
     def find_order_referrer(self, order):

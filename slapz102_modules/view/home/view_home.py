@@ -17,7 +17,7 @@ def html_home():
 def html_set_lang(lang):
     clean = (lang or "").strip().lower()
     if clean not in ["en", "id"]:
-        clean = "en"
+        clean = "id"
     # end if
     nxt = (request.args.get("next") or "/").strip()
     if not nxt.startswith("/"):

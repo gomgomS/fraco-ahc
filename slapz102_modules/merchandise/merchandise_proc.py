@@ -1,4 +1,5 @@
 import sys
+import re
 
 sys.path.append("slapz102_core")
 sys.path.append("slapz102_modules")
@@ -14,6 +15,37 @@ from urllib.parse import urlparse
 class merchandise_proc:
 
     mgdDB = database.get_db_conn(config.mainDB)
+
+    # Default size measurement table (cm). Admin can override per product.
+    SIZE_TABLE = {
+        "DEWASA": {
+            "XS": [41, 62],
+            "S": [44, 65],
+            "M": [47, 68],
+            "L": [50, 71],
+            "XL": [53, 73],
+            "2XL": [56, 76],
+            "3XL": [59, 79],
+            "4XL": [67, 79],
+            "5XL": [72, 82]
+        },
+        "ANAK": {
+            "0": [28, 37],
+            "1": [32, 43],
+            "2": [35, 49],
+            "3": [38, 55]
+        }
+    }
+    SIZE_ALIASES = {
+        "XXL": "2XL",
+        "XXXL": "3XL",
+        "XXXXL": "4XL",
+        "XXXXXL": "5XL",
+        "2X": "2XL",
+        "3X": "3XL",
+        "4X": "4XL",
+        "5X": "5XL"
+    }
     DEFAULT_CATEGORIES = ["Apparel", "Accessories", "Member Kit", "Other"]
 
     def __init__(self, app=None):
@@ -38,6 +70,9 @@ class merchandise_proc:
             # end for
             recs = filtered
         # end if
+        for item in recs:
+            self.decorate_product(item)
+        # end for
         return recs
     # end def
 
@@ -90,6 +125,135 @@ class merchandise_proc:
                 n = 0
             # end if
             out[str(key)] = n
+        # end for
+        return out
+    # end def
+
+    def price_by_size_map(self, product):
+        if product == None:
+            return {}
+        # end if
+        raw = product.get("price_by_size") or {}
+        if not isinstance(raw, dict):
+            return {}
+        # end if
+        out = {}
+        for key in raw:
+            try:
+                n = int(raw.get(key) or 0)
+            except Exception:
+                n = 0
+            # end try
+            if n > 0:
+                out[str(key)] = n
+            # end if
+        # end for
+        return out
+    # end def
+
+    def price_num_for_size(self, product, size=""):
+        # Size price override falls back to the standard price when not set or 0.
+        if product == None:
+            return 0
+        # end if
+        base = int(product.get("price_num") or 0)
+        size_key = (size or "").strip()
+        if size_key == "":
+            return base
+        # end if
+        by_size = self.price_by_size_map(product)
+        if by_size == {}:
+            return base
+        # end if
+        if size_key in by_size:
+            return by_size.get(size_key)
+        # end if
+        for key in by_size:
+            if str(key).strip().lower() == size_key.lower():
+                return by_size.get(key)
+            # end if
+        # end for
+        return base
+    # end def
+
+    def _normalize_size_key(self, size):
+        key = re.sub(r"\s+", "", str(size or "")).upper()
+        return self.SIZE_ALIASES.get(key, key)
+    # end def
+
+    def size_spec_default(self, size):
+        # Lookup in the default measurement table; returns None when unknown
+        key = self._normalize_size_key(size)
+        for cat in ["DEWASA", "ANAK"]:
+            for tbl_key, dims in self.SIZE_TABLE.get(cat, {}).items():
+                if self._normalize_size_key(tbl_key) == key:
+                    return {"cat": cat, "lebar": int(dims[0]), "panjang": int(dims[1])}
+                # end if
+            # end for
+        # end for
+        return None
+    # end def
+
+    def size_specs_stored(self, product):
+        raw = (product or {}).get("size_specs") or {}
+        if not isinstance(raw, dict):
+            return {}
+        # end if
+        out = {}
+        for key, val in raw.items():
+            if not isinstance(val, dict):
+                continue
+            # end if
+            cat = str(val.get("cat") or "").strip().upper()
+            if cat not in ["DEWASA", "ANAK"]:
+                cat = ""
+            # end if
+            try:
+                lebar = int(val.get("lebar") or 0)
+            except Exception:
+                lebar = 0
+            # end try
+            try:
+                panjang = int(val.get("panjang") or 0)
+            except Exception:
+                panjang = 0
+            # end try
+            if lebar < 0:
+                lebar = 0
+            # end if
+            if panjang < 0:
+                panjang = 0
+            # end if
+            out[str(key)] = {"cat": cat, "lebar": lebar, "panjang": panjang}
+        # end for
+        return out
+    # end def
+
+    def size_specs_resolved(self, product):
+        # Stored specs win; sizes without stored specs fall back to the default
+        # table so old products get measurements without being re-saved.
+        if product == None:
+            return {}
+        # end if
+        stored = self.size_specs_stored(product)
+        out = {}
+        for sz in product.get("sizes") or []:
+            spec = dict(stored.get(sz) or {})
+            fallback = self.size_spec_default(sz)
+            if fallback != None:
+                if spec.get("cat", "") == "":
+                    spec["cat"] = fallback["cat"]
+                # end if
+                if int(spec.get("lebar") or 0) <= 0:
+                    spec["lebar"] = fallback["lebar"]
+                # end if
+                if int(spec.get("panjang") or 0) <= 0:
+                    spec["panjang"] = fallback["panjang"]
+                # end if
+            # end if
+            if spec.get("cat", "") != "" or int(spec.get("lebar") or 0) > 0 or int(spec.get("panjang") or 0) > 0:
+                out[sz] = spec
+            # end if
         # end for
         return out
     # end def
@@ -215,6 +379,9 @@ class merchandise_proc:
         rows = []
         sizes = product.get("sizes") or []
         by_size = self.stock_by_size_map(product)
+        prices_by_size = self.price_by_size_map(product)
+        specs_by_size = self.size_specs_resolved(product)
+        base_price = int(product.get("price_num") or 0)
         shared = False
         if by_size == {} and sizes != []:
             shared = True
@@ -238,13 +405,32 @@ class merchandise_proc:
                     # end for
                 # end if
             # end if
+            price_num = base_price
+            if sz in prices_by_size:
+                price_num = prices_by_size.get(sz)
+            else:
+                for key in prices_by_size:
+                    if str(key).strip().lower() == str(sz).strip().lower():
+                        price_num = prices_by_size.get(key)
+                        break
+                    # end if
+                # end for
+            # end if
+            spec = specs_by_size.get(sz) or {}
             rows.append({
                 "size": sz,
                 "stock": qty,
                 "shared": shared,
                 "available": qty > 0 or self.allows_preorder(product),
                 "is_preorder": qty <= 0 and self.allows_preorder(product),
-                "buy_limit": self.buy_limit(product, "" if shared else sz)
+                "buy_limit": self.buy_limit(product, "" if shared else sz),
+                "price_num": price_num,
+                "price_label": self.format_rp(price_num),
+                "has_price_override": price_num != base_price,
+                "lebar": int(spec.get("lebar") or 0),
+                "panjang": int(spec.get("panjang") or 0),
+                "cat": spec.get("cat") or "",
+                "is_kids": (spec.get("cat") or "").upper() == "ANAK"
             })
         # end for
         return rows
@@ -257,12 +443,26 @@ class merchandise_proc:
         by_size = self.stock_by_size_map(product)
         product["stock_by_size"] = by_size
         product["size_stock_rows"] = self.size_stock_rows(product)
+        product["size_specs"] = self.size_specs_resolved(product)
+        product["size_guide_rows"] = [
+            row for row in product["size_stock_rows"]
+            if int(row.get("lebar") or 0) > 0 or int(row.get("panjang") or 0) > 0
+        ]
         product["allows_preorder"] = self.allows_preorder(product)
         product["is_preorder"] = self.is_preorder(product)
         product["is_in_stock"] = self.is_in_stock(product)
         product["stock_label"] = self.stock_label(product)
         product["can_buy"] = self.can_buy(product)
         product["buy_limit"] = self.buy_limit(product)
+        # Availability is admin free text; translate the known seeded values for display
+        ui = self.site.UI.get(self.site.get_lang()) or self.site.UI["en"]
+        avail_map = {
+            "In Stock": ui.get("badge_in_stock_cap"),
+            "Out of Stock": ui.get("badge_out_stock_cap"),
+            "Preorder": ui.get("badge_preorder")
+        }
+        raw_avail = (product.get("availability") or "").strip()
+        product["availability_label"] = avail_map.get(raw_avail) or raw_avail
         # Keep total stock in sync for display when map exists
         if by_size != {}:
             product["stock"] = self.stock_num(product)
@@ -349,6 +549,18 @@ class merchandise_proc:
         if order == None:
             return None
         # end if
+        ui = self.site.UI.get(self.site.get_lang()) or self.site.UI["en"]
+        status_map = {
+            "Pending Payment": ui.get("status_pending_payment"),
+            "Pending": ui.get("status_pending"),
+            "Paid": ui.get("status_paid"),
+            "Ready": ui.get("status_ready"),
+            "Processing": ui.get("status_processing"),
+            "Shipped": ui.get("status_shipped"),
+            "Completed": ui.get("status_completed"),
+            "Cancelled": ui.get("status_cancelled"),
+            "Preorder": ui.get("status_preorder")
+        }
         item_rows = []
         for item in order.get("items") or []:
             label = item.get("name") or item.get("product_name") or "Merchandise"
@@ -363,7 +575,7 @@ class merchandise_proc:
                 "name": label,
                 "qty": int(item.get("qty") or 0),
                 "variant": " · ".join(variant),
-                "status": item.get("line_status") or order.get("order_status") or "Pending"
+                "status": status_map.get(item.get("line_status")) or status_map.get(order.get("order_status")) or item.get("line_status") or order.get("order_status") or "Pending"
             })
         # end for
         order_status = (order.get("order_status") or "Pending Payment").strip()
@@ -383,11 +595,11 @@ class merchandise_proc:
             rank = rank_by_status.get(order_status)
         # end if
         step_labels = [
-            "Order placed",
-            "Payment confirmed",
-            "Preparing merchandise",
-            "Shipped",
-            "Completed"
+            ui.get("track_step_placed") or "Order placed",
+            ui.get("track_step_payment") or "Payment confirmed",
+            ui.get("track_step_preparing") or "Preparing merchandise",
+            ui.get("track_step_shipped") or "Shipped",
+            ui.get("track_step_completed") or "Completed"
         ]
         steps = []
         for index, label in enumerate(step_labels):
@@ -398,13 +610,13 @@ class merchandise_proc:
                 "active": order_status != "Cancelled" and step_no == rank and rank < 5
             })
         # end for
-        shipping_status = "Not shipped yet"
+        shipping_status = ui.get("track_not_shipped") or "Not shipped yet"
         if order_status == "Shipped":
-            shipping_status = "Shipped"
+            shipping_status = status_map.get("Shipped")
         elif order_status == "Completed":
-            shipping_status = "Completed"
+            shipping_status = status_map.get("Completed")
         elif order_status == "Cancelled":
-            shipping_status = "Cancelled"
+            shipping_status = status_map.get("Cancelled")
         # end if
         tracking_url = (order.get("shipping_tracking_url") or "").strip()
         if tracking_url != "":
@@ -416,10 +628,11 @@ class merchandise_proc:
         return {
             "transaction_code": order.get("order_id") or code,
             "date": order.get("rec_timestamp_str") or "",
-            "payment_status": payment_status,
-            "order_status": order_status,
+            "payment_status": status_map.get(payment_status) or payment_status,
+            "is_paid": payment_status == "Paid",
+            "order_status": status_map.get(order_status) or order_status,
             "shipping_status": shipping_status,
-            "shipping_info": order.get("shipping") or "Confirmed after order",
+            "shipping_info": order.get("shipping") or (ui.get("track_confirmed_after") or "Confirmed after order"),
             "shipping_expedition": order.get("shipping_expedition") or "",
             "shipping_tracking_code": order.get("shipping_tracking_code") or "",
             "shipping_tracking_url": tracking_url,
